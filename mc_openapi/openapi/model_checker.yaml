@@ -1,0 +1,76 @@
+openapi: 3.0.2
+info:
+  license:
+    name: Apache-2.0
+  title: PIACERE Model Checker
+  version: "1.0"
+paths:
+  /modelcheck:
+    post:
+      description: Send a DOML model in JSON format and a requirement to check.
+        The response says whether the requirement is satisfied by the model,
+        with a description of the issue if it is not.
+      operationId: mc_openapi.handlers.post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  $ref: '#/components/schemas/doml'
+                requirement:
+                  type: string
+              required:
+                - model
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: string
+                    enum:
+                      - sat
+                      - unsat
+                      - dontknow
+                  description:
+                    type: string
+                required:
+                  - result
+          description: OK - model checking succeded
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: malformed request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: internal error
+components:
+  schemas:
+    doml:
+      type: object
+      additionalProperties: true
+    error:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        message:
+          type: string
+          description: Error message for the user
+        debug_message:
+          type: string
+          description: Detailed error message for debugging purposes
+      required:
+        - timestamp
+        - message
