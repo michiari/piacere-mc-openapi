@@ -7,7 +7,7 @@ license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-connexion = "^2.9.0"
+connexion = {extras = ["swagger-ui"], version = "^2.9.0"}
 uWSGI = "^2.0.20"
 
 [tool.poetry.dev-dependencies]
