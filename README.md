@@ -1,6 +1,6 @@
 # PIACERE Model Checker REST API server
 
-Thys project is packaged with [Poetry](https://python-poetry.org/).
+This project is packaged with [Poetry](https://python-poetry.org/).
 
 ## Build and Run
 

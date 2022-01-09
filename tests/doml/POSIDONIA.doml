@@ -1,0 +1,180 @@
+{
+    "typeId": "commons_DOMLModel",
+    "modelname": "POSIDONIA",
+    "version": "0.1",
+    "id": "posidonia",
+    "application": [{
+        "typeId": "application_ApplicationLayer",
+        "name": "POSIDONIA APP LAYER",
+        "children": [{
+            "typeId": "application_SoftwarePackage",
+            "name": "EstacionEDI",
+            "consumedInterfaces->application_SoftwareInterface": ["SOFTWAREINTERFACE_1", "SOFTWAREINTERFACE_2", "SOFTWAREINTERFACE_3", "SOFTWAREINTERFACE_4"],
+            "exposedInterfaces": []
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "ProcesosEDI-WS",
+            "consumedInterfaces->application_SoftwareInterface": ["SOFTWAREINTERFACE_1"],
+            "exposedInterfaces": [{
+                "typeId": "application_SoftwareInterface",
+                "name": "HTTP",
+                "endPoint": "9002"
+            }]
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "EDIMERTEL",
+            "consumedInterfaces->application_SoftwareInterface": ["SOFTWAREINTERFACE_2"],
+            "exposedInterfaces": [{
+                "typeId": "application_SoftwareInterface",
+                "name": "EDIMERTEL HTTP",
+                "endPoint": "8080"
+            }]
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "VALEDIENGINE"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "EDIMER-SERVICESTEDI"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "POSIDONIA-PCS"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "POSIDONIA-ESTEDI"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "POSIDONIA-GESTAUT"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "VALEDI"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "PCS-SERVICES"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "ESTEDI-SERVICES"
+        }, {
+            "typeId": "application_SoftwarePackage",
+            "name": "GESTAUT-SERVICES"
+        }, {
+            "typeId": "application_SaaSDBMS",
+            "name": "ORACLE"
+        }]
+    }],
+    "infrastructure": [{
+        "typeId": "infrastructure_InfrastructureLayer",
+        "nodes": [{
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "Plataforma EDI"
+        }, {
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "EDIMER"
+        }, {
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "DATABASE"
+        }, {
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "PIDEWEB"
+        }, {
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "ELASTIC SEARCH"
+        }, {
+            "typeId": "infrastructure_VirtualMachine",
+            "name": "PMS"
+        }, {
+            "typeId": "infrastructure_Container",
+            "name": "prodevelop/edi/procesos:latest"
+        }, {
+            "typeId": "infrastructure_Container",
+            "name": "prodevelop/edimer/procesos:latest"
+        }],
+        "networks": [{
+            "typeId": "infrastructure_Network",
+            "name": "Subnet1",
+            "protocol": "TCP/IP",
+            "addressRange": "10.100.1.0/24"
+        }, {
+            "typeId": "infrastructure_Network",
+            "protocol": "TCP/IP",
+            "name": "Subnet2",
+            "addressRange": "10.100.2.0/24"
+        }, {
+            "typeId": "infrastructure_Network",
+            "protocol": "TCP/IP",
+            "name": "Subnet3",
+            "addressRange": "10.100.3.0/24"
+        }],
+        "groups": [{
+            "typeId": "infrastructure_AutoScalingGroup",
+            "name": "GestautASG"
+        }, {
+            "typeId": "infrastructure_AutoScalingGroup",
+            "name": "ElasticSearchASG"
+        }, {
+            "typeId": "infrastructure_AutoScalingGroup",
+            "name": "EdiASG"
+        }, {
+            "typeId": "infrastructure_SecurityGroup",
+            "name": "BalearesDBSG"
+        }, {
+            "typeId": "infrastructure_SecurityGroup",
+            "name": "BalearesSG"
+        }, {
+            "typeId": "infrastructure_SecurityGroup",
+            "name": "BalearesELBSG"
+        }, {
+            "typeId": "infrastructure_SecurityGroup",
+            "name": "CheckmkSG"
+        }]
+    }],
+    "optimization": [{
+        "typeId": "optimization_OptimizationLayer"
+    }],
+    "concretizations": [{
+        "typeId": "concrete_ConcreteInfrastructure",
+        "groups": [{
+            "typeId": "concrete_ComputingGroup",
+            "name": "VPC"
+        }],
+        "vms": [{
+            "typeId": "concrete_VirtualMachine",
+            "maps->infrastructure_VirtualMachine": "VIRTUALMACHINE_1",
+            "name": "ORACLE DB",
+            "description": "AWS::RDS::DBInstance"
+        }, {
+            "typeId": "concrete_VirtualMachine",
+            "name": "PlataformaEDI",
+            "description": "t3a.large"
+        }, {
+            "typeId": "concrete_VirtualMachine",
+            "name": "EDIMER",
+            "description": "m5a.large"
+        }],
+        "providers": [{
+            "typeId": "concrete_RuntimeProvider",
+            "name": "AWS",
+            "supportedGroups->concrete_ComputingGroup": ["COMPUTINGGROUP_1"],
+            "providedVMs->concrete_VirtualMachine": ["VIRTUALMACHINE_1"],
+            "contributesTo->commons_Requirement": ["REQUIREMENT_1", "REQUIREMENT_2"],
+            "storages->concrete_Storage": ["STORAGE_1", "STORAGE_2"],
+            "providedNetworks->concrete_Network": ["NETWORK_1", "NETWORK_2", "NETWORK_3"],
+            "description": "The Selected Runtime Provider"
+        }],
+        "storages": [{
+            "typeId": "concrete_Storage",
+            "contributesTo->commons_Requirement": [],
+            "maps->infrastructure_Storage": "STORAGE_1",
+            "name": "STORAGE 1"
+        }, {
+            "typeId": "concrete_Storage",
+            "maps->infrastructure_Storage": "STORAGE_2",
+            "name": "STORAGE 2"
+        }],
+        "networks": [{
+            "typeId": "concrete_Network",
+            "name": "AWS EC2 Subnet",
+            "maps->infrastructure_Network": "NETWORK_1"
+        }]
+    }],
+    "name": "POSIDONIA"
+}
