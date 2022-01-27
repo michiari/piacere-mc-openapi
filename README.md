@@ -25,6 +25,19 @@ The project may be run with [uWSGI](https://uwsgi-docs.readthedocs.io/) as follo
 $ uwsgi --http :8080 -w mc_openapi.app_config -p 4
 ```
 
+## Run with Docker
+
+First, build the docker image with the usual
+```sh
+$ docker build -t wp4/dmc .
+```
+And then run it with
+```sh
+$ docker run -d wp4/dmc
+```
+The uWSGI server will be running and listening on port 80 of the container.
+
+
 ## REST APIs
 
 The OpenAPI definition of the REST APIs is in `mc_openapi/openapi/model_checker.yaml`.
