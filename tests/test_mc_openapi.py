@@ -6,20 +6,20 @@ def test_version():
     assert __version__ == '0.1.0'
 
 def test_post_sat():
-    with open("tests/doml/POSIDONIA.doml", "r") as f:
-        doml = json.load(f)
+    with open("tests/doml/nginx-openstack_v2.domlx", "r") as f:
+        doml = f.read()
 
-    r = requests.post("http://0.0.0.0:8080/modelcheck", json={'model': doml})
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
     payload = r.json()
     assert r.status_code == requests.codes.ok
     assert payload["result"] is not None
     assert payload["result"] == "sat"
 
 def test_post_unsat():
-    with open("tests/doml/POSIDONIA_wrong.doml", "r") as f:
-        doml = json.load(f)
+    with open("tests/doml/nginx-openstack_v2_wrong.domlx", "r") as f:
+        doml = f.read()
 
-    r = requests.post("http://0.0.0.0:8080/modelcheck", json={'model': doml})
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
     payload = r.json()
     assert r.status_code == requests.codes.ok
     assert payload["result"] is not None

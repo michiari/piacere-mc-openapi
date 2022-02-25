@@ -45,7 +45,7 @@ The OpenAPI definition of the REST APIs is in `mc_openapi/openapi/model_checker.
 The APIs can also be browsed with [Swagger UI](https://swagger.io/tools/swagger-ui/) by appending `/ui/` to the API HTTP address.
 
 For APIs usage examples, you may look into the tests, in `tests/test_mc_openapi.py`.
-Two DOML examples in JSON format are sent to the server.
-One of them is correct (`tests/doml/POSIDONIA.doml`), and the server answers with `"sat"` (meaning the requirements are satisfied), and the other one contains an error (`tests/doml/POSIDONIA_wrong.doml`), so the server answers with `"unsat"`.
+Two DOML examples in XMI format are sent to the server.
+One of them is correct (`tests/doml/nginx-openstack_v2.domlx`), and the server answers with `"sat"` (meaning the requirements are satisfied), and the other one contains an error (`tests/doml/nginx-openstack_v2_wrong.domlx`), so the server answers with `"unsat"`.
 
-**Note:** for the time being, the `model` field of the POST request's body accepts any JSON object. This will be changed to the DOML JSON schema when available.
+**Note:** for the time being, the `model` field of the POST request's body accepts any XML object. This will be changed to the DOML XMI schema when possible.

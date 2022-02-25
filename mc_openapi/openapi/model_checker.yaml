@@ -7,23 +7,23 @@ info:
 paths:
   /modelcheck:
     post:
-      description: Send a DOML model in JSON format and a requirement to check.
+      description: Send a DOML model in XMI format and a requirement to check.
         The response says whether the requirement is satisfied by the model,
         with a description of the issue if it is not.
       operationId: mc_openapi.handlers.post
       requestBody:
         content:
-          application/json:
+          application/xml:
             schema:
-              type: object
-              properties:
-                model:
-                  $ref: '#/components/schemas/doml'
-                requirement:
-                  type: string
-              required:
-                - model
+              type: string
         required: true
+      parameters:
+        - in: query
+          name: requirement
+          required: false
+          schema:
+            type: string
+          description: Requirement to be verified (optional)
       responses:
         "200":
           content:
@@ -56,9 +56,6 @@ paths:
           description: internal error
 components:
   schemas:
-    doml:
-      type: object
-      additionalProperties: true
     error:
       type: object
       properties:
