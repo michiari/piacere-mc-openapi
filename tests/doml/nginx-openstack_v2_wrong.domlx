@@ -7,12 +7,10 @@
   </application>
   <infrastructure name="infra">
     <nodes xsi:type="infra:AutoScalingGroup" name="ag" deploymentNetwork="//@infrastructure/@networks.0">
-      <machineDefinition name="vm1" credentials="//@infrastructure/@credentials.0" group="//@infrastructure/@secGroups.0" generatedFrom="//@infrastructure/@generators.0">
-        <ifaces name="i1" endPoint="16.0.0.1" />
-      </machineDefinition>
+      <machineDefinition name="vm1" credentials="//@infrastructure/@credentials.0" group="//@infrastructure/@secGroups.0" generatedFrom="//@infrastructure/@generators.0" />
     </nodes>
     <networks name="net1" protocol="tcp/ip" addressRange="16.0.0.0/24" />
-    <secGroups name="sg" groupedNodes="//@infrastructure/@nodes.0/@machineDefinition" ifaces="//@infrastructure/@nodes.0/@machineDefinition/@ifaces.0">
+    <secGroups name="sg" groupedNodes="//@infrastructure/@nodes.0/@machineDefinition">
       <rules name="out_all" protocol="-1" fromPort="0" toPort="0">
         <addressRanges>0.0.0.0/0</addressRanges>
         <addressRanges>::/0</addressRanges>

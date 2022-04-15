@@ -1,11 +1,11 @@
 from pyecore.resources import URI
 from io import BytesIO
 
-class StringURI(URI):
-    def __init__(self, uri, text=None):
-        super(StringURI, self).__init__(uri)
-        if text is not None:
-            self.__stream = BytesIO(text)
+class BytesURI(URI):
+    def __init__(self, uri, bytes=None):
+        super(BytesURI, self).__init__(uri)
+        if bytes is not None:
+            self.__stream = BytesIO(bytes)
 
     def getvalue(self):
         return self.__stream.getvalue()
