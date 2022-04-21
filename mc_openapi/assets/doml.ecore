@@ -26,11 +26,21 @@
       <eStructuralFeatures xsi:type="ecore:EReference" name="functionalRequirements"
           upperBound="-1" eType="#//commons/Requirement" containment="true"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="Property">
+    <eClassifiers xsi:type="ecore:EClass" name="Property" abstract="true">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="key" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="reference" eType="#//commons/DOMLElement"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="IProperty" eSuperTypes="#//commons/Property">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="SProperty" eSuperTypes="#//commons/Property">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="FProperty" eSuperTypes="#//commons/Property">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="BProperty" eSuperTypes="#//commons/Property">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="value" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBooleanObject"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="ExtensionElement" abstract="true">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="metaclassName" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -54,7 +64,6 @@
           eType="#//infrastructure/InfrastructureElement"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="Requirement">
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="identifier" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="description" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="property" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -182,9 +191,9 @@
     <eClassifiers xsi:type="ecore:EClass" name="ComputingNode" abstract="true" eSuperTypes="#//infrastructure/InfrastructureElement">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="architecture" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="os" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="memory" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="memory" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="storage" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="cpu" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="cpu" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="cost" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="ifaces" upperBound="-1"
           eType="#//infrastructure/NetworkInterface" containment="true"/>
@@ -253,7 +262,8 @@
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="InternetGateway" eSuperTypes="#//infrastructure/NetworkInterface"/>
     <eClassifiers xsi:type="ecore:EClass" name="Storage" eSuperTypes="#//infrastructure/InfrastructureElement">
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="storage" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="label" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="size" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EInt"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="cost" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="ifaces" upperBound="-1"
           eType="#//infrastructure/NetworkInterface" containment="true"/>
@@ -265,6 +275,8 @@
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="Credentials" abstract="true" eSuperTypes="#//commons/DOMLElement"/>
     <eClassifiers xsi:type="ecore:EClass" name="KeyPair" eSuperTypes="#//infrastructure/Credentials">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="user" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="keyfile" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="algorithm" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="bits" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
     </eClassifiers>
@@ -319,7 +331,7 @@
       <eStructuralFeatures xsi:type="ecore:EReference" name="maps" eType="#//infrastructure/FunctionAsAService"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="ComputingGroup" eSuperTypes="#//concrete/ConcreteElement">
-      <eStructuralFeatures xsi:type="ecore:EReference" name="maps" eType="#//infrastructure/ComputingGroup"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="maps" eType="#//infrastructure/AutoScalingGroup"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="ExtConcreteElement" eSuperTypes="#//concrete/ConcreteElement #//commons/ExtensionElement"/>
   </eSubpackages>
@@ -334,7 +346,17 @@
       <eStructuralFeatures xsi:type="ecore:EReference" name="nonfunctionalRequirements"
           upperBound="-1" eType="#//commons/Requirement" containment="true"/>
     </eClassifiers>
-    <eClassifiers xsi:type="ecore:EClass" name="OptimizationSolution" eSuperTypes="#//commons/Configuration"/>
+    <eClassifiers xsi:type="ecore:EClass" name="ObjectiveValue">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="cost" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="availability" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="performance" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EFloatObject"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="OptimizationSolution" eSuperTypes="#//commons/Configuration">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="objectives" eType="#//optimization/ObjectiveValue"
+          containment="true"/>
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="decisions" upperBound="-1"
+          eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="OptimizationObjective" abstract="true"
         eSuperTypes="#//commons/DOMLElement">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" lowerBound="1"

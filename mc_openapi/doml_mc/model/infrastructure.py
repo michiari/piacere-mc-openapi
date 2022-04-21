@@ -1,14 +1,8 @@
 from dataclasses import dataclass
-from typing import Union
 
-from mc_openapi.doml_mc.intermediate_model.doml_element import (
-    parse_attrs_and_assocs_from_doc,
-)
-
+from ..intermediate_model.doml_element import parse_attrs_and_assocs_from_doc
 from ..intermediate_model.metamodel import MetaModel
-
-Attributes = dict[str, Union[str, int, bool]]
-Associations = dict[str, set[str]]
+from .types import Associations, Attributes
 
 
 @dataclass

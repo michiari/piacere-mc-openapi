@@ -2,7 +2,7 @@
 <commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="nginx_openstack" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
   <application name="app">
     <components xsi:type="app:SoftwareComponent" name="nginx">
-      <annotations key="source_code" value="/usr/share/nginx/html/index.html"/>
+      <annotations xsi:type="commons:SProperty" key="source_code" value="/usr/share/nginx/html/index.html"/>
     </components>
   </application>
   <infrastructure name="infra">
@@ -31,33 +31,46 @@
       </rules>
     </secGroups>
     <generators xsi:type="infra:VMImage" name="v_img" generatedVMs="//@infrastructure/@nodes.0/@machineDefinition"/>
-    <credentials xsi:type="infra:KeyPair" name="ssh_key" algorithm="RSA" bits="4096"/>
+    <credentials xsi:type="infra:KeyPair" name="ssh_key" user="ubuntu" keyfile="/home/user1/.ssh/openstack.key" algorithm="RSA" bits="4096"/>
   </infrastructure>
   <concretizations name="con_infra">
     <providers name="openstack">
       <vms name="concrete_vm" maps="//@infrastructure/@nodes.0/@machineDefinition">
-        <annotations key="vm_name" value="nginx-host"/>
-        <annotations key="vm_flavor" value="small"/>
-        <annotations key="vm_key_name" value="user1"/>
-        <annotations key="ssh_user" value="ubuntu"/>
-        <annotations key="ssh_key_file" value="/home/user1/.ssh/openstack.key"/>
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="nginx-host"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
       </vms>
       <vmImages name="concrete_vm_image" maps="//@infrastructure/@generators.0">
-        <annotations key="name" value="ubuntu-20.04.3"/>
+        <annotations xsi:type="commons:SProperty" key="name" value="ubuntu-20.04.3"/>
       </vmImages>
       <networks name="concrete_net" maps="//@infrastructure/@networks.0">
-        <annotations key="name" value="ostack2"/>
+        <annotations xsi:type="commons:SProperty" key="name" value="ostack2"/>
       </networks>
     </providers>
   </concretizations>
   <optimization name="opt">
+    <solutions name="sol1">
+      <objectives cost="200.0" availability="99.76667" performance="8.0"/>
+      <decisions>Storage4_Europe</decisions>
+      <decisions>db.dynamo.3</decisions>
+      <decisions>C8_Germany</decisions>
+    </solutions>
+    <solutions name="sol2">
+      <objectives cost="45.53" availability="99.03333" performance="11.0"/>
+      <decisions>Storage1_Spain</decisions>
+      <decisions>db.dynamo.3</decisions>
+      <decisions>t2.nano</decisions>
+    </solutions>
     <objectives xsi:type="optimization:MeasurableObjective" kind="min" property="cost"/>
     <objectives xsi:type="optimization:MeasurableObjective" kind="max" property="availability"/>
     <objectives xsi:type="optimization:MeasurableObjective" kind="max" property="performance"/>
-    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" identifier="req1" name="Cost &lt;= 200" property="cost" max="200.0"/>
-    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" identifier="req2" name="Availability >= 98%" property="availability" min="98.0"/>
-    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" identifier="req3" name="Region" property="region">
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req1" description="Cost &lt;= 200" property="cost" max="200.0"/>
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req2" description="Availability >= 98%" property="availability" min="98.0"/>
+    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req3" description="Region" property="region">
       <values>00EU</values>
+    </nonfunctionalRequirements>
+    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req4" description="Provider" property="provider">
+      <values>AMAZ</values>
     </nonfunctionalRequirements>
   </optimization>
   <configurations name="config">

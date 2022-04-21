@@ -27,6 +27,16 @@ class DOMLElement:
 IntermediateModel = dict[str, "DOMLElement"]
 
 
+def parse_attributes(raw_attributes: Attributes, comp_class: str, mm: MetaModel) -> Attributes:
+    attributes: Attributes = {}
+    for k, v in raw_attributes.items():
+        man = get_mangled_attribute_name(mm, comp_class, k)
+        if v is None:
+            raise RuntimeError("Supplied with None attribute value.")
+        attributes[man] = v
+    return attributes
+
+
 def parse_attrs_and_assocs_from_doc(
     doc: dict,
     cname: str,

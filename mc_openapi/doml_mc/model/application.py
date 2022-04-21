@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from .types import Attributes
 
 
 @dataclass
@@ -11,53 +12,27 @@ class Application:
 class ApplicationComponent:
     typeId: str
     name: str
-    consumedInterfaces: dict[str, list[str]]
-    exposedInterfaces: dict[str, "ApplicationInterface"]
+    consumedInterfaces: list["ApplicationInterface"]
+    exposedInterfaces: list["ApplicationInterface"]
+    attributes: Attributes
 
 
 @dataclass
 class ApplicationInterface:
-    name: str
+    endPoint: str
     componentName: str
     typeId: str
-    endPoint: str
 
 
-def parse_application(doc: dict) -> Application:
-    def parse_application_component(doc: dict) -> ApplicationComponent:
-        def remove_prefix(s: str, prefix: str) -> str:
-            return s[len(prefix) :] if s.startswith(prefix) else s
-
-        def parse_application_interface(
-            doc: dict, componentName: str
-        ) -> ApplicationInterface:
-            return ApplicationInterface(
-                name=doc["name"],
-                componentName=componentName,
-                typeId=doc["typeId"],
-                endPoint=doc["endPoint"],
-            )
-
-        return ApplicationComponent(
-            name=doc["name"],
-            typeId=doc["typeId"],
-            consumedInterfaces={
-                remove_prefix(k, "consumedInterfaces->"): d
-                for k, d in doc.items()
-                if k.startswith("consumedInterfaces->")
-            },
-            exposedInterfaces={
-                intdoc["name"]: parse_application_interface(
-                    intdoc, doc["name"]
-                )
-                for intdoc in doc.get("exposedInterfaces", [])
-            },
-        )
-
-    return Application(
-        name=doc["name"],
-        children={
-            compdoc["name"]: parse_application_component(compdoc)
-            for compdoc in doc["children"]
-        },
-    )
+# @dataclass
+# class Property:
+#     key: str
+#     value: str
+#     typeId: str
+#
+# def parse_property(doc: ecore.Property) -> Property:
+#     return Property(
+#         key=doc.key,
+#         value=doc.value,
+#         typeId=doc.type
+#     )

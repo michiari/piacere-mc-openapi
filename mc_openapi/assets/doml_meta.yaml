@@ -38,6 +38,12 @@ application:
                 type: Boolean
                 multiplicity: "1"
                 default: false
+            licenseCost:
+                type: String
+                multiplicity: "0..1"
+            configFile:
+                type: String
+                multiplicity: "0..1"
         associations:
             exposedInterfaces:
                 class: application_SoftwareInterface
@@ -47,6 +53,10 @@ application:
                 mutiplicity: "0..*"
     SaaS:
         superclass: application_ApplicationComponent
+        attributes:
+            licenseCost:
+                type: String
+                multiplicity: "0..1"
         associations:
             exposedInterfaces:
                 class: application_SoftwareInterface
@@ -72,20 +82,20 @@ infrastructure:
             generators:
                 class: infrastructure_ComputingNodeGenerator
                 multiplicity: "0..*"
-            asGroups:
-                class: infrastructure_AutoScalingGroup
+            secGroups:
+                class: infrastructure_SecurityGroup
                 multiplicity: "0..*"
             networks:
                 class: infrastructure_Network
-                multiplicity: "0..*"
-            firewalls:
-                class: infrastructure_Firewall
                 multiplicity: "0..*"
             storages:
                 class: infrastructure_Storage
                 multiplicity: "0..*"
             faas:
                 class: infrastructure_FunctionAsAService
+                multiplicity: "0..*"
+            credentials:
+                class: infrastructure_Credentials
                 multiplicity: "0..*"
     InfrastructureElement:
         superclass: commons_DOMLElement
@@ -111,15 +121,19 @@ infrastructure:
                 type: Integer  # in cents 
                 multiplicity: "0..1"
         associations:
-            group:
-                class: infrastructure_AutoScalingGroup
-                multiplicity: "0..1"
             ifaces:
                 class: infrastructure_NetworkInterface
                 multiplicity: "0..*"
             location:
                 class: infrastructure_Location
                 multiplicity: "0..1"
+            credentials:
+                class: infrastructure_Credentials
+                multiplicity: "0..1"
+            group:
+                class: infrastructure_ComputingGroup
+                multiplicity: "0..1"
+                inverse_of: infrastructure_ComputingGroup::groupedNodes
     PhysicalComputingNode:
         superclass: infrastructure_ComputingNode
     VirtualMachine:
@@ -131,9 +145,6 @@ infrastructure:
         associations:
             generatedFrom:
                 class: infrastructure_VMImage
-                multiplicity: "0..1"
-            location:
-                class: infrastructure_Location
                 multiplicity: "0..1"
     Location:
         superclass: commons_DOMLElement
@@ -176,25 +187,34 @@ infrastructure:
                 multiplicity: "0..*"
                 inverse_of: infrastructure_Container::generatedFrom
     AutoScalingGroup:
-        superclass: commons_DOMLElement
+        superclass: infrastructure_ComputingNode
+        attributes:
+            min:
+                type: Integer
+                multiplicity: "0..1"
+            max:
+                type: Integer
+                multiplicity: "0..1"
+            loadBalancer:
+                type: String
+                multiplicity: "0..1"
         associations:
-            # runtimeProvider
-            groupedNodes:
-                class: infrastructure_ComputingNode
-                multiplicity: "0..*"
-                inverse_of: infrastructure_ComputingNode::group
-    SecurityGroup:
-        superclass: commons_DOMLElement
-        associations:
-            # runtimeProvider
-            groupedNodes:
-                class: infrastructure_ComputingNode
-                multiplicity: "0..*"
-                inverse_of: infrastructure_ComputingNode::group
+            machineDefinition:
+                class: infrastructure_VirtualMachine
+                multiplicity: "1"
+            deploymentNetwork:
+                class: infrastructure_Network
+                multiplicity: "0..1"
+            securityGroup:
+                class: infrastructure_SecurityGroup
+                multiplicity: "0..1"
     Storage:
         superclass: infrastructure_InfrastructureElement
         attributes:
-            storage:
+            label:
+                type: String
+                multiplicity: "0..1"
+            size:
                 type: Integer  # in MBs
                 multiplicity: "0..1"
             cost: 
@@ -203,7 +223,7 @@ infrastructure:
         associations:
             ifaces:
                 class: infrastructure_NetworkInterface
-                multiplicity: "0..1"
+                multiplicity: "0..*"
     FunctionAsAService:
         superclass: infrastructure_InfrastructureElement
         attributes:
@@ -213,7 +233,7 @@ infrastructure:
         associations:
             ifaces:
                 class: infrastructure_NetworkInterface
-                multiplicity: "0..1"
+                multiplicity: "0..*"
     Network:
         superclass: commons_DOMLElement
         attributes:
@@ -231,11 +251,20 @@ infrastructure:
                 class: infrastructure_NetworkInterface
                 multiplicity: "0..*"
                 inverse_of: infrastructure_NetworkInterface::belongsTo
-            subnets: 
+            igws:
+                class: infrastructure_InternetGateway
+                multiplicity: "0..*"
+    VPC:
+        superclass: infrastructure_Network
+        associations:
+            subnets:
                 class: infrastructure_Subnet
                 multiplicity: "0..*"
     Subnet:
         superclass: infrastructure_Network
+        associations:
+            connectedTo:
+                class: infrastructure_Subnet
     NetworkInterface:
         superclass: infrastructure_InfrastructureElement
         attributes:
@@ -249,12 +278,72 @@ infrastructure:
             belongsTo:
                 class: infrastructure_Network
                 multiplicity: "1"
-    Firewall:
-        superclass: infrastructure_DOMLElement
+            associated:
+                class: infrastructure_SecurityGroup
+                multiplicity: "0..1" # try putting this to 1 and see why it fails
+    InternetGateway:
+        superclass: infrastructure_NetworkInterface
+    ComputingGroup:
+        superclass: commons_DOMLElement
         associations:
+            groupedNodes:
+                class: infrastructure_ComputingNode
+                multiplicity: "0..*"
+                inverse_of: infrastructure_ComputingNode::group
+    SecurityGroup:
+        superclass: infrastructure_ComputingGroup
+        associations:
+            rules:
+                class: infrastructure_Rule
+                multiplicity: "0..*"
             ifaces:
                 class: infrastructure_NetworkInterface
                 multiplicity: "0..*"
+                inverse_of: infrastructure_NetworkInterface::associated
+    Rule:
+        superclass: commons_DOMLElement
+        attributes:
+            kind:
+                type: String
+                multiplicity: "1"
+            protocol:
+                type: String
+                multiplicity: "1"
+            fromPort:
+                type: Integer
+                multiplicity: "1"
+            toPort:
+                type: Integer
+                multiplicity: "1"
+            addressRanges:
+                type: String
+                multiplicity: "0..*"
+    Credentials:
+        superclass: commons_DOMLElement
+    KeyPair:
+        superclass: infrastructure_Credentials
+        attributes:
+            user:
+                type: String
+                multiplicity: "0..1"
+            keyfile:
+                type: String
+                multiplicity: "0..1"
+            algorithm:
+                type: String
+                multiplicity: "0..1"
+            bits:
+                type: Integer
+                multiplicity: "0..1"
+    UserPass:
+        superclass: infrastructure_Credentials
+        attributes:
+            username:
+                type: String
+                multiplicity: "1"
+            password:
+                type: String
+                multiplicity: "1"
 
 concrete:
     ConcreteInfrastructure:

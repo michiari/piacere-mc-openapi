@@ -52,9 +52,7 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> DOMLModel:
 
     return DOMLModel(
         name=model.name,
-        modelname=model.name,
-        id=model.name,
-        version="",
+        description=model.description,
         application=parse_application(model.application),
         infrastructure=parse_infrastructure(model.infrastructure, mm),
         optimization=parse_optimization(model.optimization)

@@ -1,55 +1,54 @@
-from dataclasses import dataclass
-from pyecore.ecore import EObject
+from pyecore.ecore import EClass, EObject
 
 from ..model.application import Application, ApplicationComponent, ApplicationInterface
 
 
-# @dataclass
-# class Property:
-#     key: str
-#     value: str
-#     typeId: str
-#
-# def parse_property(doc: ecore.Property) -> Property:
-#     return Property(
-#         key=doc.key,
-#         value=doc.value,
-#         typeId=doc.type
-#     )
+def ecore_issubclass(child: EClass, parentName: str) -> bool:
+    return child.name == parentName \
+        or any(ecore_issubclass(superEClass, parentName) for superEClass in child.eSuperTypes)
+
+
+def ecore_isinstance(obj: EObject, eClassName: str) -> bool:
+    return ecore_issubclass(obj.eClass, eClassName)
+
 
 def parse_application(doc: EObject) -> Application:
-    # TODO: consider full ApplicationComponent class hierarchy
     def parse_application_interface(doc: EObject, componentName: str) -> ApplicationInterface:
         return ApplicationInterface(
-            name=doc.endPoint,
+            endPoint=doc.endPoint,
             componentName=componentName,
             typeId="application_" + doc.eClass.name,
-            endPoint=doc.endPoint,
         )
-    def parse_application_component(doc: EObject, interfaces: dict) -> ApplicationComponent:
-        consumed = {}
-        for cif in doc.consumedInterfaces:
-            cifProvider = interfaces[cif.endPoint].componentName
-            if cifProvider in consumed:
-                consumed[cifProvider].append(cif.endPoint)
-            else:
-                consumed[cifProvider] = [cif.endPoint]
 
+    def parse_application_component(doc: EObject, interfaces: dict[str, "ApplicationInterface"]) -> ApplicationComponent:
+        attrs = {}
+        if ecore_isinstance(doc, "SoftwareComponent"):
+            attrs["isPersistent"] = doc.isPersistent
+            if doc.licenseCost:
+                attrs["licenseCost"] = str(doc.licenseCost)  # FIXME: add float support in the model
+            if doc.configFile:
+                attrs["configFile"] = doc.configFile
+        if ecore_isinstance(doc, "SaaS"):
+            if doc.licenseCost:
+                attrs["licenseCost"] = doc.licenseCost
+        # TODO: add properties
         return ApplicationComponent(
             name=doc.name,
             typeId="application_" + doc.eClass.name,
-            consumedInterfaces=consumed,
-            exposedInterfaces={
-                intdoc.endpoint: parse_application_interface(
-                    intdoc, doc.name
-                )
-                for intdoc in doc.exposedInterfaces
-            },
+            consumedInterfaces=[
+                interfaces[iface.endPoint]
+                for iface in doc.consumedInterfaces
+            ],
+            exposedInterfaces=[
+                interfaces[iface.endPoint]
+                for iface in doc.exposedInterfaces
+            ],
+            attributes=attrs
         )
 
     # Parse all interfaces first
     interfaces = {
-        iface.name: parse_application_interface(iface)
+        iface.endPoint: parse_application_interface(iface, comp.name)
         for comp in doc.components
         for iface in comp.exposedInterfaces
     }

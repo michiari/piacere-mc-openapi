@@ -1,27 +1,27 @@
 from ..model.application import Application, ApplicationComponent
 from .._utils import merge_dicts
 
+from .metamodel import MetaModel
 from .types import IntermediateModel
-from .doml_element import DOMLElement
+from .doml_element import DOMLElement, parse_attributes
 
 
-def application_to_im(app: Application) -> IntermediateModel:
-    def app_comp_to_im(
-        app_comp: ApplicationComponent,
-    ) -> IntermediateModel:
+def application_to_im(app: Application, mm: MetaModel) -> IntermediateModel:
+    def app_comp_to_im(app_comp: ApplicationComponent) -> IntermediateModel:
+        attrs = parse_attributes(app_comp.attributes, app_comp.typeId, mm)
+        attrs["commons_DOMLElement::name"] = app_comp.name
         comp_elem = DOMLElement(
             name=app_comp.name,
             class_=app_comp.typeId,
-            attributes={"commons_DOMLElement::name": app_comp.name},
+            attributes=attrs,
             associations={
                 "application_SoftwarePackage::consumedInterfaces": {
-                    f"{cn}_{ifacen}"
-                    for cn, ifacens in app_comp.consumedInterfaces.items()
-                    for ifacen in ifacens
+                    f"{iface.componentName}_{iface.endPoint}"
+                    for iface in app_comp.consumedInterfaces
                 },
                 "application_SoftwarePackage::exposedInterfaces": {
-                    f"{app_comp.name}_{ifacen}"
-                    for ifacen in app_comp.exposedInterfaces
+                    f"{app_comp.name}_{iface.endPoint}"
+                    for iface in app_comp.exposedInterfaces
                 },
             },
         )
@@ -36,8 +36,8 @@ def application_to_im(app: Application) -> IntermediateModel:
                 },
                 associations={},
             )
-            for ifacen, iface in app_comp.exposedInterfaces.items()
-            for elem_n in [f"{app_comp.name}_{ifacen}"]
+            for iface in app_comp.exposedInterfaces
+            for elem_n in [f"{app_comp.name}_{iface.endPoint}"]
         }
 
         return {app_comp.name: comp_elem} | iface_elems

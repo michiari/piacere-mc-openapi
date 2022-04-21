@@ -9,7 +9,7 @@ from .concrete2im import concretization_to_im
 
 def doml_model_to_im(model: DOMLModel, mm: MetaModel) -> IntermediateModel:
     return (
-        application_to_im(model.application)
+        application_to_im(model.application, mm)
         | infrastructure_to_im(model.infrastructure, mm)
         | merge_dicts(
             concretization_to_im(conc)
