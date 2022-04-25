@@ -2,14 +2,13 @@ from typing import Union
 from dataclasses import dataclass
 
 from .metamodel import (
-    AssociationNotFound,
-    AttributeNotFound,
     MetaModel,
     get_mangled_attribute_name,
     get_mangled_association_name,
 )
 
-Attributes = dict[str, Union[str, int, bool]]
+Values = Union[str, int, bool]
+Attributes = dict[str, Values]
 Associations = dict[str, set[str]]
 
 
@@ -37,26 +36,14 @@ def parse_attributes(raw_attributes: Attributes, comp_class: str, mm: MetaModel)
     return attributes
 
 
-def parse_attrs_and_assocs_from_doc(
-    doc: dict,
-    cname: str,
-    mm: MetaModel,
-) -> tuple[Attributes, Associations]:
-    attrs = {}
-    assocs = {}
-    for k, v in doc.items():
-        try:
-            man = get_mangled_attribute_name(mm, cname, k)
-            attrs[man] = v
-        except AttributeNotFound:
-            try:
-                man = get_mangled_association_name(mm, cname, k)
-                # Only single target associations are found
-                # with this function. Change otherwise.
-                assocs[man] = {v}
-            except AssociationNotFound:
-                pass
-    return attrs, assocs
+def parse_associations(raw_associations: Associations, comp_class: str, mm: MetaModel) -> Associations:
+    associations: Associations = {}
+    for k, v in raw_associations.items():
+        man = get_mangled_association_name(mm, comp_class, k)
+        if not v:
+            raise RuntimeError("Supplied with empty association.")
+        associations[man] = v
+    return associations
 
 
 def reciprocate_inverse_associations(

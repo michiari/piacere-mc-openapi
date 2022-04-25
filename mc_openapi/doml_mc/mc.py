@@ -10,7 +10,6 @@ from z3 import (
 
 from .. import assets
 from .intermediate_model.doml_element import reciprocate_inverse_associations
-from .intermediate_model.doml_model2im import doml_model_to_im
 from .intermediate_model.metamodel import (
     parse_inverse_associations,
     parse_metamodel
@@ -140,8 +139,7 @@ class ModelChecker:
             )
 
         assert ModelChecker.metamodel and ModelChecker.inv_assoc
-        doml_model = parse_doml_model(xmi_model, ModelChecker.metamodel)
-        self.intermediate_model = doml_model_to_im(doml_model, ModelChecker.metamodel)
+        self.intermediate_model = parse_doml_model(xmi_model, ModelChecker.metamodel)
         reciprocate_inverse_associations(self.intermediate_model, ModelChecker.inv_assoc)
         instantiate_solver()
 

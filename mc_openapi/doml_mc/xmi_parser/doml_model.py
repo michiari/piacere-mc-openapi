@@ -1,20 +1,19 @@
 import copy
 import importlib.resources as ilres
+from ipaddress import ip_address, ip_network
 
 from mc_openapi import assets
 from mc_openapi.bytes_uri import BytesURI
 from pyecore.ecore import EObject
 from pyecore.resources import ResourceSet
 
+from ..intermediate_model.doml_element import Attributes, IntermediateModel
 from ..intermediate_model.metamodel import MetaModel
-from ..model.doml_model import DOMLModel
-from .application import parse_application
-from .concretization import parse_concretization
-from .infrastructure import parse_infrastructure
-from .optimization import parse_optimization
+from .ecore import ELayerParser, SpecialParser
+
 
 doml_rset = None
-def init_doml_rset():
+def init_doml_rset():  # noqa: E302
     global doml_rset
     rset = ResourceSet()
     resource = rset.get_resource(BytesURI(
@@ -47,18 +46,21 @@ def parse_xmi_model(raw_model: bytes) -> EObject:
         raise
 
 
-def parse_doml_model(raw_model: bytes, mm: MetaModel) -> DOMLModel:
+def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
+    def parse_network_address_range(arange: str) -> Attributes:
+        ipnet = ip_network(arange)
+        return {"address_lb": int(ipnet[0]), "address_ub": int(ipnet[-1])}
+
     model = parse_xmi_model(raw_model)
 
-    return DOMLModel(
-        name=model.name,
-        description=model.description,
-        application=parse_application(model.application),
-        infrastructure=parse_infrastructure(model.infrastructure, mm),
-        optimization=parse_optimization(model.optimization)
-        if model.optimization is not None else None,
-        concretizations={
-            concdoc.name: parse_concretization(concdoc)
-            for concdoc in model.concretizations
-        },
-    )
+    sp = SpecialParser({  # TODO: find better way of managing inheritance, and ePackages
+        ("Network", "addressRange"): parse_network_address_range,
+        ("VPC", "addressRange"): parse_network_address_range,
+        ("NetworkInterface", "endPoint"): lambda addr: {"endPoint": int(ip_address(addr))}
+    })
+    elp = ELayerParser(mm, sp)
+    elp.parse_elayer(model.application)
+    elp.parse_elayer(model.infrastructure)
+    im = elp.parse_elayer(model.activeInfrastructure)
+
+    return im

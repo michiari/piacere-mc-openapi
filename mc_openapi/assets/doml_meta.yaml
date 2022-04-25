@@ -7,6 +7,37 @@ commons:
             description:
                 type: String
                 multiplicity: "0..1"
+        associations:
+            annotations:
+                class: commons_Property
+                multiplicity: "0..*"
+    Property:
+        attributes:
+            key:
+                type: String
+                multiplicity: "0..1"
+        associations:
+            reference:
+                class: commons_DOMLElement
+                multiplicity: "0..1"
+    IProperty:
+        superclass: commons_Property
+        attributes:
+            value:
+                type: Integer
+                multiplicity: "0..1"
+    SProperty:
+        superclass: commons_Property
+        attributes:
+            value:
+                type: String
+                multiplicity: "0..1"
+    BProperty:
+        superclass: commons_Property
+        attributes:
+            value:
+                type: Boolean
+                multiplicity: "0..1"
     Configuration:
         superclass: commons_DOMLElement
         associations:
@@ -79,14 +110,14 @@ infrastructure:
             nodes:
                 class: infrastructure_ComputingNode
                 multiplicity: "0..*"
-            generators:
-                class: infrastructure_ComputingNodeGenerator
+            networks:
+                class: infrastructure_Network
                 multiplicity: "0..*"
             secGroups:
                 class: infrastructure_SecurityGroup
                 multiplicity: "0..*"
-            networks:
-                class: infrastructure_Network
+            generators:
+                class: infrastructure_ComputingNodeGenerator
                 multiplicity: "0..*"
             storages:
                 class: infrastructure_Storage
@@ -352,21 +383,6 @@ concrete:
             providers:
                 class: concrete_RuntimeProvider
                 multiplicity: "0..*"
-            nodes:
-                class: concrete_VirtualMachine
-                multiplicity: "0..*"
-            asGroups:
-                class: concrete_AutoScalingGroup
-                multiplicity: "0..*"
-            networks:
-                class: concrete_Network
-                multiplicity: "0..*"
-            storages:
-                class: concrete_Storage
-                multiplicity: "0..*"
-            faas:
-                class: concrete_FunctionAsAService
-                multiplicity: "0..*"
     ConcreteElement:
         superclass: commons_DOMLElement
         attributes:
@@ -376,11 +392,14 @@ concrete:
     RuntimeProvider:
         superclass: commons_DOMLElement
         associations:
-            supportedGroups:
-                class: concrete_AutoScalingGroup
-                multiplicity: "0..*"
             vms:
                 class: concrete_VirtualMachine
+                multiplicity: "0..*"
+            vmImages:
+                class: concrete_VMImage
+                multiplicity: "0..*"
+            containerImages:
+                class: concrete_ContainerImage
                 multiplicity: "0..*"
             networks:
                 class: concrete_Network
@@ -391,31 +410,46 @@ concrete:
             faas:
                 class: concrete_FunctionAsAService
                 multiplicity: "0..*"
+            group:
+                class: concrete_ComputingGroup
+                multiplicity: "0..*"
     VirtualMachine:
         superclass: concrete_ConcreteElement
         associations:
             maps:
                 class: infrastructure_VirtualMachine
-                multiplicity: "1"
+                multiplicity: "0..1"
+    VMImage:
+        superclass: concrete_ConcreteElement
+        associations:
+            maps:
+                class: infrastructure_VMImage
+                multiplicity: "0..1"
+    ContainerImage:
+        superclass: concrete_ConcreteElement
+        associations:
+            maps:
+                class: infrastructure_ContainerImage
+                multiplicity: "0..1"
     Network:
         superclass: concrete_ConcreteElement
         associations:
             maps:
                 class: infrastructure_Network
-                multiplicity: "1"
+                multiplicity: "0..1"
     Storage:
         superclass: concrete_ConcreteElement
         associations:
             maps:
                 class: infrastructure_Storage
-                multiplicity: "1"
+                multiplicity: "0..1"
     FunctionAsAService:
         superclass: concrete_ConcreteElement
         associations:
             maps:
                 class: infrastructure_FunctionAsAService
-                multiplicity: "1"
-    AutoScalingGroup:
+                multiplicity: "0..1"
+    ComputingGroup:
         superclass: concrete_ConcreteElement
         associations:
             maps:

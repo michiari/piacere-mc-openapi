@@ -13,7 +13,7 @@ from z3 import (
     Solver,
 )
 
-from ..intermediate_model.types import IntermediateModel, MetaModel
+from ..intermediate_model import IntermediateModel, MetaModel
 from ..intermediate_model.metamodel import get_mangled_attribute_defaults
 
 from .types import Refs, SortAndRefs

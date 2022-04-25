@@ -12,7 +12,7 @@ from z3 import (
     Or,
     Solver,
 )
-from ..intermediate_model.types import MetaModel
+from ..intermediate_model import MetaModel
 from ..intermediate_model.metamodel import get_subclasses_dict
 
 from .types import Refs, SortAndRefs
