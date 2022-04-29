@@ -34,7 +34,6 @@ class ELayerParser:
         return self.im
 
     def parse_eobject(self, doc: EObject) -> str:
-        # TODO: deal with properties in a better way
         name = doc.name if hasattr(doc, "name") else doc.key
         if name in self.visited:
             return name
