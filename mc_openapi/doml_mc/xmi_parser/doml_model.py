@@ -56,6 +56,7 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
     sp = SpecialParser({  # TODO: find better way of managing inheritance, and ePackages
         ("Network", "addressRange"): parse_network_address_range,
         ("VPC", "addressRange"): parse_network_address_range,
+        ("Subnet", "addressRange"): parse_network_address_range,
         ("NetworkInterface", "endPoint"): lambda addr: {"endPoint": int(ip_address(addr))}
     })
     elp = ELayerParser(mm, sp)

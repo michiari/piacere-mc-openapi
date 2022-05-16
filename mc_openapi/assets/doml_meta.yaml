@@ -113,9 +113,6 @@ infrastructure:
             networks:
                 class: infrastructure_Network
                 multiplicity: "0..*"
-            secGroups:
-                class: infrastructure_SecurityGroup
-                multiplicity: "0..*"
             generators:
                 class: infrastructure_ComputingNodeGenerator
                 multiplicity: "0..*"
@@ -127,6 +124,9 @@ infrastructure:
                 multiplicity: "0..*"
             credentials:
                 class: infrastructure_Credentials
+                multiplicity: "0..*"
+            groups:
+                class: infrastructure_ComputingGroup
                 multiplicity: "0..*"
     InfrastructureElement:
         superclass: commons_DOMLElement
@@ -192,9 +192,9 @@ infrastructure:
             generatedFrom:
                 class: infrastructure_ContainerImage
                 multiplicity: "0..1"
-            host:
+            hosts:
                 class: infrastructure_ComputingNode
-                multiplicity: "1"
+                multiplicity: "0..*"
     ComputingNodeGenerator:
         superclass: commons_DOMLElement
         attributes:
@@ -346,7 +346,7 @@ infrastructure:
             toPort:
                 type: Integer
                 multiplicity: "1"
-            addressRanges:
+            cidr:
                 type: String
                 multiplicity: "0..*"
     Credentials:
@@ -375,6 +375,24 @@ infrastructure:
             password:
                 type: String
                 multiplicity: "1"
+    SwarmRole:
+        superclass: commons_DOMLElement
+        attributes:
+            kind:
+                type: String
+                multiplicity: "1"
+        associations:
+            nodes:
+                class: infrastructure_ComputingNode
+                multiplicity: "0..*"
+    Swarm:
+        superclass: infrastructure_ComputingGroup
+        associations:
+            roles:
+                class: infrastructure_SwarmRole
+                multiplicity: "0..*"
+    ExtInfrastructureElement:
+        superclass: infrastructure_InfrastructureElement
 
 concrete:
     ConcreteInfrastructure:

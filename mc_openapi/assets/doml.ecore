@@ -134,8 +134,6 @@
           eType="#//infrastructure/ComputingNode" containment="true"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="networks" upperBound="-1"
           eType="#//infrastructure/VPC" containment="true"/>
-      <eStructuralFeatures xsi:type="ecore:EReference" name="secGroups" upperBound="-1"
-          eType="#//infrastructure/SecurityGroup" containment="true"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="generators" upperBound="-1"
           eType="#//infrastructure/ComputingNodeGenerator" containment="true"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="storages" upperBound="-1"
@@ -144,6 +142,8 @@
           eType="#//infrastructure/FunctionAsAService" containment="true"/>
       <eStructuralFeatures xsi:type="ecore:EReference" name="credentials" upperBound="-1"
           eType="#//infrastructure/Credentials" containment="true"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="groups" upperBound="-1"
+          eType="#//infrastructure/ComputingGroup" containment="true"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="ComputingGroup" abstract="true" eSuperTypes="#//commons/DOMLElement">
       <eStructuralFeatures xsi:type="ecore:EReference" name="groupedNodes" upperBound="-1"
@@ -172,7 +172,7 @@
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="protocol" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="fromPort" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="toPort" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EIntegerObject"/>
-      <eStructuralFeatures xsi:type="ecore:EAttribute" name="addressRanges" upperBound="-1"
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="cidr" upperBound="-1"
           eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EEnum" name="RuleKind">
@@ -234,7 +234,8 @@
     <eClassifiers xsi:type="ecore:EClass" name="Container" eSuperTypes="#//infrastructure/ComputingNode">
       <eStructuralFeatures xsi:type="ecore:EReference" name="generatedFrom" eType="#//infrastructure/ContainerImage"
           eOpposite="#//infrastructure/ContainerImage/generatedContainers"/>
-      <eStructuralFeatures xsi:type="ecore:EReference" name="host" eType="#//infrastructure/ComputingNode"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="hosts" upperBound="-1"
+          eType="#//infrastructure/ComputingNode"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="Network" abstract="true" eSuperTypes="#//commons/DOMLElement">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="protocol" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
@@ -283,6 +284,21 @@
     <eClassifiers xsi:type="ecore:EClass" name="UserPass" eSuperTypes="#//infrastructure/Credentials">
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="username" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
       <eStructuralFeatures xsi:type="ecore:EAttribute" name="password" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EEnum" name="RoleKind">
+      <eLiterals name="NONE"/>
+      <eLiterals name="MANAGER" value="1"/>
+      <eLiterals name="WORKER" value="2"/>
+      <eLiterals name="MASTER" value="3"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="SwarmRole" eSuperTypes="#//commons/DOMLElement">
+      <eStructuralFeatures xsi:type="ecore:EAttribute" name="kind" eType="#//infrastructure/RoleKind"/>
+      <eStructuralFeatures xsi:type="ecore:EReference" name="nodes" upperBound="-1"
+          eType="#//infrastructure/ComputingNode" containment="true"/>
+    </eClassifiers>
+    <eClassifiers xsi:type="ecore:EClass" name="Swarm" eSuperTypes="#//infrastructure/ComputingGroup">
+      <eStructuralFeatures xsi:type="ecore:EReference" name="roles" upperBound="-1"
+          eType="#//infrastructure/SwarmRole" containment="true"/>
     </eClassifiers>
     <eClassifiers xsi:type="ecore:EClass" name="ExtInfrastructureElement" eSuperTypes="#//infrastructure/InfrastructureElement #//commons/ExtensionElement"/>
   </eSubpackages>
