@@ -97,7 +97,7 @@ application:
         attributes:
             endPoint:
                 type: String
-                multiplicity: "1"
+                multiplicity: "0..1"
     DBMS:
         superclass: application_SoftwarePackage
     SaaSDBMS:
@@ -182,7 +182,7 @@ infrastructure:
         attributes:
             region:
                 type: String
-                multiplicity: "1"
+                multiplicity: "0..1"
             zone:
                 type: String
                 multiplicity: "0..1"
@@ -311,7 +311,7 @@ infrastructure:
                 multiplicity: "1"
             associated:
                 class: infrastructure_SecurityGroup
-                multiplicity: "0..1" # try putting this to 1 and see why it fails
+                multiplicity: "0..1" # TODO: try putting this to 1 and see why it fails
     InternetGateway:
         superclass: infrastructure_NetworkInterface
     ComputingGroup:

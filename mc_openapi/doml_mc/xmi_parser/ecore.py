@@ -28,6 +28,7 @@ class ELayerParser:
         self.special_parser = special_parser
         self.im: dict[str, "DOMLElement"] = {}
         self.visited: set[str] = set()
+        self.nextUniqueId = 0
 
     def parse_elayer(self, doc: EObject) -> IntermediateModel:
         self.parse_eobject(doc)
@@ -35,6 +36,9 @@ class ELayerParser:
 
     def parse_eobject(self, doc: EObject) -> str:
         name = doc.name if hasattr(doc, "name") else doc.key
+        if name is None:
+            name = self.getUniqueName()
+        # TODO: find a better way to avoid element duplication (e.g. hash) because names may not be unique
         if name in self.visited:
             return name
         self.visited.add(name)
@@ -57,6 +61,8 @@ class ELayerParser:
                         print("Attribute", eAttr.name, "of multiplicity > 1 not supported yet.", file=sys.stderr)
                     else:
                         print("Attribute", eAttr.name, "has value", val, "of unexpected type.", file=sys.stderr)
+            elif eAttr.name == "name":  # Kludje for when the name is missing
+                raw_attrs["name"] = name 
         attrs = parse_attributes(raw_attrs, mm_class, self.mm)
 
         # Get all references and process them
@@ -73,6 +79,11 @@ class ELayerParser:
         self.im[name] = DOMLElement(
             name=name, class_=mm_class, attributes=attrs, associations=assocs
         )
+        return name
+
+    def getUniqueName(self):
+        name = f"__generated_name__{self.nextUniqueId}"
+        self.nextUniqueId += 1
         return name
 
     def mangle_eclass_name(eClass: EClass) -> str:
