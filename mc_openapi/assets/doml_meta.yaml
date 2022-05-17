@@ -46,10 +46,10 @@ commons:
                 multiplicity: "0..*"
     Deployment:
         associations:
-            source:
+            component:
                 class: application_ApplicationComponent
                 multiplicity: "1"
-            target:
+            node:
                 class: infrastructure_InfrastructureElement
                 multiplicity: "1"
 

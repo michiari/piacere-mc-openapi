@@ -35,9 +35,15 @@ class ELayerParser:
         return self.im
 
     def parse_eobject(self, doc: EObject) -> str:
-        name = doc.name if hasattr(doc, "name") else doc.key
+        if hasattr(doc, "name"):
+            name = doc.name
+        elif hasattr(doc, "key"):
+            name = doc.key
+        else:
+            name = None
         if name is None:
             name = self.getUniqueName()
+
         # TODO: find a better way to avoid element duplication (e.g. hash) because names may not be unique
         if name in self.visited:
             return name

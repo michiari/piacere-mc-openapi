@@ -62,6 +62,7 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
     elp = ELayerParser(mm, sp)
     elp.parse_elayer(model.application)
     elp.parse_elayer(model.infrastructure)
+    elp.parse_elayer(model.activeConfiguration)
     im = elp.parse_elayer(model.activeInfrastructure)
 
     return im
