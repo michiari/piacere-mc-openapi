@@ -64,13 +64,12 @@ class ModelChecker:
 
     def __init__(self, xmi_model: bytes):
         def instantiate_solver():
-            unbound_elems = []  # TODO: add this later
             self.solver = Solver()
 
             class_sort, class_ = mk_class_sort_dict(ModelChecker.metamodel)
             assoc_sort, assoc = mk_association_sort_dict(ModelChecker.metamodel)
             attr_sort, attr = mk_attribute_sort_dict(ModelChecker.metamodel)
-            elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, unbound_elems)
+            elem_sort, elem = mk_elem_sort_dict(self.intermediate_model)
             ss_sort, ss = mk_stringsym_sort_dict(self.intermediate_model, ModelChecker.metamodel)
             AData = mk_adata_sort(ss_sort)
             elem_class_f = def_elem_class_f_and_assert_classes(
@@ -116,7 +115,7 @@ class ModelChecker:
             assert_im_associations_q(
                 assoc_rel,
                 self.solver,
-                {k: v for k, v in self.intermediate_model.items() if k not in unbound_elems},
+                {k: v for k, v in self.intermediate_model.items()},
                 elem,
                 assoc_sort,
                 assoc,
