@@ -7,31 +7,27 @@
   </application>
   <infrastructure name="infra">
     <nodes xsi:type="infra:AutoScalingGroup" name="ag" deploymentNetwork="//@infrastructure/@networks.0">
-      <machineDefinition name="vm1" credentials="//@infrastructure/@credentials.0" group="//@infrastructure/@secGroups.0" generatedFrom="//@infrastructure/@generators.0">
-        <ifaces name="i1" endPoint="16.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@secGroups.0"/>
+      <machineDefinition name="vm1" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0" group="//@infrastructure/@groups.0" generatedFrom="//@infrastructure/@generators.0">
+        <ifaces name="i1" endPoint="16.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@groups.0"/>
       </machineDefinition>
     </nodes>
     <networks name="net1" protocol="tcp/ip" addressRange="16.0.0.0/24" connectedIfaces="//@infrastructure/@nodes.0/@machineDefinition/@ifaces.0"/>
-    <secGroups name="sg" groupedNodes="//@infrastructure/@nodes.0/@machineDefinition" ifaces="//@infrastructure/@nodes.0/@machineDefinition/@ifaces.0">
-      <rules name="out_all" protocol="-1" fromPort="0" toPort="0">
-        <addressRanges>0.0.0.0/0</addressRanges>
-        <addressRanges>::/0</addressRanges>
-      </rules>
-      <rules name="http" kind="INGRESS" protocol="tcp" fromPort="80" toPort="80">
-        <addressRanges>0.0.0.0/0</addressRanges>
-        <addressRanges>::/0</addressRanges>
-      </rules>
-      <rules name="https" kind="INGRESS" protocol="tcp" fromPort="443" toPort="443">
-        <addressRanges>0.0.0.0/0</addressRanges>
-        <addressRanges>::/0</addressRanges>
-      </rules>
-      <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
-        <addressRanges>0.0.0.0/0</addressRanges>
-        <addressRanges>::/0</addressRanges>
-      </rules>
-    </secGroups>
     <generators xsi:type="infra:VMImage" name="v_img" generatedVMs="//@infrastructure/@nodes.0/@machineDefinition"/>
     <credentials xsi:type="infra:KeyPair" name="ssh_key" user="ubuntu" keyfile="/home/user1/.ssh/openstack.key" algorithm="RSA" bits="4096"/>
+    <groups xsi:type="infra:SecurityGroup" name="sg" groupedNodes="//@infrastructure/@nodes.0/@machineDefinition" ifaces="//@infrastructure/@nodes.0/@machineDefinition/@ifaces.0">
+      <rules name="icmp" protocol="icmp" fromPort="-1" toPort="-1">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="http" kind="INGRESS" protocol="tcp" fromPort="80" toPort="80">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="https" kind="INGRESS" protocol="tcp" fromPort="443" toPort="443">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+    </groups>
   </infrastructure>
   <concretizations name="con_infra">
     <providers name="openstack">
@@ -49,28 +45,10 @@
     </providers>
   </concretizations>
   <optimization name="opt">
-    <solutions name="sol1">
-      <objectives cost="200.0" availability="99.76667" performance="8.0"/>
-      <decisions>Storage4_Europe</decisions>
-      <decisions>db.dynamo.3</decisions>
-      <decisions>C8_Germany</decisions>
-    </solutions>
-    <solutions name="sol2">
-      <objectives cost="45.53" availability="99.03333" performance="11.0"/>
-      <decisions>Storage1_Spain</decisions>
-      <decisions>db.dynamo.3</decisions>
-      <decisions>t2.nano</decisions>
-    </solutions>
     <objectives xsi:type="optimization:MeasurableObjective" kind="min" property="cost"/>
-    <objectives xsi:type="optimization:MeasurableObjective" kind="max" property="availability"/>
-    <objectives xsi:type="optimization:MeasurableObjective" kind="max" property="performance"/>
     <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req1" description="Cost &lt;= 200" property="cost" max="200.0"/>
-    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req2" description="Availability >= 98%" property="availability" min="98.0"/>
-    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req3" description="Region" property="region">
-      <values>00EU</values>
-    </nonfunctionalRequirements>
-    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req4" description="Provider" property="provider">
-      <values>AMAZ</values>
+    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req2" description="Provider" property="provider">
+      <values>OPEN</values>
     </nonfunctionalRequirements>
   </optimization>
   <configurations name="config">

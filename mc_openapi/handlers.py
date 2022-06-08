@@ -14,17 +14,16 @@ def post(body, requirement=None):
     doml_xmi = body
     try:
         dmc = ModelChecker(doml_xmi)
-        dmc.add_common_requirements()
-
-        result = dmc.check()
+        result, msg = dmc.check_common_requirements()
 
         if result == sat:
             return {"result": "sat"}
         elif result == unsat:
             return {"result": "unsat",
-                    "description": "Virtual machine is not linked to any network."}
+                    "description": msg}
         else:
-            return {"result": "dontknow"}
+            return {"result": "dontknow",
+                    "description": msg}
 
     except Exception as e:
         return make_error("Supplied with malformed DOML XMI model.", debug_msg=str(e)), 400
