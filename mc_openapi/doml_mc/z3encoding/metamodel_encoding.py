@@ -47,22 +47,25 @@ def mk_association_sort_dict(
     return mk_enum_sort_dict("Association", assocs)
 
 
-def def_attribute_rel_and_assert_constraints(
+def def_attribute_rel(
+    attr_sort: DatatypeSortRef,
+    elem_sort: DatatypeSortRef,
+    AData: DatatypeSortRef
+) -> FuncDeclRef:
+    return Function("attribute", elem_sort, attr_sort, AData, BoolSort())
+
+
+def assert_attribute_rel_constraints(
     mm: MetaModel,
     solver: Solver,
-    attr_sort: DatatypeSortRef,
+    attr_rel: FuncDeclRef,
     attr: Refs,
     class_: Refs,
     elem_class_f: FuncDeclRef,
     elem_sort: DatatypeSortRef,
     AData: DatatypeSortRef,
     ss: Refs,
-) -> FuncDeclRef:
-    """
-    ### Effects
-    This procedure is effectful on `solver`.
-    """
-    attr_rel = Function("attribute", elem_sort, attr_sort, AData, BoolSort())
+):
     subclasses_dict = get_subclasses_dict(mm)
     es = Const("es", elem_sort)
     ad, ad_ = Consts("ad ad_", AData)
@@ -99,9 +102,7 @@ def def_attribute_rel_and_assert_constraints(
                     ),
                 ),
             )
-            solver.assert_and_track(
-                assn, f"attribute_st_types {cname}::{mm_attr.name}"
-            )
+            solver.assert_and_track(assn, f"attribute_st_types {cname}::{mm_attr.name}")
 
             # Multiplicity constraints
             lb, ub = mm_attr.multiplicity
@@ -140,23 +141,23 @@ def def_attribute_rel_and_assert_constraints(
     return attr_rel
 
 
-def def_association_rel_and_assert_constraints(
+def def_association_rel(
+    assoc_sort: DatatypeSortRef,
+    elem_sort: DatatypeSortRef
+) -> FuncDeclRef:
+    return Function("association", elem_sort, assoc_sort, elem_sort, BoolSort())
+
+
+def assert_association_rel_constraints(
     mm: MetaModel,
     solver: Solver,
-    assoc_sort: DatatypeSortRef,
+    assoc_rel: FuncDeclRef,
     assoc: Refs,
     class_: Refs,
     elem_class_f: FuncDeclRef,
     elem_sort: DatatypeSortRef,
     inv_assoc: list[tuple[str, str]],
-) -> FuncDeclRef:
-    """
-    ### Effects
-    This procedure is effectful on `solver`.
-    """
-    assoc_rel = Function(
-        "association", elem_sort, assoc_sort, elem_sort, BoolSort()
-    )
+):
     subclasses_dict = get_subclasses_dict(mm)
     es, et, et_ = Consts("es et et_", elem_sort)
     # A type validity constraint is added for every association:
