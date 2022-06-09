@@ -3,7 +3,7 @@ commons:
         attributes:
             name:
                 type: String
-                multiplicity: "1"
+                multiplicity: "0..1"
             description:
                 type: String
                 multiplicity: "0..1"
