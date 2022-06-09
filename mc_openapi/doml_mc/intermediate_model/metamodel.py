@@ -74,8 +74,8 @@ def parse_metamodel(mmdoc: dict) -> MetaModel:
             )
             return DOMLAttribute(
                 name=aname,
-                type=type_,
-                multiplicity=parse_mult(mults),
+                type=type_,  # type: ignore[arg-type]
+                multiplicity=parse_mult(mults),  # type: ignore[arg-type]
                 default=adoc.get("default"),
             )
 
@@ -91,7 +91,7 @@ def parse_metamodel(mmdoc: dict) -> MetaModel:
             return DOMLAssociation(
                 name=aname,
                 class_=adoc["class"],
-                multiplicity=parse_mult(mults),
+                multiplicity=parse_mult(mults),  # type: ignore[arg-type]
             )
 
         return DOMLClass(
