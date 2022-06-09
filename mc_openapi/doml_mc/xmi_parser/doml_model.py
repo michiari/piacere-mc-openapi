@@ -34,16 +34,11 @@ def get_rset():
 
 
 def parse_xmi_model(raw_model: bytes) -> EObject:
-    try:
-        rset = get_rset()
-        doml_uri = BytesURI("user_doml", bytes=raw_model)
-        resource = rset.create_resource(doml_uri)
-        resource.load()
-        return resource.contents[0]
-
-    except Exception:
-        # TODO: do something meaningful
-        raise
+    rset = get_rset()
+    doml_uri = BytesURI("user_doml", bytes=raw_model)
+    resource = rset.create_resource(doml_uri)
+    resource.load()
+    return resource.contents[0]
 
 
 def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
