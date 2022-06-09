@@ -68,11 +68,11 @@ class ELayerParser:
                     raw_attrs |= self.special_parser.parse_special(mm_class, eAttr.name, val)
                 else:
                     if isinstance(val, str) or isinstance(val, int) or isinstance(val, bool):
-                        raw_attrs[eAttr.name] = val
+                        raw_attrs[eAttr.name] = [val]
                     elif isinstance(val, EEnumLiteral):
-                        raw_attrs[eAttr.name] = str(val)
+                        raw_attrs[eAttr.name] = [str(val)]
                     elif isinstance(val, EOrderedSet):
-                        print("Attribute", eAttr.name, "of multiplicity > 1 not supported yet.", file=sys.stderr)
+                        raw_attrs[eAttr.name] = [str(v) if isinstance(v, EEnumLiteral) else v for v in val]
                     else:
                         print("Attribute", eAttr.name, "has value", val, "of unexpected type.", file=sys.stderr)
         attrs = parse_attributes(raw_attrs, mm_class, self.mm)

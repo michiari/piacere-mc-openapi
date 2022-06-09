@@ -7,7 +7,7 @@ from .metamodel import (
     get_mangled_association_name,
 )
 
-Values = Union[str, int, bool]
+Values = list[Union[str, int, bool]]
 Attributes = dict[str, Values]
 Associations = dict[str, set[str]]
 

@@ -29,7 +29,7 @@ class DOMLAttribute:
     name: str
     type: Literal["Boolean", "Integer", "String", "GeneratorKind"]
     multiplicity: Multiplicity
-    default: Optional[Union[str, int, bool]]
+    default: Optional[list[Union[str, int, bool]]]
 
 
 @dataclass
@@ -72,11 +72,12 @@ def parse_metamodel(mmdoc: dict) -> MetaModel:
                 or mults == "1"
                 or mults == "1..*"
             )
+            default = adoc.get("default")
             return DOMLAttribute(
                 name=aname,
                 type=type_,  # type: ignore[arg-type]
                 multiplicity=parse_mult(mults),  # type: ignore[arg-type]
-                default=adoc.get("default"),
+                default=default if default is None or isinstance(default, list) else [default],
             )
 
         def parse_association(aname: str, adoc: dict) -> DOMLAssociation:
@@ -162,7 +163,7 @@ def get_mangled_association_name(
 def get_mangled_attribute_defaults(
     mm: MetaModel,
     cname: str,
-) -> dict[str, Union[str, int, bool]]:
+) -> dict[str, list[Union[str, int, bool]]]:
     c = mm[cname]
     defaults = {
         f"{cname}::{aname}": a.default

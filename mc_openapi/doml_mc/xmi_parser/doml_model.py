@@ -49,13 +49,13 @@ def parse_xmi_model(raw_model: bytes) -> EObject:
 def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
     def parse_network_address_range(arange: str) -> Attributes:
         ipnet = ip_network(arange)
-        return {"address_lb": int(ipnet[0]), "address_ub": int(ipnet[-1])}
+        return {"address_lb": [int(ipnet[0])], "address_ub": [int(ipnet[-1])]}
 
     model = parse_xmi_model(raw_model)
 
     sp = SpecialParser(mm, {
         ("infrastructure_Network", "addressRange"): parse_network_address_range,
-        ("infrastructure_NetworkInterface", "endPoint"): lambda addr: {"endPoint": int(ip_address(addr))}
+        ("infrastructure_NetworkInterface", "endPoint"): lambda addr: {"endPoint": [int(ip_address(addr))]}
     })
     elp = ELayerParser(mm, sp)
     elp.parse_elayer(model.application)

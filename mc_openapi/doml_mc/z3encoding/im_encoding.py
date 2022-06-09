@@ -79,9 +79,7 @@ def assert_im_attributes(
     a = Const("a", attr_sort)
     d = Const("d", AData)
     for esn, im_es in im.items():
-        mangled_attrs = (
-            get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
-        )
+        mangled_attrs = get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
         assn = ForAll(
             [a, d],
             Iff(
@@ -89,10 +87,11 @@ def assert_im_attributes(
                 Or(
                     *(
                         And(
-                            a == attr[amn],
+                            a == attr[aname],
                             d == encode_adata(avalue),
                         )
-                        for amn, avalue in mangled_attrs.items()
+                        for aname, avalues in mangled_attrs.items()
+                        for avalue in avalues
                     )
                 ),
             ),
@@ -167,14 +166,17 @@ def mk_stringsym_sort_dict(
         {
             v
             for e in im.values()
-            for v in e.attributes.values()
-            if type(v) is str
+            for vs in e.attributes.values()
+            for v in vs
+            if isinstance(v, str)
         }
         | {
-            a.default
+            v
             for c in mm.values()
             for a in c.attributes.values()
-            if type(a.default) is str
+            if a.default is not None
+            for v in a.default
+            if isinstance(v, str)
         }
         | {"SCRIPT", "IMAGE"}  # GeneratorKind values
     )
