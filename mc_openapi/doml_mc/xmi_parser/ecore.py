@@ -11,7 +11,23 @@ from ..intermediate_model.metamodel import MetaModel
 
 
 class SpecialParser:
-    def __init__(self, parsers: dict[tuple[str, str], Callable]):
+    def __init__(self, mm: MetaModel, parsers: dict[tuple[str, str], Callable]):
+        superclasses: dict[str, list[tuple[str, Callable]]] = {}
+        for (clsname, attrname), attrparser in parsers.items():
+            if clsname in superclasses:
+                superclasses[clsname].append((attrname, attrparser))
+            else:
+                superclasses[clsname] = [(attrname, attrparser)]
+
+        while superclasses:
+            new_superclasses = {}
+            for classname, mmclass in mm.items():
+                if mmclass.superclass in superclasses:
+                    attrs_parsers = superclasses[mmclass.superclass]
+                    new_superclasses[classname] = attrs_parsers
+                    parsers |= {(classname, attrname): attrparser for attrname, attrparser in attrs_parsers}
+            superclasses = new_superclasses
+
         self.parsers = parsers
 
     def is_special(self, class_name: str, attr_name: str) -> bool:
@@ -48,8 +64,8 @@ class ELayerParser:
         for eAttr in doc.eClass.eAllAttributes():
             val = getattr(doc, eAttr.name)
             if val is not None:
-                if self.special_parser and self.special_parser.is_special(doc.eClass.name, eAttr.name):
-                    raw_attrs |= self.special_parser.parse_special(doc.eClass.name, eAttr.name, val)
+                if self.special_parser and self.special_parser.is_special(mm_class, eAttr.name):
+                    raw_attrs |= self.special_parser.parse_special(mm_class, eAttr.name, val)
                 else:
                     if isinstance(val, str) or isinstance(val, int) or isinstance(val, bool):
                         raw_attrs[eAttr.name] = val
