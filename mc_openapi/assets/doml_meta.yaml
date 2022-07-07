@@ -99,7 +99,7 @@ application:
                 type: String
                 multiplicity: "0..1"
     DBMS:
-        superclass: application_SoftwarePackage
+        superclass: application_SoftwareComponent
     SaaSDBMS:
         superclass: application_SaaS
 
