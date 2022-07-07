@@ -26,4 +26,4 @@ def post(body, requirement=None):
                     "description": msg}
 
     except Exception as e:
-        return make_error("Supplied with malformed DOML XMI model.", debug_msg=str(e)), 400
+        return make_error("The supplied DOMLX model is malformed or its DOML version is unsupported.", debug_msg=str(e)), 400

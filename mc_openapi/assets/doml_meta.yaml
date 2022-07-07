@@ -110,9 +110,6 @@ infrastructure:
             nodes:
                 class: infrastructure_ComputingNode
                 multiplicity: "0..*"
-            networks:
-                class: infrastructure_Network
-                multiplicity: "0..*"
             generators:
                 class: infrastructure_ComputingNodeGenerator
                 multiplicity: "0..*"
@@ -128,6 +125,12 @@ infrastructure:
             groups:
                 class: infrastructure_ComputingGroup
                 multiplicity: "0..*"
+            securityGroups:
+                class: infrastructure_SecurityGroup
+                multiplicity: "0..*"
+            networks:
+                class: infrastructure_Network
+                multiplicity: "0..*"
     InfrastructureElement:
         superclass: commons_DOMLElement
     ComputingNode:
@@ -139,14 +142,14 @@ infrastructure:
             os: 
                 type: String 
                 multiplicity: "0..1"
-            memory: 
+            memory_mb: 
                 type: String 
                 multiplicity: "0..1"
             storage: 
                 type: String 
                 multiplicity: "0..1"
-            cpu: 
-                type: String 
+            cpu_count: 
+                type: Integer 
                 multiplicity: "0..1"
             cost: 
                 type: Integer  # in cents 
@@ -218,7 +221,7 @@ infrastructure:
                 multiplicity: "0..*"
                 inverse_of: infrastructure_Container::generatedFrom
     AutoScalingGroup:
-        superclass: infrastructure_ComputingNode
+        superclass: infrastructure_ComputingGroup
         attributes:
             min:
                 type: Integer
@@ -245,8 +248,8 @@ infrastructure:
             label:
                 type: String
                 multiplicity: "0..1"
-            size:
-                type: Integer  # in MBs
+            size_gb:
+                type: Integer  # in GBs
                 multiplicity: "0..1"
             cost: 
                 type: Integer  # in cents 
@@ -285,9 +288,6 @@ infrastructure:
             igws:
                 class: infrastructure_InternetGateway
                 multiplicity: "0..*"
-    VPC:
-        superclass: infrastructure_Network
-        associations:
             subnets:
                 class: infrastructure_Subnet
                 multiplicity: "0..*"
@@ -296,6 +296,7 @@ infrastructure:
         associations:
             connectedTo:
                 class: infrastructure_Subnet
+                multiplicity: "0..1"
     NetworkInterface:
         superclass: infrastructure_InfrastructureElement
         attributes:
@@ -322,7 +323,7 @@ infrastructure:
                 multiplicity: "0..*"
                 inverse_of: infrastructure_ComputingNode::group
     SecurityGroup:
-        superclass: infrastructure_ComputingGroup
+        superclass: commons_DOMLElement
         associations:
             rules:
                 class: infrastructure_Rule
@@ -471,5 +472,5 @@ concrete:
         superclass: concrete_ConcreteElement
         associations:
             maps:
-                class: infrastructure_AutoScalingGroup
+                class: infrastructure_ComputingGroup
                 multiplicity: "1"

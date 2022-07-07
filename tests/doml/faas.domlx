@@ -19,21 +19,18 @@
     </components>
   </application>
   <infrastructure name="infra">
-    <nodes xsi:type="infra:VirtualMachine" name="vm1" credentials="//@infrastructure/@credentials.0" group="//@infrastructure/@groups.0" generatedFrom="//@infrastructure/@generators.0">
-      <ifaces name="i1" endPoint="10.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@groups.0"/>
+    <nodes xsi:type="infra:VirtualMachine" name="vm1" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+      <ifaces name="i1" endPoint="10.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@securityGroups.0"/>
       <location region="eu-central-1"/>
     </nodes>
     <nodes xsi:type="infra:Container" name="c" generatedFrom="//@infrastructure/@generators.1" hosts="//@infrastructure/@nodes.0"/>
-    <networks name="vpc" protocol="tcp/ip" addressRange="10.0.0.0/24" connectedIfaces="//@infrastructure/@nodes.0/@ifaces.0">
-      <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="10.0.0.0/24"/>
-    </networks>
     <generators xsi:type="infra:VMImage" name="v_img" uri="ami-xxxxxxxxxxxxxxxxx" kind="IMAGE" generatedVMs="//@infrastructure/@nodes.0"/>
     <generators xsi:type="infra:ContainerImage" name="c_img" uri="web-app:0.1.0" kind="IMAGE" generatedContainers="//@infrastructure/@nodes.1"/>
     <storages name="st1"/>
     <storages name="st2"/>
     <faas name="f"/>
     <credentials xsi:type="infra:KeyPair" name="ssh_key" user="ec2-user" keyfile="/tmp/ssh_key_file" algorithm="RSA" bits="4096"/>
-    <groups xsi:type="infra:SecurityGroup" name="sg" groupedNodes="//@infrastructure/@nodes.0" ifaces="//@infrastructure/@nodes.0/@ifaces.0">
+    <securityGroups name="sg" ifaces="//@infrastructure/@nodes.0/@ifaces.0">
       <rules name="icmp" protocol="icmp" fromPort="-1" toPort="-1">
         <cidr>0.0.0.0/0</cidr>
       </rules>
@@ -46,7 +43,10 @@
       <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
         <cidr>0.0.0.0/0</cidr>
       </rules>
-    </groups>
+    </securityGroups>
+    <networks name="vpc" protocol="tcp/ip" addressRange="10.0.0.0/24" connectedIfaces="//@infrastructure/@nodes.0/@ifaces.0">
+      <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="10.0.0.0/24"/>
+    </networks>
   </infrastructure>
   <concretizations name="con_infra">
     <providers name="aws">

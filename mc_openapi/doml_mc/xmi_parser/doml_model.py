@@ -41,12 +41,18 @@ def parse_xmi_model(raw_model: bytes) -> EObject:
     return resource.contents[0]
 
 
+def check_domlx_version(model: EObject):
+    if hasattr(model, "version") and model.version != "v2":
+        raise RuntimeError(f"Supplied with DOMLX model of unsupported version {model.version} (supported version is v2).")
+
+
 def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
     def parse_network_address_range(arange: str) -> Attributes:
         ipnet = ip_network(arange)
         return {"address_lb": [int(ipnet[0])], "address_ub": [int(ipnet[-1])]}
 
     model = parse_xmi_model(raw_model)
+    check_domlx_version(model)
 
     sp = SpecialParser(mm, {
         ("infrastructure_Network", "addressRange"): parse_network_address_range,
