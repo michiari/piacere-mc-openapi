@@ -99,7 +99,7 @@ application:
                 type: String
                 multiplicity: "0..1"
     DBMS:
-        superclass: application_SoftwarePackage
+        superclass: application_SoftwareComponent
     SaaSDBMS:
         superclass: application_SaaS
 
@@ -142,8 +142,8 @@ infrastructure:
             os: 
                 type: String 
                 multiplicity: "0..1"
-            memory_mb: 
-                type: String 
+            memory_mb:
+                type: Integer 
                 multiplicity: "0..1"
             storage: 
                 type: String 
