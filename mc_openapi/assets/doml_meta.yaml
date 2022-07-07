@@ -295,7 +295,8 @@ infrastructure:
         superclass: infrastructure_Network
         associations:
             connectedTo:
-                class: infrastructure_Subnet
+                class: infrastructure_Network
+                multiplicity: "0..1"
     NetworkInterface:
         superclass: infrastructure_InfrastructureElement
         attributes:
@@ -308,7 +309,7 @@ infrastructure:
         associations:
             belongsTo:
                 class: infrastructure_Network
-                multiplicity: "1"
+                multiplicity: "0..1" # This should be "1", but it would break InternetGateway
             associated:
                 class: infrastructure_SecurityGroup
                 multiplicity: "0..1" # TODO: try putting this to 1 and see why it fails
