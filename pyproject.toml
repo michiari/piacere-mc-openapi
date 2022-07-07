@@ -1,24 +1,24 @@
 [tool.poetry]
 name = "mc_openapi"
-version = "0.2.0"
+version = "1.0.0"
 description = "OpenAPI interface for the PIACERE DOML model checker."
 authors = ["Michele Chiari <michele.chiari@polimi.it>", "Michele De Pascalis <michele.de.pascalis.1024@gmail.com>"]
 license = "Apache-2.0"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-connexion = {extras = ["swagger-ui"], version = "^2.9.0"}
-uWSGI = "^2.0.20"
+connexion = {extras = ["swagger-ui"], version = "^2.14"}
+uWSGI = "^2.0"
 pyecore = "^0.12.2"
-z3-solver = "^4.8.15"
+z3-solver = "^4.9"
 PyYAML = "^6.0"
-networkx = "^2.7.1"
+networkx = "^2.8"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
-requests = "^2.26.0"
-ipykernel = "^6.12.1"
-prettyprinter = "^0.18.0"
+pytest = "^6.0"
+requests = "^2.28"
+ipykernel = "^6.15"
+prettyprinter = "^0.18"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -1,4 +1,4 @@
-FROM python:3.9.12-bullseye
+FROM python:3.10-bullseye
 
 COPY . /opt/mc_openapi
 
