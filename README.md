@@ -1,6 +1,11 @@
-# PIACERE Model Checker REST API server
+# PIACERE Model Checker
+
+The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
+in charge of checking the correctness and consistency of
+[DOML](https://www.piacere-doml.deib.polimi.it/) models.
 
 This project is packaged with [Poetry](https://python-poetry.org/).
+
 
 ## Build and Run
 
@@ -18,12 +23,14 @@ Run tests with:
 poetry run python -m pytest
 ```
 
+
 ## Run with uWSGI
 
 The project may be run with [uWSGI](https://uwsgi-docs.readthedocs.io/) as follows:
 ```sh
 uwsgi --http :8080 -w mc_openapi.app_config -p 4
 ```
+
 
 ## Run with Docker
 
@@ -38,14 +45,19 @@ docker run -d wp4/dmc
 The uWSGI server will be running and listening on port 80 of the container.
 
 
-## REST APIs
+## Building the Documentation
 
-The OpenAPI definition of the REST APIs is in `mc_openapi/openapi/model_checker.yaml`.
+The documentation has been written in [Sphinx](https://www.sphinx-doc.org/)
+and covers both usage through the PIACERE IDE and the REST APIs.
 
-The APIs can also be browsed with [Swagger UI](https://swagger.io/tools/swagger-ui/) by appending `/ui/` to the API HTTP address.
+To build it, type
+```sh
+poetry shell
+```
+and then
+```sh
+cd docs
+make html
+```
 
-For APIs usage examples, you may look into the tests, in `tests/test_mc_openapi.py`.
-Two DOML examples in XMI format are sent to the server.
-One of them is correct (`tests/doml/nginx-openstack_v2.domlx`), and the server answers with `"sat"` (meaning the requirements are satisfied), and the other one contains an error (`tests/doml/nginx-openstack_v2_wrong.domlx`), so the server answers with `"unsat"`.
-
-**Note:** for the time being, the `model` field of the POST request's body accepts any XML object. This will be changed to the DOML XMI schema when possible.
+The documentation will be generated in `docs/_build`.

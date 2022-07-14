@@ -56,8 +56,26 @@ And then run it with::
 The uWSGI server will be running and listening on port 80 of the container.
 
 
+Building the Documentation
+--------------------------
+
+The documentation has been written in `Sphinx`_.
+
+To build it, type::
+
+  poetry shell
+
+and then::
+
+  cd docs
+  make html
+
+The documentation will be generated in ``docs/_build``.
+
+
 .. _Poetry: https://python-poetry.org/
 .. _Flask: https://flask.palletsprojects.com/
 .. _Swagger-UI: https://swagger.io/tools/swagger-ui/
 .. _uWSGI: https://uwsgi-docs.readthedocs.io/
 .. _Docker: https://www.docker.com/
+.. _Sphinx: https://www.sphinx-doc.org/

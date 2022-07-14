@@ -3,8 +3,12 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to the DOML Model Checker's documentation!
-==================================================
+DOML Model Checker's documentation
+==================================
+
+The DOML Model Checker is a component of the `PIACERE`_ framework
+in charge of checking the correctness and consistency of `DOML`_ models.
+
 
 .. toctree::
    :maxdepth: 2
@@ -12,11 +16,21 @@ Welcome to the DOML Model Checker's documentation!
 
    installation
    usage
+   requirements
+   restapis
+
+..
+   Indices and tables
+   ==================
+
+.. * :ref:`genindex`
+   * :ref:`modindex`
+   * :ref:`search`
 
 
-Indices and tables
-==================
+This project has received funding from the European Union's Horizon 2020
+research and innovation programme under grant agreement No. 101000162.
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+.. _PIACERE: https://www.piacere-project.eu/
+.. _DOML: https://www.piacere-doml.deib.polimi.it/
