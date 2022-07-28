@@ -8,4 +8,4 @@ ENV PATH="/home/mc/.local/bin:${PATH}"
 RUN pip install -r /opt/mc_openapi/requirements.txt
 WORKDIR /opt/mc_openapi
 
-CMD ["uwsgi", "--http", ":80", "-w", "mc_openapi.app_config", "-p", "4"]
+CMD ["uwsgi", "--http", ":80", "-w", "mc_openapi.app_config", "-p", "4", "--http-timeout", "120"]
