@@ -136,13 +136,14 @@ class ModelChecker:
         instantiate_solver()
 
     def check_common_requirements(self) -> tuple[CheckSatResult, str]:
+        unsat_msgs = []
         some_dontknow = False
 
         self.solver.push()
         self.assert_consistency_constraints()
         res = self.solver.check()
         if res == unsat:
-            return res, "The DOML model is inconsistent."
+            unsat_msgs.append("The DOML model is inconsistent.")
         elif res == unknown:
             some_dontknow = True
         self.solver.pop()
@@ -153,12 +154,16 @@ class ModelChecker:
             self.solver.assert_and_track(expr_thunk(), "vm_iface")
             res = self.solver.check()
             if res == unsat:
-                return res, err_msg
+                unsat_msgs.append(err_msg)
             elif res == unknown:
                 some_dontknow = True
             self.solver.pop()
 
-        if some_dontknow:
+        if unsat_msgs:
+            if some_dontknow:
+                unsat_msgs.append("Unable to check some requirements.")
+            return unsat, " ".join(unsat_msgs)
+        elif some_dontknow:
             return unknown, "Unable to check some requirements."
         else:
             return sat, "All requirements satisfied."
@@ -318,7 +323,7 @@ class ModelChecker:
                         [deployment, ielem],
                         And(
                             smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], sc),
-                            smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], ielem)
+                            smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], ielem),
                         )
                     )
                 )
