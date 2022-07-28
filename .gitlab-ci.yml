@@ -1,0 +1,121 @@
+variables:
+  DOCKER_IMAGE: "docker:20.10.14"
+  DOCKER_DIND_IMAGE: "${DOCKER_IMAGE}-dind"
+
+  COMPONENT_WP: wp4
+  COMPONENT_IMAGE_NAME: dmc
+  
+  TMP_IMAGE: ${CI_REGISTRY_HOST}/temp/${COMPONENT_IMAGE_NAME}:${CI_PIPELINE_ID}
+  TARGET_IMAGE: ${CI_REGISTRY_HOST}/${COMPONENT_WP}/${COMPONENT_IMAGE_NAME}:${CI_COMMIT_BRANCH}
+
+stages:
+#  - quality
+  - build
+  - tests
+  - deploy
+
+# Artifactory login command ---------
+
+.artifactory-login: &artifactory-login
+  - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY_HOST -u "$CI_REGISTRY_USER" --password-stdin
+
+# Quality jobs ----------------------
+
+# TODO Quality checks
+
+# Build jobs ----------------------
+
+build-temp-dmc:
+  image: $DOCKER_IMAGE
+  stage: build
+  services:
+    - $DOCKER_DIND_IMAGE
+  before_script:
+    - *artifactory-login
+  script:
+    - docker build -t $TMP_IMAGE .
+    - docker push $TMP_IMAGE
+  tags:
+    - docker
+
+# Security job in tests stage------------------------
+
+.get-trivy: &get-trivy
+  - export TRIVY_VERSION=$(wget -qO - "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | grep '"tag_name":' | sed -E 's/.*"v([^"]+)".*/\1/')
+  - wget --no-verbose https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz -O - | tar -zxvf -
+
+security-trivy-dmc:
+  stage: tests
+  image: $DOCKER_IMAGE
+  services:
+    - name: $DOCKER_DIND_IMAGE
+  variables:
+    REPORT_FILENAME: ${COMPONENT_IMAGE_NAME}-container-scanning-report.json
+  before_script:
+    - *artifactory-login
+    - *get-trivy
+  allow_failure: true
+  script:
+    - ./trivy i -o $REPORT_FILENAME $TMP_IMAGE
+  artifacts:
+    reports:
+      container_scanning: $REPORT_FILENAME
+    expire_in: 1 hour
+  tags:
+    - docker
+
+# Tests jobs ------------------------
+
+run-functional-tests:
+  image: $DOCKER_IMAGE
+  stage: tests
+  services:
+    - $DOCKER_DIND_IMAGE
+  variables:
+    TESTS_CONTAINER_NAME: functional-tester
+    TESTS_DIR: /opt/mc_openapi/ci_tests_dir
+  before_script:
+    - *artifactory-login
+  script:
+    # Tests assume port 8080, while the Dockerfile CMD runs the server on port 80.
+    # Thus, we need to override the command so that the server is run on port 8080.
+    - docker run --name $TESTS_CONTAINER_NAME -d $TMP_IMAGE uwsgi --http :8080 -w mc_openapi.app_config -p 4
+    # Even though the project files are already in the /opt/mc_openapi dir in the container,
+    # we copy everything to the container anyway because we do not want to interfere
+    # with the files utilised by the uwsgi process, which has been run without the
+    # use of Poetry.
+    - docker cp . ${TESTS_CONTAINER_NAME}:${TESTS_DIR}
+    # Install everything required for the tests.
+    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install --no-cache-dir --upgrade pip && 
+        pip install --no-cache-dir poetry && 
+        cd ${TESTS_DIR} && 
+        poetry config virtualenvs.create false && 
+        poetry install"
+    # Run the tests.
+    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "cd ${TESTS_DIR} && poetry run python -m pytest"
+    # Stop the tests container.
+    - docker stop $TESTS_CONTAINER_NAME
+  tags:
+    - docker
+
+# Deploy job ------------------------
+
+deploy-dmc:
+  stage: deploy
+  image: $DOCKER_IMAGE
+  only:
+    - y1
+  services:
+    - $DOCKER_DIND_IMAGE
+  before_script:
+    - export VERSION=$(date +%Y%m%d)
+    - export TARGET_IMAGE_VERSIONED=${TARGET_IMAGE}-${VERSION}-${CI_PIPELINE_ID}
+    - *artifactory-login
+  script:
+    - docker pull $TMP_IMAGE
+    - docker tag $TMP_IMAGE $TARGET_IMAGE
+    - docker tag $TMP_IMAGE $TARGET_IMAGE_VERSIONED
+    - docker push $TARGET_IMAGE_VERSIONED
+    - docker push $TARGET_IMAGE
+  tags:
+    - docker
