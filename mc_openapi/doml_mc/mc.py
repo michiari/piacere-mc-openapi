@@ -213,8 +213,8 @@ class ModelChecker:
             )
 
         def software_package_iface_net():
-            asc_consumer, asc_exposer, siface, net, net_iface, cn, vm, deployment, dc = self.get_consts(
-                ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cn", "vm", "deployment", "dc"]
+            asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm, dc = self.get_consts(
+                ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cnode", "cdeployment", "enode", "edeployment", "vm", "dc"]
             )
             return ForAll(
                 [asc_consumer, asc_exposer, siface],
@@ -224,75 +224,53 @@ class ModelChecker:
                         smtenc.association_rel(asc_exposer, smtenc.associations["application_SoftwareComponent::consumedInterfaces"], siface),
                     ),
                     Exists(
-                        [net],
+                        [cdeployment, cnode, edeployment, enode, net],
                         And(
+                            smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
+                            smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::node"], cnode),
                             Exists(
-                                [cn, deployment],
-                                And(
-                                    smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
-                                    smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                    Or(
-                                        Exists(
-                                            [net_iface],
-                                            And(  # asc_consumer is deployed on a component with an interface in network n
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
-                                        Exists(  # asc_consumer is deployed on a container hosted in a VM with an interface in network n
-                                            [vm, net_iface],
-                                            And(
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_Container::hosts"], vm),
-                                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
-                                        Exists(  # asc_consumer is deployed on a VM in an AutoScalingGroup with an interface in network n
-                                            [vm, net_iface],
-                                            And(
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
-                                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
+                                [vm, net_iface],
+                                Or(
+                                    And(  # asc_consumer is deployed on a component with an interface in network n
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                    And(  # asc_consumer is deployed on a container hosted in a VM with an interface in network n
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_Container::hosts"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                    And(  # asc_consumer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
                                 )
                             ),
+                            smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
+                            smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::node"], enode),
                             Exists(
-                                [cn, deployment],
-                                And(
-                                    smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
-                                    smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                    Or(
-                                        Exists(  # asc_exposer is deployed on a component with an interface in network n
-                                            [net_iface],
-                                            And(
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
-                                        Exists(  # asc_exposer is deployed on a container hosted on a VM with an interface in network n
-                                            [vm, net_iface],
-                                            And(
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_Container::hosts"], vm),
-                                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
-                                        Exists(  # asc_exposer is deployed on a VM in an AutoScalingGroup with an interface in network n
-                                            [vm, net_iface],
-                                            And(
-                                                smtenc.association_rel(cn, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
-                                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
-                                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
-                                            ),
-                                        ),
+                                [vm, net_iface],
+                                Or(
+                                    And(  # asc_exposer is deployed on a component with an interface in network n
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                    And(  # asc_exposer is deployed on a container hosted on a VM with an interface in network n
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_Container::hosts"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                    And(  # asc_exposer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
                                 )
                             )
-                        ),
-                    ),
-                ),
+                        )
+                    )
+                )
             )
 
         def iface_uniq():
