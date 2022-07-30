@@ -14,7 +14,7 @@ def post(body, requirement=None):
     doml_xmi = body
     try:
         dmc = ModelChecker(doml_xmi)
-        result, msg = dmc.check_common_requirements()
+        result, msg = dmc.check_common_requirements(2)
 
         if result == sat:
             return {"result": "sat"}

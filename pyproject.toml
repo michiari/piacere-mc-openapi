@@ -13,9 +13,10 @@ pyecore = "^0.12.2"
 z3-solver = "^4.8.15"
 PyYAML = "^6.0"
 networkx = "^2.7.1"
+joblib = "^1.1.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^5.2"
+pytest = "^6.0"
 requests = "^2.26.0"
 ipykernel = "^6.12.1"
 prettyprinter = "^0.18.0"
