@@ -2,15 +2,19 @@ import importlib.resources as ilres
 
 import yaml
 from dataclasses import dataclass
+from joblib import parallel_backend, Parallel, delayed
 
 from z3 import (
-    CheckSatResult, Consts, ExprRef, FuncDeclRef, Solver, SortRef, DatatypeSortRef,
+    Context, CheckSatResult, Consts, ExprRef, FuncDeclRef, Solver, SortRef, DatatypeSortRef,
     ForAll, Exists, Implies, And, Or,
     sat, unsat, unknown
 )
 
 from .. import assets
-from .intermediate_model.doml_element import reciprocate_inverse_associations
+from .intermediate_model.doml_element import (
+    IntermediateModel,
+    reciprocate_inverse_associations
+)
 from .intermediate_model.metamodel import (
     parse_inverse_associations,
     parse_metamodel
@@ -55,26 +59,18 @@ class SMTSorts:
     attr_data_sort: DatatypeSortRef
 
 
-class ModelChecker:
-    metamodel = None
-    inv_assoc = None
-
-    @staticmethod
-    def init_metamodel():
-        mmdoc = yaml.load(ilres.read_text(assets, "doml_meta.yaml"), yaml.Loader)
-        ModelChecker.metamodel = parse_metamodel(mmdoc)
-        ModelChecker.inv_assoc = parse_inverse_associations(mmdoc)
-
-    def __init__(self, xmi_model: bytes):
+class IntermediateModelChecker:
+    def __init__(self, metamodel, inv_assoc, intermediate_model: IntermediateModel):
         def instantiate_solver():
-            self.solver = Solver()
+            self.z3Context = Context()
+            self.solver = Solver(ctx=self.z3Context)
 
-            class_sort, class_ = mk_class_sort_dict(ModelChecker.metamodel)
-            assoc_sort, assoc = mk_association_sort_dict(ModelChecker.metamodel)
-            attr_sort, attr = mk_attribute_sort_dict(ModelChecker.metamodel)
-            elem_sort, elem = mk_elem_sort_dict(self.intermediate_model)
-            ss_sort, ss = mk_stringsym_sort_dict(self.intermediate_model, ModelChecker.metamodel)
-            AData = mk_adata_sort(ss_sort)
+            class_sort, class_ = mk_class_sort_dict(self.metamodel, self.z3Context)
+            assoc_sort, assoc = mk_association_sort_dict(self.metamodel, self.z3Context)
+            attr_sort, attr = mk_attribute_sort_dict(self.metamodel, self.z3Context)
+            elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, self.z3Context)
+            ss_sort, ss = mk_stringsym_sort_dict(self.intermediate_model, self.metamodel, self.z3Context)
+            AData = mk_adata_sort(ss_sort, self.z3Context)
             elem_class_f = def_elem_class_f_and_assert_classes(
                 self.intermediate_model,
                 self.solver,
@@ -92,7 +88,7 @@ class ModelChecker:
                 attr_rel,
                 self.solver,
                 self.intermediate_model,
-                ModelChecker.metamodel,
+                self.metamodel,
                 elem,
                 attr_sort,
                 attr,
@@ -130,19 +126,42 @@ class ModelChecker:
                 AData
             )
 
-        assert ModelChecker.metamodel and ModelChecker.inv_assoc
-        self.intermediate_model = parse_doml_model(xmi_model, ModelChecker.metamodel)
-        reciprocate_inverse_associations(self.intermediate_model, ModelChecker.inv_assoc)
+        self.metamodel = metamodel
+        self.inv_assoc = inv_assoc
+        self.intermediate_model = intermediate_model
         instantiate_solver()
 
+    def check_consistency_constraints(self) -> tuple[CheckSatResult, str]:
+        self.solver.push()
+        self.assert_consistency_constraints()
+        res = self.solver.check()
+        self.solver.pop()
+        if res == unsat:
+            return unsat, "The DOML model is inconsistent."
+        else:
+            return res, ""
+
+    def check_one_common_requirement(self, index: int) -> tuple[CheckSatResult, str]:
+        expr_thunk, assert_name, _, err_msg = self.get_common_requirements()[index]
+
+        self.solver.push()
+        self.solver.assert_and_track(expr_thunk(), assert_name)
+        res = self.solver.check()
+        self.solver.pop()
+        if res == unsat:
+            return unsat, err_msg
+        else:
+            return res, ""
+
     def check_common_requirements(self) -> tuple[CheckSatResult, str]:
+        unsat_msgs = []
         some_dontknow = False
 
         self.solver.push()
         self.assert_consistency_constraints()
         res = self.solver.check()
         if res == unsat:
-            return res, "The DOML model is inconsistent."
+            unsat_msgs.append("The DOML model is inconsistent.")
         elif res == unknown:
             some_dontknow = True
         self.solver.pop()
@@ -150,15 +169,19 @@ class ModelChecker:
         common_requirements = self.get_common_requirements()
         for expr_thunk, assert_name, _, err_msg in common_requirements:
             self.solver.push()
-            self.solver.assert_and_track(expr_thunk(), "vm_iface")
+            self.solver.assert_and_track(expr_thunk(), assert_name)
             res = self.solver.check()
             if res == unsat:
-                return res, err_msg
+                unsat_msgs.append(err_msg)
             elif res == unknown:
                 some_dontknow = True
             self.solver.pop()
 
-        if some_dontknow:
+        if unsat_msgs:
+            if some_dontknow:
+                unsat_msgs.append("Unable to check some requirements.")
+            return unsat, " ".join(unsat_msgs)
+        elif some_dontknow:
             return unknown, "Unable to check some requirements."
         else:
             return sat, "All requirements satisfied."
@@ -168,7 +191,7 @@ class ModelChecker:
 
     def assert_consistency_constraints(self):
         assert_attribute_rel_constraints(
-            ModelChecker.metamodel,
+            self.metamodel,
             self.solver,
             self.smt_encoding.attribute_rel,
             self.smt_encoding.attributes,
@@ -179,14 +202,14 @@ class ModelChecker:
             self.smt_encoding.str_symbols
         )
         assert_association_rel_constraints(
-            ModelChecker.metamodel,
+            self.metamodel,
             self.solver,
             self.smt_encoding.association_rel,
             self.smt_encoding.associations,
             self.smt_encoding.classes,
             self.smt_encoding.element_class_fun,
             self.smt_sorts.element_sort,
-            ModelChecker.inv_assoc
+            self.inv_assoc
         )
 
     def get_common_requirements(self):
@@ -208,8 +231,8 @@ class ModelChecker:
             )
 
         def software_package_iface_net():
-            asc_consumer, asc_exposer, siface, net, net_iface, cn, vm, deployment, dc = self.get_consts(
-                ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cn", "vm", "deployment", "dc"]
+            asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm, dc = self.get_consts(
+                ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cnode", "cdeployment", "enode", "edeployment", "vm", "dc"]
             )
             return ForAll(
                 [asc_consumer, asc_exposer, siface],
@@ -219,53 +242,53 @@ class ModelChecker:
                         smtenc.association_rel(asc_exposer, smtenc.associations["application_SoftwareComponent::consumedInterfaces"], siface),
                     ),
                     Exists(
-                        [net],
+                        [cdeployment, cnode, edeployment, enode, net],
                         And(
-                            Or(
-                                Exists(
-                                    [cn, deployment, net_iface],
+                            smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
+                            smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::node"], cnode),
+                            Exists(
+                                [vm, net_iface],
+                                Or(
                                     And(  # asc_consumer is deployed on a component with an interface in network n
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                        smtenc.association_rel(cn, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
                                         smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
-                                ),
-                                Exists(  # asc_consumer is deployed on a container hosting a VM with an interface in network n
-                                    [cn, deployment, vm, net_iface],
-                                    And(
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                        smtenc.association_rel(cn, smtenc.associations["infrastructure_Container::hosts"], vm),
+                                    And(  # asc_consumer is deployed on a container hosted in a VM with an interface in network n
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_Container::hosts"], vm),
                                         smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
                                         smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
-                                ),
+                                    And(  # asc_consumer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                        smtenc.association_rel(cnode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                )
                             ),
-                            Or(
-                                Exists(
-                                    [cn, deployment, net_iface],
+                            smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
+                            smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::node"], enode),
+                            Exists(
+                                [vm, net_iface],
+                                Or(
                                     And(  # asc_exposer is deployed on a component with an interface in network n
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                        smtenc.association_rel(cn, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
                                         smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
-                                ),
-                                Exists(  # asc_exposer is deployed on a container hosting a VM with an interface in network n
-                                    [cn, deployment, vm, net_iface],
-                                    And(
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
-                                        smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], cn),
-                                        smtenc.association_rel(cn, smtenc.associations["infrastructure_Container::hosts"], vm),
+                                    And(  # asc_exposer is deployed on a container hosted on a VM with an interface in network n
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_Container::hosts"], vm),
                                         smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
                                         smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                                     ),
-                                ),
-                            ),
-                        ),
-                    ),
-                ),
+                                    And(  # asc_exposer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                        smtenc.association_rel(enode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                        smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                        smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                                    ),
+                                )
+                            )
+                        )
+                    )
+                )
             )
 
         def iface_uniq():
@@ -296,7 +319,7 @@ class ModelChecker:
                         [deployment, ielem],
                         And(
                             smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::component"], sc),
-                            smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], ielem)
+                            smtenc.association_rel(deployment, smtenc.associations["commons_Deployment::node"], ielem),
                         )
                     )
                 )
@@ -360,3 +383,51 @@ class ModelChecker:
             (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", "A software component has not been deployed to any node."),
             (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", "An abstract infrastructure element has not been mapped to any element in the active concretization."),
         ]
+
+    @staticmethod
+    def common_requirements_number() -> int:
+        return 5
+
+
+class ModelChecker:
+    metamodel = None
+    inv_assoc = None
+
+    @staticmethod
+    def init_metamodel():
+        mmdoc = yaml.load(ilres.read_text(assets, "doml_meta.yaml"), yaml.Loader)
+        ModelChecker.metamodel = parse_metamodel(mmdoc)
+        ModelChecker.inv_assoc = parse_inverse_associations(mmdoc)
+
+    def __init__(self, xmi_model: bytes):
+        assert ModelChecker.metamodel and ModelChecker.inv_assoc
+        self.intermediate_model = parse_doml_model(xmi_model, ModelChecker.metamodel)
+        reciprocate_inverse_associations(self.intermediate_model, ModelChecker.inv_assoc)
+
+    def check_common_requirements(self, threads=1) -> tuple[CheckSatResult, str]:
+        def worker(index: int):
+            imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
+            if index >= 0:
+                return imc.check_one_common_requirement(index)
+            else:
+                return imc.check_consistency_constraints()
+
+        if threads <= 1:
+            imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
+            return imc.check_common_requirements()
+
+        with parallel_backend('threading', n_jobs=threads):
+            results = Parallel()(delayed(worker)(i) for i in range(-1, IntermediateModelChecker.common_requirements_number()))
+
+        some_unsat = any(res == unsat for res, _ in results)
+        some_dontknow = any(res == unknown for res, _ in results)
+
+        if some_unsat:
+            err_msg = " ".join(msg for res, msg in results if res == unsat)
+            if some_dontknow:
+                err_msg = err_msg + "Unable to check some requirements."
+            return unsat, err_msg
+        elif some_dontknow:
+            return unknown, "Unable to check some requirements."
+        else:
+            return sat, "All requirements satisfied."

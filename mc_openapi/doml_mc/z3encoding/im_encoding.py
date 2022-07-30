@@ -4,11 +4,13 @@ from itertools import product
 from z3 import (
     And,
     Const,
+    Context,
     DatatypeRef,
     DatatypeSortRef,
     ForAll,
     FuncDeclRef,
     Function,
+    Not,
     Or,
     Solver,
 )
@@ -26,9 +28,11 @@ from .utils import (
 
 
 def mk_elem_sort_dict(
-    im: IntermediateModel, additional_elems: list[str] = []
+    im: IntermediateModel,
+    z3ctx: Context,
+    additional_elems: list[str] = []
 ) -> SortAndRefs:
-    return mk_enum_sort_dict("Element", list(im) + additional_elems)
+    return mk_enum_sort_dict("Element", list(im) + additional_elems, z3ctx=z3ctx)
 
 
 def def_elem_class_f_and_assert_classes(
@@ -80,22 +84,28 @@ def assert_im_attributes(
     d = Const("d", AData)
     for esn, im_es in im.items():
         mangled_attrs = get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
-        assn = ForAll(
-            [a, d],
-            Iff(
-                attr_rel(elem[esn], a, d),
-                Or(
-                    *(
-                        And(
-                            a == attr[aname],
-                            d == encode_adata(avalue),
+        if mangled_attrs:
+            assn = ForAll(
+                [a, d],
+                Iff(
+                    attr_rel(elem[esn], a, d),
+                    Or(
+                        *(
+                            And(
+                                a == attr[aname],
+                                d == encode_adata(avalue),
+                            )
+                            for aname, avalues in mangled_attrs.items()
+                            for avalue in avalues
                         )
-                        for aname, avalues in mangled_attrs.items()
-                        for avalue in avalues
-                    )
+                    ),
                 ),
-            ),
-        )
+            )
+        else:
+            assn = ForAll(
+                [a, d],
+                Not(attr_rel(elem[esn], a, d))
+            )
         solver.assert_and_track(assn, f"attribute_values {esn}")
 
 
@@ -151,7 +161,8 @@ def assert_im_associations_q(
                         a == assoc[amn]
                         for amn, etns in im_es.associations.items()
                         if etn in etns
-                    )
+                    ),
+                    solver.ctx
                 ),
             ),
         )
@@ -161,6 +172,7 @@ def assert_im_associations_q(
 def mk_stringsym_sort_dict(
     im: IntermediateModel,
     mm: MetaModel,
+    z3ctx: Context
 ) -> SortAndRefs:
     strings = (
         {
@@ -180,4 +192,4 @@ def mk_stringsym_sort_dict(
         }
         | {"SCRIPT", "IMAGE"}  # GeneratorKind values
     )
-    return mk_stringsym_sort_from_strings(list(strings))
+    return mk_stringsym_sort_from_strings(list(strings), z3ctx=z3ctx)

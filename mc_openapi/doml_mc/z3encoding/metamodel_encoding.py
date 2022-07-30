@@ -3,6 +3,7 @@ from z3 import (
     BoolSort,
     Const,
     Consts,
+    Context,
     DatatypeSortRef,
     Exists,
     ForAll,
@@ -19,32 +20,32 @@ from .types import Refs, SortAndRefs
 from .utils import Iff, mk_enum_sort_dict
 
 
-def mk_class_sort_dict(
-    mm: MetaModel,
-) -> SortAndRefs:
-    return mk_enum_sort_dict("Class", list(mm))
+def mk_class_sort_dict(mm: MetaModel, z3ctx: Context) -> SortAndRefs:
+    return mk_enum_sort_dict("Class", list(mm), z3ctx)
 
 
 def mk_attribute_sort_dict(
     mm: MetaModel,
+    z3ctx: Context
 ) -> SortAndRefs:
     atts = [
         f"{cname}::{aname}"
         for cname, c in mm.items()
         for aname in c.attributes
     ]
-    return mk_enum_sort_dict("Attribute", atts)
+    return mk_enum_sort_dict("Attribute", atts, z3ctx)
 
 
 def mk_association_sort_dict(
     mm: MetaModel,
+    z3ctx: Context
 ) -> SortAndRefs:
     assocs = [
         f"{cname}::{aname}"
         for cname, c in mm.items()
         for aname in c.associations
     ]
-    return mk_enum_sort_dict("Association", assocs)
+    return mk_enum_sort_dict("Association", assocs, z3ctx)
 
 
 def def_attribute_rel(
@@ -52,7 +53,7 @@ def def_attribute_rel(
     elem_sort: DatatypeSortRef,
     AData: DatatypeSortRef
 ) -> FuncDeclRef:
-    return Function("attribute", elem_sort, attr_sort, AData, BoolSort())
+    return Function("attribute", elem_sort, attr_sort, AData, BoolSort(ctx=elem_sort.ctx))
 
 
 def assert_attribute_rel_constraints(
@@ -145,7 +146,7 @@ def def_association_rel(
     assoc_sort: DatatypeSortRef,
     elem_sort: DatatypeSortRef
 ) -> FuncDeclRef:
-    return Function("association", elem_sort, assoc_sort, elem_sort, BoolSort())
+    return Function("association", elem_sort, assoc_sort, elem_sort, BoolSort(ctx=elem_sort.ctx))
 
 
 def assert_association_rel_constraints(

@@ -1,0 +1,11 @@
+uwsgi:
+  strict: true
+  master: true
+  workers: 4
+  http-timeout: 120
+  module: mc_openapi.app_config
+  enable-threads: true
+  threads: 2
+  single-interpreter: true
+  need-app: true
+  thunder-lock: true

@@ -5,6 +5,7 @@ from itertools import product
 from z3 import (
     BoolSort,
     BoolVal,
+    Context,
     Datatype,
     DatatypeSortRef,
     ExprRef,
@@ -17,10 +18,10 @@ from z3 import (
 from .types import Refs, SortAndRefs
 
 
-def mk_enum_sort_dict(name: str, values: list[str]) -> SortAndRefs:
+def mk_enum_sort_dict(name: str, values: list[str], z3ctx: Context) -> SortAndRefs:
     """Makes a Z3 sort and a dict indexing sort values by their name"""
 
-    sort, dtrefs = EnumSort(name, values)
+    sort, dtrefs = EnumSort(name, values, ctx=z3ctx)
     return sort, dict(zip(values, dtrefs))
 
 
@@ -53,7 +54,7 @@ def assert_relation_tuples(
             list[ExprRef],
             [dom[sym_name] for sym_name, dom in zip(doms_tpl, sig_dicts)],
         )
-        + [BoolVal(doms_tpl in rel_tpls)]
+        + [BoolVal(doms_tpl in rel_tpls, ctx=solver.ctx)]
         for doms_tpl in map(list, product(*sig_dicts))
     ]
 
@@ -121,12 +122,13 @@ def assert_function_tuples_raw(
 
 def mk_stringsym_sort_from_strings(
     strings: list[str],
+    z3ctx: Context
 ) -> SortAndRefs:
     def symbolize(s: str) -> str:
         return "".join([c.lower() if c.isalnum() else "_" for c in s[:16]])
 
     ss_list = [f"ss_{i}_{symbolize(s)}" for i, s in enumerate(strings)]
-    stringsym_sort, ss_refs_dict = mk_enum_sort_dict("StringSym", ss_list)
+    stringsym_sort, ss_refs_dict = mk_enum_sort_dict("StringSym", ss_list, z3ctx=z3ctx)
     stringsym_sort_dict = {
         s: ss_refs_dict[ss] for s, ss in zip(strings, ss_list)
     }
@@ -135,10 +137,11 @@ def mk_stringsym_sort_from_strings(
 
 def mk_adata_sort(
     ss_sort: DatatypeSortRef,
+    z3ctx: Context
 ) -> DatatypeSortRef:
-    AData = Datatype("AttributeData")
-    AData.declare("int", ("get_int", IntSort()))
-    AData.declare("bool", ("get_bool", BoolSort()))
+    AData = Datatype("AttributeData", ctx=z3ctx)
+    AData.declare("int", ("get_int", IntSort(ctx=z3ctx)))
+    AData.declare("bool", ("get_bool", BoolSort(ctx=z3ctx)))
     AData.declare("ss", ("get_ss", ss_sort))
     return AData.create()
 

@@ -28,7 +28,7 @@ poetry run python -m pytest
 
 The project may be run with [uWSGI](https://uwsgi-docs.readthedocs.io/) as follows:
 ```sh
-uwsgi --http :8080 -w mc_openapi.app_config -p 4
+uwsgi --http :8080 --yaml uwsgi_config.yaml
 ```
 
 
