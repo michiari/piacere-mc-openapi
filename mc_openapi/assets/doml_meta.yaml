@@ -145,6 +145,9 @@ infrastructure:
             memory_mb:
                 type: Integer 
                 multiplicity: "0..1"
+            memory_kb:  # Missing in official Ecore, added by parser
+                type: Integer 
+                multiplicity: "0..1"
             storage: 
                 type: String 
                 multiplicity: "0..1"
