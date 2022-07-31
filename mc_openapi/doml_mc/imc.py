@@ -2,8 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from z3 import (
-    Context, CheckSatResult, FuncDeclRef, Solver, ExprRef, SortRef, DatatypeSortRef,
-    sat, unsat, unknown
+    Context, FuncDeclRef, Solver, ExprRef, SortRef, DatatypeSortRef, unsat
 )
 
 from .intermediate_model.doml_element import IntermediateModel
@@ -22,6 +21,7 @@ from .z3encoding.metamodel_encoding import (
 )
 from .z3encoding.types import Refs
 from .z3encoding.utils import mk_adata_sort
+from .mc_result import MCResult, MCResults
 
 
 @dataclass
@@ -141,19 +141,18 @@ class IntermediateModelChecker:
         self.intermediate_model = intermediate_model
         instantiate_solver()
 
-    def check_consistency_constraints(self) -> tuple[CheckSatResult, str]:
+    def check_consistency_constraints(self) -> tuple[MCResult, str]:
         self.solver.push()
         self.assert_consistency_constraints()
         res = self.solver.check()
         self.solver.pop()
         if res == unsat:
-            return unsat, "The DOML model is inconsistent."
+            return MCResult.unsat, "The DOML model is inconsistent."
         else:
-            return res, ""
+            return MCResult.from_z3result(res), ""
 
-    def check_requirements(self, reqs: RequirementStore) -> tuple[CheckSatResult, str]:
-        unsat_msgs = []
-        some_dontknow = False
+    def check_requirements(self, reqs: RequirementStore) -> MCResults:
+        results = []
 
         for req in reqs.get_all_requirements():
             self.solver.push()
@@ -162,20 +161,10 @@ class IntermediateModelChecker:
                 req.assert_name
                 )
             res = self.solver.check()
-            if res == unsat:
-                unsat_msgs.append(req.error_description)
-            elif res == unknown:
-                some_dontknow = True
             self.solver.pop()
+            results.append((MCResult.from_z3result(res, flipped=True), req.error_description))
 
-        if unsat_msgs:
-            if some_dontknow:
-                unsat_msgs.append("Unable to check some requirements.")
-            return unsat, " ".join(unsat_msgs)
-        elif some_dontknow:
-            return unknown, "Unable to check some requirements."
-        else:
-            return sat, "All requirements satisfied."
+        return MCResults(results)
 
     def assert_consistency_constraints(self):
         assert_attribute_rel_constraints(

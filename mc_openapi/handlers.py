@@ -1,6 +1,5 @@
 import datetime
-from z3 import sat, unsat
-from .doml_mc import ModelChecker
+from .doml_mc import ModelChecker, MCResult
 
 
 def make_error(user_msg, debug_msg=None):
@@ -14,15 +13,13 @@ def post(body, requirement=None):
     doml_xmi = body
     try:
         dmc = ModelChecker(doml_xmi)
-        result, msg = dmc.check_common_requirements(2)
+        results = dmc.check_common_requirements(2)
+        res, msg = results.summarize()
 
-        if result == sat:
+        if res == MCResult.sat:
             return {"result": "sat"}
-        elif result == unsat:
-            return {"result": "unsat",
-                    "description": msg}
         else:
-            return {"result": "dontknow",
+            return {"result": res.name,
                     "description": msg}
 
     except Exception as e:
