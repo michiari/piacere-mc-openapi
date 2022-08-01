@@ -52,9 +52,9 @@ class ModelChecker:
                 + get_association_multiplicity_reqs(ModelChecker.metamodel) \
                 + get_inverse_association_reqs(ModelChecker.inv_assoc)
 
-        def worker(index: int):
+        def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
-            rs = RequirementStore([req_store.get_one_requirement(index)])
+            rs = RequirementStore(req_store.get_all_requirements()[rfrom:rto])
             return imc.check_requirements(rs)
 
         if threads <= 1:
@@ -62,8 +62,16 @@ class ModelChecker:
             reqs = imc.check_requirements(req_store)
             return reqs
         else:
+            def split_reqs(n_reqs: int, n_split: int):
+                slice_size = n_reqs // n_split
+                rto = 0
+                while rto < n_reqs:
+                    rfrom = rto
+                    rto = min(rfrom + slice_size, n_reqs)
+                    yield rfrom, rto
+
             with parallel_backend('threading', n_jobs=threads):
-                results = Parallel()(delayed(worker)(i) for i in range(len(req_store)))
+                results = Parallel()(delayed(worker)(rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
             ret = MCResults([])
             for res in results:
                 ret.add_results(res)
