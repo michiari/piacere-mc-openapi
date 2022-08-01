@@ -13,7 +13,7 @@ def post(body, requirement=None):
     doml_xmi = body
     try:
         dmc = ModelChecker(doml_xmi)
-        results = dmc.check_common_requirements(threads=1, consistency_checks=False)
+        results = dmc.check_common_requirements(2)
         res, msg = results.summarize()
 
         if res == MCResult.sat:
