@@ -25,7 +25,7 @@ class MCResult(Enum):
 
 
 class MCResults:
-    dontknow_msg = "Unable to check some requirements."
+    dontknow_msg = "Timed out: unable to check some requirements."
 
     def __init__(self, results: list[tuple[MCResult, str]]):
         self.results = results

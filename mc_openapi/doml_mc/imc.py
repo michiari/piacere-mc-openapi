@@ -142,9 +142,10 @@ class IntermediateModelChecker:
         self.intermediate_model = intermediate_model
         instantiate_solver()
 
-    def check_requirements(self, reqs: RequirementStore) -> MCResults:
-        results = []
+    def check_requirements(self, reqs: RequirementStore, timeout: int = 0) -> MCResults:
+        self.solver.set(timeout=(timeout * 1000))
 
+        results = []
         for req in reqs.get_all_requirements():
             self.solver.push()
             self.solver.assert_and_track(

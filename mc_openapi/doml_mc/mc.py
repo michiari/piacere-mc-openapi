@@ -2,6 +2,7 @@ from typing import Optional
 import importlib.resources as ilres
 import yaml
 from joblib import parallel_backend, Parallel, delayed
+from multiprocessing import TimeoutError
 
 from .. import assets
 from .intermediate_model.doml_element import (
@@ -14,7 +15,7 @@ from .intermediate_model.metamodel import (
     parse_metamodel
 )
 from .xmi_parser.doml_model import parse_doml_model
-from .mc_result import MCResults
+from .mc_result import MCResult, MCResults
 from .imc import RequirementStore, IntermediateModelChecker
 from .common_reqs import CommonRequirements
 from .consistency_reqs import (
@@ -41,7 +42,7 @@ class ModelChecker:
         self.intermediate_model: IntermediateModel = parse_doml_model(xmi_model, ModelChecker.metamodel)
         reciprocate_inverse_associations(self.intermediate_model, ModelChecker.inv_assoc)
 
-    def check_common_requirements(self, threads=1, consistency_checks=False) -> MCResults:
+    def check_common_requirements(self, threads: int = 1, consistency_checks: bool = False, timeout: Optional[int] = None) -> MCResults:
         assert ModelChecker.metamodel and ModelChecker.inv_assoc
         req_store = CommonRequirements
         if consistency_checks:
@@ -59,7 +60,7 @@ class ModelChecker:
 
         if threads <= 1:
             imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
-            reqs = imc.check_requirements(req_store)
+            reqs = imc.check_requirements(req_store, timeout=(0 if timeout is None else timeout))
             return reqs
         else:
             def split_reqs(n_reqs: int, n_split: int):
@@ -70,9 +71,12 @@ class ModelChecker:
                     rto = min(rfrom + slice_size, n_reqs)
                     yield rfrom, rto
 
-            with parallel_backend('threading', n_jobs=threads):
-                results = Parallel()(delayed(worker)(rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
-            ret = MCResults([])
-            for res in results:
-                ret.add_results(res)
-            return ret
+            try:
+                with parallel_backend('threading', n_jobs=threads):
+                    results = Parallel(timeout=timeout)(delayed(worker)(rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
+                ret = MCResults([])
+                for res in results:
+                    ret.add_results(res)
+                return ret
+            except TimeoutError:
+                return MCResults([(MCResult.dontknow, "")])
