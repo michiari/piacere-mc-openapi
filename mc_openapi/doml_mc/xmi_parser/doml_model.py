@@ -57,6 +57,7 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
     sp = SpecialParser(mm, {
         ("infrastructure_Network", "addressRange"): parse_network_address_range,
         ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
+        ("commons_FProperty", "value"): lambda fval: {"value": [str(fval)]},
     })
     elp = ELayerParser(mm, sp)
     elp.parse_elayer(model.application)
