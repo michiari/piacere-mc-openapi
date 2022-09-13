@@ -73,26 +73,16 @@ run-functional-tests:
     - $DOCKER_DIND_IMAGE
   variables:
     TESTS_CONTAINER_NAME: functional-tester
-    TESTS_DIR: /opt/mc_openapi/ci_tests_dir
   before_script:
     - *artifactory-login
   script:
     # Tests assume port 8080, while the Dockerfile CMD runs the server on port 80.
     # Thus, we need to override the command so that the server is run on port 8080.
-    - docker run --name $TESTS_CONTAINER_NAME -d $TMP_IMAGE uwsgi --http :8080 -w mc_openapi.app_config -p 4
-    # Even though the project files are already in the /opt/mc_openapi dir in the container,
-    # we copy everything to the container anyway because we do not want to interfere
-    # with the files utilised by the uwsgi process, which has been run without the
-    # use of Poetry.
-    - docker cp . ${TESTS_CONTAINER_NAME}:${TESTS_DIR}
+    - docker run --name $TESTS_CONTAINER_NAME -d $TMP_IMAGE uwsgi --http :8080 --yaml uwsgi_config.yaml
     # Install everything required for the tests.
-    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install --no-cache-dir --upgrade pip && 
-        pip install --no-cache-dir poetry && 
-        cd ${TESTS_DIR} && 
-        poetry config virtualenvs.create false && 
-        poetry install"
+    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install -r dev-requirements.txt"
     # Run the tests.
-    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "cd ${TESTS_DIR} && poetry run python -m pytest"
+    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "python -m pytest"
     # Stop the tests container.
     - docker stop $TESTS_CONTAINER_NAME
   tags:
