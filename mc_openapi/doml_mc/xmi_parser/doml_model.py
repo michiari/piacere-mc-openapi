@@ -67,9 +67,17 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
         ("commons_FProperty", "value"): lambda fval: {"value": [str(fval)]},
     })
     elp = ELayerParser(mm, sp)
-    elp.parse_elayer(model.application)
-    elp.parse_elayer(model.infrastructure)
-    elp.parse_elayer(model.activeConfiguration)
-    im = elp.parse_elayer(model.activeInfrastructure)
+    if model.application:
+        elp.parse_elayer(model.application)
+    if model.infrastructure:
+        elp.parse_elayer(model.infrastructure)
+    else:
+        raise RuntimeError("Abstract infrastructure layer is missing.")
+    if model.activeConfiguration:
+        elp.parse_elayer(model.activeConfiguration)
+    if model.activeInfrastructure:
+        im = elp.parse_elayer(model.activeInfrastructure)
+    else:
+        raise RuntimeError("No active concrete infrastructure layer has been specified.")
 
     return im
