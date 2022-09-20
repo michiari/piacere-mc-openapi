@@ -32,6 +32,12 @@ commons:
             value:
                 type: String
                 multiplicity: "0..1"
+    FProperty:
+        superclass: commons_Property
+        attributes:
+            value:
+                type: String
+                multiplicity: "0..1"
     BProperty:
         superclass: commons_Property
         attributes:

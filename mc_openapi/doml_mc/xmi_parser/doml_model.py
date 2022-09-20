@@ -51,13 +51,20 @@ def parse_doml_model(raw_model: bytes, mm: MetaModel) -> IntermediateModel:
         ipnet = ip_network(arange)
         return {"address_lb": [int(ipnet[0])], "address_ub": [int(ipnet[-1])]}
 
+    def parse_iface_address(addrport: str) -> Attributes:
+        addr, _, port = addrport.rpartition(":")
+        if addr == "":
+            addr = port
+        return {"endPoint": [int(ip_address(addr))]}
+
     model = parse_xmi_model(raw_model)
     check_domlx_version(model)
 
     sp = SpecialParser(mm, {
         ("infrastructure_Network", "addressRange"): parse_network_address_range,
-        ("infrastructure_NetworkInterface", "endPoint"): lambda addr: {"endPoint": [int(ip_address(addr))]},
-        ("infrastructure_ComputingNode", "memory_mb"): lambda mem: {"memory_mb":  [int(mem)], "memory_kb": [int(mem * 1024)]}
+        ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
+        ("infrastructure_ComputingNode", "memory_mb"): lambda mem: {"memory_mb":  [int(mem)], "memory_kb": [int(mem * 1024)]},
+        ("commons_FProperty", "value"): lambda fval: {"value": [str(fval)]},
     })
     elp = ELayerParser(mm, sp)
     elp.parse_elayer(model.application)
