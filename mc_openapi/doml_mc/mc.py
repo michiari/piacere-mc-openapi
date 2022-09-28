@@ -72,7 +72,7 @@ class ModelChecker:
                     yield rfrom, rto
 
             try:
-                with parallel_backend('threading', n_jobs=threads):
+                with parallel_backend('loky', n_jobs=threads):
                     results = Parallel(timeout=timeout)(delayed(worker)(rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
                 ret = MCResults([])
                 for res in results:
