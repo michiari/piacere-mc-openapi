@@ -31,14 +31,18 @@ Then, run tests with::
   poetry run python -m pytest
 
 
-Run locally with uWSGI
-----------------------
+Run locally with Uvicorn
+------------------------
 
-The project may be run with `uWSGI`_,
+The project may be run with `Uvicorn`_,
 which is better-suited for production environments, as follows::
 
-  uwsgi --http :8080 -w mc_openapi.app_config -p 4
+  uvicorn --port 8080 --host 0.0.0.0 --interface wsgi --workers 2 mc_openapi.app_config:app
 
+You may also configure Uvicorn using environment variables
+with the prefix ``UVICORN_``.
+For example, if you want to run the server with 4 workers,
+set the environment variable ``UVICORN_WORKERS`` to ``4``.
 
 Run with Docker
 ---------------
@@ -53,7 +57,7 @@ And then run it with::
 
   docker run -d wp4/dmc
 
-The uWSGI server will be running and listening on port 80 of the container.
+The Uvicorn server will be running and listening on port 80 of the container.
 
 
 Building the Documentation
@@ -76,6 +80,6 @@ The documentation will be generated in ``docs/_build``.
 .. _Poetry: https://python-poetry.org/
 .. _Flask: https://flask.palletsprojects.com/
 .. _Swagger-UI: https://swagger.io/tools/swagger-ui/
-.. _uWSGI: https://uwsgi-docs.readthedocs.io/
+.. _Uvicorn: https://www.uvicorn.org/
 .. _Docker: https://www.docker.com/
 .. _Sphinx: https://www.sphinx-doc.org/

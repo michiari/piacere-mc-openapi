@@ -8,12 +8,12 @@ license = "Apache-2.0"
 [tool.poetry.dependencies]
 python = "^3.9"
 connexion = {extras = ["swagger-ui"], version = "^2.14"}
-uWSGI = "^2.0"
 pyecore = "^0.12.2"
 z3-solver = "^4.9"
 PyYAML = "^6.0"
 networkx = "^2.8"
 joblib = "^1.1"
+uvicorn = {extras = ["standard"], version = "^0.18"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.0"

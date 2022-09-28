@@ -24,11 +24,11 @@ poetry run python -m pytest
 ```
 
 
-## Run with uWSGI
+## Run with Uvicorn
 
-The project may be run with [uWSGI](https://uwsgi-docs.readthedocs.io/) as follows:
+The project may be run with [Uvicorn](https://www.uvicorn.org/) as follows:
 ```sh
-uwsgi --http :8080 --yaml uwsgi_config.yaml
+uvicorn --port 8080 --host 0.0.0.0 --interface wsgi --workers 2 mc_openapi.app_config:app
 ```
 
 
@@ -42,7 +42,7 @@ And then run it with
 ```sh
 docker run -d wp4/dmc
 ```
-The uWSGI server will be running and listening on port 80 of the container.
+The Uvicorn server will be running and listening on port 80 of the container.
 
 
 ## Building the Documentation
