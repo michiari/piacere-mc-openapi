@@ -9,4 +9,7 @@ RUN pip install --upgrade pip \
     && pip install -r /opt/mc_openapi/requirements.txt
 WORKDIR /opt/mc_openapi
 
-CMD ["uvicorn", "--port", "80", "--host", "0.0.0.0", "--interface", "wsgi", "mc_openapi.app_config:app"]
+ENV UVICORN_PORT=80 \
+    UVICORN_HOST=0.0.0.0
+
+CMD ["uvicorn", "--interface", "wsgi", "mc_openapi.app_config:app"]

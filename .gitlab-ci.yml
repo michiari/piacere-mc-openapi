@@ -78,7 +78,7 @@ run-functional-tests:
   script:
     # Tests assume port 8080, while the Dockerfile CMD runs the server on port 80.
     # Thus, we need to override the command so that the server is run on port 8080.
-    - docker run --name $TESTS_CONTAINER_NAME -d $TMP_IMAGE uwsgi --http :8080 --yaml uwsgi_config.yaml
+    - docker run --name $TESTS_CONTAINER_NAME -d $TMP_IMAGE uvicorn --port 8080 --host 0.0.0.0 --interface wsgi mc_openapi.app_config:app
     # Install everything required for the tests.
     - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install -r dev-requirements.txt"
     # Run the tests.
