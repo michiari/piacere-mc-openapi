@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  dmc:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      UVICORN_PORT: 80
+      UVICORN_HOST: "0.0.0.0"
+      UVICORN_WORKERS: 2

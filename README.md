@@ -43,6 +43,8 @@ And then run it with
 docker run -d wp4/dmc
 ```
 The Uvicorn server will be running and listening on port 80 of the container.
+To use it locally, you may e.g. bind it with port 8080 of `localhost`
+by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
 
 
 ## Building the Documentation
