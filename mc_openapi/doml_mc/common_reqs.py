@@ -178,6 +178,68 @@ def all_infrastructure_elements_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts
     )
 
 
+def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+    def checkOneClass(ielem, provider, celem, providerAssoc, celemAssoc):
+        return And(
+            smtenc.association_rel(provider, smtenc.associations[providerAssoc], celem),
+            Not(
+                Exists(
+                    [ielem],
+                    smtenc.association_rel(celem, smtenc.associations[celemAssoc], ielem)
+                )
+            )
+        )
+
+    ielem, concr, provider, celem = get_consts(smtsorts, ["ielem", "concr", "provider", "celem"])
+    return Exists(
+        [concr, provider],
+        And(
+            smtenc.element_class_fun(concr) == smtenc.classes["concrete_ConcreteInfrastructure"],
+            smtenc.association_rel(concr, smtenc.associations["concrete_ConcreteInfrastructure::providers"], provider),
+            Exists(
+                [celem],
+                Or(
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::vms",
+                        "concrete_VirtualMachine::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::vmImages",
+                        "concrete_VMImage::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::containerImages",
+                        "concrete_ContainerImage::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::networks",
+                        "concrete_Network::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::storages",
+                        "concrete_Storage::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::faas",
+                        "concrete_FunctionAsAService::maps"
+                    ),
+                    checkOneClass(
+                        ielem, provider, celem,
+                        "concrete_RuntimeProvider::group",
+                        "concrete_ComputingGroup::maps"
+                    ),
+                )
+            )
+        )
+    )
+
+
 CommonRequirements = RequirementStore(
     [
         Requirement(*rt) for rt in [
@@ -186,6 +248,7 @@ CommonRequirements = RequirementStore(
             (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", "There is a duplicated interface."),
             (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", "A software component has not been deployed to any node."),
             (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", "An abstract infrastructure element has not been mapped to any element in the active concretization."),
+            (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", "A concrete infrastructure element is mapped to no abstract infrastructure element.")
         ]
     ]
 )

@@ -49,4 +49,12 @@ Concretization of Abstract Infrastructure
 
   All abstract infrastructure elements are mapped to an element in the active concretization.
 
-Makes sure all abstract infrastructure are concretized by the currently active concretization layer.
+Makes sure all abstract infrastructure nodes are concretized by the currently active concretization layer.
+
+
+Concrete Infrastructure Elements have a maps Association
+--------------------------------------------------------
+
+  All elements in the active concretization are mapped to some abstract infrastructure element.
+
+Makes sure each concrete infrastructure element is mapped to a node in the Abstract Infrastructure Layer.
