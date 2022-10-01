@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="nginx_openstack" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="app">
+    <components xsi:type="app:SoftwareComponent" name="nginx" consumedInterfaces="//@application/@components.1/@exposedInterfaces.0">
+      <annotations xsi:type="commons:SProperty" key="source_code" value="/usr/share/nginx/html/index.html"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="db">
+      <exposedInterfaces name="database"/>
+    </components>
+  </application>
+  <infrastructure name="infra">
+    <nodes xsi:type="infra:VirtualMachine" name="vm2" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0">
+      <ifaces name="i2" endPoint="17.0.0.1" belongsTo="//@infrastructure/@networks.1" associated="//@infrastructure/@securityGroups.0"/>
+    </nodes>
+    <generators xsi:type="infra:VMImage" name="v_img" generatedVMs="//@infrastructure/@groups.0/@machineDefinition"/>
+    <credentials xsi:type="infra:KeyPair" name="ssh_key" user="ubuntu" keyfile="/home/user1/.ssh/openstack.key" algorithm="RSA" bits="4096"/>
+    <groups xsi:type="infra:AutoScalingGroup" name="ag" deploymentNetwork="//@infrastructure/@networks.0">
+      <machineDefinition name="vm1" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+        <ifaces name="i1" endPoint="16.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@securityGroups.0"/>
+      </machineDefinition>
+    </groups>
+    <securityGroups name="sg" ifaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0 //@infrastructure/@nodes.0/@ifaces.0">
+      <rules name="icmp" protocol="icmp" fromPort="-1" toPort="-1">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="http" kind="INGRESS" protocol="tcp" fromPort="80" toPort="80">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="https" kind="INGRESS" protocol="tcp" fromPort="443" toPort="443">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+    </securityGroups>
+    <networks name="net1" protocol="tcp/ip" addressRange="16.0.0.0/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0"/>
+    <networks name="net2" protocol="tcp/ip" addressRange="17.0.0.0/24" connectedIfaces="//@infrastructure/@nodes.0/@ifaces.0"/>
+  </infrastructure>
+  <concretizations name="con_infra">
+    <providers name="openstack">
+      <vms name="concrete_vm" maps="//@infrastructure/@groups.0/@machineDefinition">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="nginx-host"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
+      </vms>
+      <vms name="concrete_vm2" maps="//@infrastructure/@nodes.0">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="nginx-host"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
+      </vms>
+      <vmImages name="concrete_vm_image" maps="//@infrastructure/@generators.0">
+        <annotations xsi:type="commons:SProperty" key="name" value="ubuntu-20.04.3"/>
+      </vmImages>
+      <networks name="concrete_net" maps="//@infrastructure/@networks.0">
+        <annotations xsi:type="commons:SProperty" key="name" value="ostack2"/>
+      </networks>
+      <networks name="concrete_net2" maps="//@infrastructure/@networks.1">
+        <annotations xsi:type="commons:SProperty" key="name" value="ostack2"/>
+      </networks>
+    </providers>
+  </concretizations>
+  <optimization name="opt">
+    <objectives xsi:type="optimization:MeasurableObjective" kind="min" property="cost"/>
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req1" description="Cost &lt;= 200" property="cost" max="200.0"/>
+    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req2" description="Provider" property="provider">
+      <values>AMAZ</values>
+    </nonfunctionalRequirements>
+  </optimization>
+  <configurations name="config">
+    <deployments component="//@application/@components.0" node="//@infrastructure/@groups.0/@machineDefinition"/>
+    <deployments component="//@application/@components.1" node="//@infrastructure/@nodes.0"/>
+  </configurations>
+</commons:DOMLModel>

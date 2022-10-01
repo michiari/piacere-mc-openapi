@@ -1,0 +1,109 @@
+doml nginx_openstack
+
+application app {
+
+	software_component nginx {
+		properties {
+			source_code="/usr/share/nginx/html/index.html";
+		}
+	}
+}
+
+infrastructure infra {
+
+	vm_image v_img {
+		generates vm1
+	}
+
+	net net1 {
+		address "16.0.0.0/24"
+		protocol "tcp/ip"
+	}
+
+	security_group sg {
+		egress icmp {
+			from_port -1
+			to_port -1
+			protocol "icmp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			from_port 80
+			to_port 80
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress https {
+			from_port 443
+			to_port 443
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ssh {
+			from_port 22
+			to_port 22
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ifaces i1
+	}
+
+	key_pair ssh_key {
+		user "ubuntu"
+		keyfile "/home/user1/.ssh/openstack.key"
+		algorithm "RSA"
+		bits 4096
+	}
+
+	autoscale_group ag { 
+		vm vm1 {
+			os "ubuntu-20.04.3"
+			iface i1 {
+				address "16.0.0.1"
+				belongs_to net1
+				security sg
+			}
+			credentials ssh_key
+		}
+		network net1
+	}
+}
+
+deployment config {
+	nginx -> vm1
+}
+
+active deployment config
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider openstack {
+			vm concrete_vm {
+				properties {
+					vm_name = "nginx-host";
+					vm_flavor = "small";
+					vm_key_name = "user1";
+				}
+				maps vm1
+			}
+
+			vm_image concrete_vm_image {
+				properties {
+					name = "ubuntu-20.04.3";
+				}
+				maps v_img
+			}
+		}
+	}
+	active con_infra
+}
+
+optimization opt {
+	objectives {
+		"cost" => min
+	}
+	nonfunctional_requirements {
+		req1 "Cost <= 200" max 200.0 => "cost";
+		req2 "Provider" values "AMAZ" => "provider";
+	}
+}

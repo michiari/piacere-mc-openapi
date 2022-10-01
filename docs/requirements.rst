@@ -5,6 +5,8 @@ The DOML Model Checker verifies DOML models against a collection of requirements
 devised to highlight the most common mistakes made by users when specifying cloud deployments.
 Here we list and describe such requirements.
 
+You may find examples of violations for each one of these requirements under the ``tests/doml`` directory.
+
 
 VM Network Interfaces
 ---------------------
