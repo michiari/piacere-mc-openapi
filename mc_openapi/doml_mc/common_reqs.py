@@ -1,5 +1,5 @@
 from z3 import (
-    Consts, ExprRef,
+    Const, Consts, ExprRef,
     Exists, And, Or, Not
 )
 
@@ -92,21 +92,15 @@ def software_package_iface_net(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
 
 
 def iface_uniq(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
-    def any_iface(elem, iface):
-        ifaces_assocs = [
-            "infrastructure_ComputingNode::ifaces",
-            "infrastructure_Storage::ifaces",
-            "infrastructure_FunctionAsAService::ifaces"
-        ]
-        return Or(*(smtenc.association_rel(elem, smtenc.associations[assoc_name], iface) for assoc_name in ifaces_assocs))
-
-    e1, e2, ni = get_consts(smtsorts, ["e1", "e2", "i"])
+    endPointAttr = smtenc.attributes["infrastructure_NetworkInterface::endPoint"]
+    ni1, ni2 = get_consts(smtsorts, ["ni1", "ni2"])
+    value = Const("value", smtsorts.attr_data_sort)
     return Exists(
-        [e1, e2, ni],
+        [ni1, ni2, value],
         And(
-            any_iface(e1, ni),
-            any_iface(e2, ni),
-            e1 != e2
+            smtenc.attribute_rel(ni1, endPointAttr, value),
+            smtenc.attribute_rel(ni2, endPointAttr, value),
+            ni1 != ni2,
         )
     )
 

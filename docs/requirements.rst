@@ -31,7 +31,7 @@ Duplicated Interfaces
 
   There are no duplicated interfaces.
 
-Checks whether two or more interfaces have been assigned the same IP address in the same network.
+Checks whether two or more interfaces have been assigned the same IP address.
 
 
 Deployed Software Components
