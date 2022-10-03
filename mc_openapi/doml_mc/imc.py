@@ -2,7 +2,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from z3 import (
-    Context, FuncDeclRef, Solver, ExprRef, SortRef, DatatypeSortRef
+    Context, FuncDeclRef, Solver, ExprRef, SortRef, DatatypeSortRef, sat
 )
 
 from .intermediate_model.doml_element import IntermediateModel
@@ -46,10 +46,10 @@ class SMTSorts:
 
 @dataclass
 class Requirement:
-    assert_callable: Callable[[SMTEncoding, SMTSorts], list[ExprRef]]
+    assert_callable: Callable[[SMTEncoding, SMTSorts], ExprRef]
     assert_name: str
     description: str
-    error_description: str
+    error_description: Callable[[Solver, SMTSorts, IntermediateModel], str]
 
 
 class RequirementStore:
@@ -151,9 +151,13 @@ class IntermediateModelChecker:
             self.solver.assert_and_track(
                 req.assert_callable(self.smt_encoding, self.smt_sorts),
                 req.assert_name
-                )
+            )
             res = self.solver.check()
+            results.append((
+                MCResult.from_z3result(res, flipped=True),
+                req.error_description(self.solver, self.smt_sorts, self.intermediate_model)
+                if res == sat else ""
+            ))
             self.solver.pop()
-            results.append((MCResult.from_z3result(res, flipped=True), req.error_description))
 
         return MCResults(results)

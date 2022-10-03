@@ -1,16 +1,22 @@
+from typing import Optional
+
 from z3 import (
     Const, Consts, ExprRef,
-    Exists, And, Or, Not
+    Exists, And, Or, Not,
+    Solver, ModelRef
 )
 
 from .imc import (
     SMTEncoding, SMTSorts, Requirement, RequirementStore
 )
+from .intermediate_model.doml_element import IntermediateModel
 
 
 def get_consts(smtsorts: SMTSorts, consts: list[str]) -> list[ExprRef]:
     return Consts(" ".join(consts), smtsorts.element_sort)
 
+
+# Assertions
 
 def vm_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     vm, iface = get_consts(smtsorts, ["vm", "iface"])
@@ -216,15 +222,96 @@ def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
     )
 
 
+# Error Descriptions
+
+def get_user_friendly_name(
+    intermediate_model: IntermediateModel,
+    model: ModelRef,
+    const: ExprRef
+) -> Optional[str]:
+    z3_elem = model[const]
+    if z3_elem is not None:
+        im_elem = intermediate_model.get(str(z3_elem))
+        if im_elem is not None:
+            return im_elem.user_friendly_name
+    return None
+
+
+def ed_vm_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    vm = Const("vm", smtsorts.element_sort)
+    vm_name = get_user_friendly_name(intermediate_model, solver.model(), vm)
+    if vm_name:
+        return f"Virtual machine {vm_name} is connected to no network interface."
+    else:
+        return "A virtual machine is connected to no network interface."
+
+
+def ed_software_package_iface_net(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    asc_consumer, asc_exposer, siface = get_consts(
+        smtsorts,
+        ["asc_consumer", "asc_exposer", "siface"]
+    )
+    model = solver.model()
+    asc_consumer_name = get_user_friendly_name(intermediate_model, model, asc_consumer)
+    asc_exposer_name = get_user_friendly_name(intermediate_model, model, asc_exposer)
+    siface_name = get_user_friendly_name(intermediate_model, model, siface)
+    if asc_consumer_name and asc_exposer_name and siface_name:
+        return (
+            f"Software components '{asc_consumer_name}' and '{asc_exposer_name}' "
+            f"are supposed to communicate through interface '{siface_name}', "
+            "but they are deployed to nodes that cannot communicate through a common network."
+        )
+    else:
+        return "A software package is deployed on a node that has no access to an interface it consumes."
+
+
+def ed_iface_uniq(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    ni1, ni2 = get_consts(smtsorts, ["ni1", "ni2"])
+    model = solver.model()
+    ni1_name = get_user_friendly_name(intermediate_model, model, ni1)
+    ni2_name = get_user_friendly_name(intermediate_model, model, ni2)
+    if ni1_name and ni2_name:
+        return f"Network interfaces '{ni1_name}' and '{ni2_name}' share the same IP address."
+    else:
+        return "Two network interfaces share the same IP address."
+
+
+def ed_all_SoftwareComponents_deployed(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    sc = Const("sc", smtsorts.element_sort)
+    sc_name = get_user_friendly_name(intermediate_model, solver.model(), sc)
+    if sc_name:
+        return f"Software component '{sc_name}' is not deployed to any abstract infrastructure node."
+    else:
+        return "A software component has not been deployed to any node."
+
+
+def ed_all_infrastructure_elements_deployed(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    ielem = Const("ielem", smtsorts.element_sort)
+    ielem_name = get_user_friendly_name(intermediate_model, solver.model(), ielem)
+    if ielem_name:
+        return f"Abstract infrastructure element '{ielem_name}' has not been mapped to any element in the active concretization."
+    else:
+        return "An abstract infrastructure element has not been mapped to any element in the active concretization."
+
+
+def ed_all_concrete_map_something(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    celem = Const("celem", smtsorts.element_sort)
+    celem_name = get_user_friendly_name(intermediate_model, solver.model(), celem)
+    if celem_name:
+        return f"Concrete infrastructure element '{celem_name}' is mapped to no abstract infrastructure element."
+    else:
+        return "A concrete infrastructure element is mapped to no abstract infrastructure element."
+
+
 CommonRequirements = RequirementStore(
     [
         Requirement(*rt) for rt in [
-            (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", "A virtual machine is connected to no network interface."),
-            (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", "A software package is deployed on a node that has no access to an interface it consumes."),
-            (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", "There is a duplicated interface."),
-            (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", "A software component has not been deployed to any node."),
-            (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", "An abstract infrastructure element has not been mapped to any element in the active concretization."),
-            (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", "A concrete infrastructure element is mapped to no abstract infrastructure element.")
+            (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
+            (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
+            (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
+            (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
+            (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
+            (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
         ]
     ]
 )

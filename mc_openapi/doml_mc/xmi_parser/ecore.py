@@ -1,5 +1,5 @@
 import sys
-from typing import Callable
+from typing import Callable, Optional
 
 from pyecore.ecore import EEnumLiteral, EObject, EOrderedSet, EClass
 
@@ -89,14 +89,13 @@ class ELayerParser:
         assocs = parse_associations(raw_assocs, mm_class, self.mm)
 
         self.im[name] = DOMLElement(
-            id_=name, class_=mm_class, attributes=attrs, associations=assocs
+            id_=name, class_=mm_class, attributes=attrs, associations=assocs,
+            user_friendly_name=ELayerParser.get_user_friendly_name(doc)
         )
-        return name
-
-    def getUniqueName(self):
-        name = f"__generated_name__{self.nextUniqueId}"
-        self.nextUniqueId += 1
         return name
 
     def mangle_eclass_name(eClass: EClass) -> str:
         return eClass.ePackage.name + "_" + eClass.name
+
+    def get_user_friendly_name(doc: EObject) -> Optional[str]:
+        return getattr(doc, "name", None)

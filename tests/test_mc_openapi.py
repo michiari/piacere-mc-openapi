@@ -30,7 +30,16 @@ def test_post_faas_sat():
 
 
 def test_post_common_reqs():
-    for req in CommonRequirements.get_all_requirements():
+    check_strings = [
+        "is connected to no network interface.",
+        "but they are deployed to nodes that cannot communicate through a common network.",
+        "share the same IP address.",
+        "is not deployed to any abstract infrastructure node.",
+        "has not been mapped to any element in the active concretization.",
+        "is mapped to no abstract infrastructure element."
+    ]
+
+    for req, err_desc in zip(CommonRequirements.get_all_requirements(), check_strings):
         with open(f"tests/doml/nginx-openstack_v2.0_wrong_{req.assert_name}.domlx", "r") as f:
             doml = f.read()
 
@@ -39,4 +48,4 @@ def test_post_common_reqs():
         assert r.status_code == requests.codes.ok
         assert payload["result"] is not None
         assert payload["result"] == "unsat"
-        assert req.error_description in payload["description"]
+        assert err_desc in payload["description"]

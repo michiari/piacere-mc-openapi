@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Union, Optional
 from dataclasses import dataclass
 
 from .metamodel import (
@@ -21,6 +21,7 @@ class DOMLElement:
     # e.g., `"application_SoftwarePackage::isPersistent"`.
     attributes: Attributes
     associations: Associations
+    user_friendly_name: Optional[str]
 
 
 IntermediateModel = dict[str, "DOMLElement"]
