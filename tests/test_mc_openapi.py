@@ -4,7 +4,7 @@ import requests
 
 
 def test_version():
-    assert __version__ == '1.1.0'
+    assert __version__ == '1.2.0'
 
 
 def test_post_nginx_sat():
