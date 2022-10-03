@@ -282,7 +282,7 @@ def ed_all_SoftwareComponents_deployed(solver: Solver, smtsorts: SMTSorts, inter
     if sc_name:
         return f"Software component '{sc_name}' is not deployed to any abstract infrastructure node."
     else:
-        return "A software component has not been deployed to any node."
+        return "A software component is not deployed to any abstract infrastructure node."
 
 
 def ed_all_infrastructure_elements_deployed(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
