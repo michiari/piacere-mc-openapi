@@ -44,14 +44,11 @@ def get_attribute_type_reqs(mm: MetaModel) -> RequirementStore:
                         attr_val == smtsorts.attr_data_sort.ss(smtenc.str_symbols["IMAGE"]),  # type: ignore
                         attr_val == smtsorts.attr_data_sort.ss(smtenc.str_symbols["SCRIPT"]),  # type: ignore
                     )
-                return Exists(
-                    [elem, attr_val],
-                    And(
-                        smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val),
-                        Or(
-                            Not(src_subclass_cond),
-                            Not(tgt_type_cond),
-                        ),
+                return And(
+                    smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val),
+                    Or(
+                        Not(src_subclass_cond),
+                        Not(tgt_type_cond),
                     ),
                 )
 
@@ -76,29 +73,23 @@ def get_attribute_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
                 elem = Const("elem", smtsorts.element_sort)
                 attr_val = Const("attr_val", smtsorts.attr_data_sort)
                 src_subclass_cond = subclass_cond(smtenc, subclasses_dict[cname], elem)  # Source subclass condition
-                return Exists(
-                    [elem],
-                    And(
-                        src_subclass_cond,
-                        Not(
-                            Exists(
-                                [attr_val],
-                                smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val),
-                            ),
-                        )
-                    ),
+                return And(
+                    src_subclass_cond,
+                    Not(
+                        Exists(
+                            [attr_val],
+                            smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val),
+                        ),
+                    )
                 )
 
             def req_assertion_ub(smtenc: SMTEncoding, smtsorts: SMTSorts, cname=cname, mm_attr=mm_attr) -> ExprRef:
                 elem = Const("elem", smtsorts.element_sort)
                 attr_val1, attr_val2 = Consts("attr_val1 attr_val2", smtsorts.attr_data_sort)
-                return Exists(
-                    [elem, attr_val1, attr_val2],
-                    And(
-                        smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val1),
-                        smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val2),
-                        attr_val1 != attr_val2,
-                    ),
+                return And(
+                    smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val1),
+                    smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val2),
+                    attr_val1 != attr_val2,
                 )
 
             lb, ub = mm_attr.multiplicity
@@ -134,15 +125,12 @@ def get_association_type_reqs(mm: MetaModel) -> RequirementStore:
             # of the association.
             def req_assertion(smtenc: SMTEncoding, smtsorts: SMTSorts, cname=cname, mm_assoc=mm_assoc) -> ExprRef:
                 es, et = Consts("es et", smtsorts.element_sort)
-                return Exists(
-                    [es, et],
-                    And(
-                        smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et),
-                        Not(
-                            And(
-                                subclass_cond(smtenc, subclasses_dict[cname], es),  # Source subclass condition
-                                subclass_cond(smtenc, subclasses_dict[mm_assoc.class_], et)  # Target subclass condition
-                            ),
+                return And(
+                    smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et),
+                    Not(
+                        And(
+                            subclass_cond(smtenc, subclasses_dict[cname], es),  # Source subclass condition
+                            subclass_cond(smtenc, subclasses_dict[mm_assoc.class_], et)  # Target subclass condition
                         ),
                     ),
                 )
@@ -166,28 +154,22 @@ def get_association_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
         for mm_assoc in c.associations.values():
             def req_assertion_lb(smtenc: SMTEncoding, smtsorts: SMTSorts, cname=cname, mm_assoc=mm_assoc) -> ExprRef:
                 es, et = Consts("es et", smtsorts.element_sort)
-                return Exists(
-                    [es],
-                    And(
-                        subclass_cond(smtenc, subclasses_dict[cname], es),  # Source subclass condition
-                        Not(
-                            Exists(
-                                [et],
-                                smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et),
-                            ),
-                        )
-                    ),
+                return And(
+                    subclass_cond(smtenc, subclasses_dict[cname], es),  # Source subclass condition
+                    Not(
+                        Exists(
+                            [et],
+                            smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et),
+                        ),
+                    )
                 )
 
             def req_assertion_ub(smtenc: SMTEncoding, smtsorts: SMTSorts, cname=cname, mm_assoc=mm_assoc) -> ExprRef:
                 es, et1, et2 = Consts("es et1 et2", smtsorts.element_sort)
-                return Exists(
-                    [es, et1, et2],
-                    And(
-                        smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et1),
-                        smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et2),
-                        et1 != et2,
-                    ),
+                return And(
+                    smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et1),
+                    smtenc.association_rel(es, smtenc.associations[f"{cname}::{mm_assoc.name}"], et2),
+                    et1 != et2,
                 )
 
             lb, ub = mm_assoc.multiplicity
@@ -218,14 +200,11 @@ def get_inverse_association_reqs(inv_assoc: list[tuple[str, str]]) -> Requiremen
     for an1, an2 in inv_assoc:
         def req_assertion(smtenc: SMTEncoding, smtsorts: SMTSorts, an1=an1, an2=an2) -> ExprRef:
             es, et = Consts("es et", smtsorts.element_sort)
-            return Exists(
-                [es, et],
-                Not(
-                    Iff(
-                        smtenc.association_rel(es, smtenc.associations[an1], et),
-                        smtenc.association_rel(et, smtenc.associations[an2], es)
-                    ),
-                )
+            return Not(
+                Iff(
+                    smtenc.association_rel(es, smtenc.associations[an1], et),
+                    smtenc.association_rel(et, smtenc.associations[an2], es)
+                ),
             )
 
         reqs.append(
