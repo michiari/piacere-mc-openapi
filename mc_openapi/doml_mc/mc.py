@@ -1,18 +1,11 @@
 from typing import Optional
-import importlib.resources as ilres
-import yaml
 from joblib import parallel_backend, Parallel, delayed
 from multiprocessing import TimeoutError
 
-from .. import assets
-from .intermediate_model.doml_element import (
-    IntermediateModel,
-    reciprocate_inverse_associations
-)
 from .intermediate_model.metamodel import (
-    MetaModel,
-    parse_inverse_associations,
-    parse_metamodel
+    DOMLVersion,
+    MetaModels,
+    InverseAssociations
 )
 from .xmi_parser.doml_model import parse_doml_model
 from .mc_result import MCResult, MCResults
@@ -28,38 +21,29 @@ from .consistency_reqs import (
 
 
 class ModelChecker:
-    metamodel: Optional[MetaModel] = None
-    inv_assoc: Optional[list[tuple[str, str]]] = None
-
-    @staticmethod
-    def init_metamodel():
-        mmdoc = yaml.load(ilres.read_text(assets, "doml_meta.yaml"), yaml.Loader)
-        ModelChecker.metamodel = parse_metamodel(mmdoc)
-        ModelChecker.inv_assoc = parse_inverse_associations(mmdoc)
-
-    def __init__(self, xmi_model: bytes):
-        assert ModelChecker.metamodel and ModelChecker.inv_assoc
-        self.intermediate_model: IntermediateModel = parse_doml_model(xmi_model, ModelChecker.metamodel)
-        reciprocate_inverse_associations(self.intermediate_model, ModelChecker.inv_assoc)
+    def __init__(self, xmi_model: bytes, doml_version: Optional[DOMLVersion] = None):
+        self.intermediate_model, doml_version = parse_doml_model(xmi_model, doml_version)
+        self.metamodel = MetaModels[doml_version]
+        self.inv_assoc = InverseAssociations[doml_version]
 
     def check_common_requirements(self, threads: int = 1, consistency_checks: bool = False, timeout: Optional[int] = None) -> MCResults:
-        assert ModelChecker.metamodel and ModelChecker.inv_assoc
+        assert self.metamodel and self.inv_assoc
         req_store = CommonRequirements
         if consistency_checks:
             req_store = req_store \
-                + get_attribute_type_reqs(ModelChecker.metamodel) \
-                + get_attribute_multiplicity_reqs(ModelChecker.metamodel) \
-                + get_association_type_reqs(ModelChecker.metamodel) \
-                + get_association_multiplicity_reqs(ModelChecker.metamodel) \
-                + get_inverse_association_reqs(ModelChecker.inv_assoc)
+                + get_attribute_type_reqs(self.metamodel) \
+                + get_attribute_multiplicity_reqs(self.metamodel) \
+                + get_association_type_reqs(self.metamodel) \
+                + get_association_multiplicity_reqs(self.metamodel) \
+                + get_inverse_association_reqs(self.inv_assoc)
 
         def worker(rfrom: int, rto: int):
-            imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
+            imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
             rs = RequirementStore(req_store.get_all_requirements()[rfrom:rto])
             return imc.check_requirements(rs)
 
         if threads <= 1:
-            imc = IntermediateModelChecker(ModelChecker.metamodel, ModelChecker.inv_assoc, self.intermediate_model)
+            imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
             reqs = imc.check_requirements(req_store, timeout=(0 if timeout is None else timeout))
             return reqs
         else:

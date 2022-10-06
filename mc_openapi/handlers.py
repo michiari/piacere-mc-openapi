@@ -1,5 +1,5 @@
 import datetime
-from .doml_mc import ModelChecker, MCResult
+from .doml_mc import ModelChecker, MCResult, DOMLVersion
 
 
 def make_error(user_msg, debug_msg=None):
@@ -12,7 +12,7 @@ def make_error(user_msg, debug_msg=None):
 def post(body, requirement=None):
     doml_xmi = body
     try:
-        dmc = ModelChecker(doml_xmi)
+        dmc = ModelChecker(doml_xmi, DOMLVersion.V2_0)
         results = dmc.check_common_requirements(threads=2, consistency_checks=False, timeout=50)
         res, msg = results.summarize()
 

@@ -1,9 +1,19 @@
 from dataclasses import dataclass
 from typing import cast, Literal, Optional, Union
+from enum import Enum
 
+import importlib.resources as ilres
+import yaml
 import networkx as nx
 
+from ... import assets
 from .._utils import merge_dicts
+
+
+class DOMLVersion(Enum):
+    V1_0 = "v1.0"
+    V2_0 = "v2.0"
+
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]
 
@@ -40,6 +50,10 @@ class DOMLAssociation:
 
 
 MetaModel = dict[str, DOMLClass]
+InverseAssociation = list[tuple[str, str]]
+
+MetaModels: dict[DOMLVersion, MetaModel] = {}
+InverseAssociations: dict[DOMLVersion, InverseAssociation] = {}
 
 
 def parse_metamodel(mmdoc: dict) -> MetaModel:
@@ -134,6 +148,13 @@ def parse_inverse_associations(doc: dict) -> list[tuple[str, str]]:
         for inv_of in [adoc.get("inverse_of")]
         if inv_of is not None
     ]
+
+
+def init_metamodels():
+    for ver in DOMLVersion:
+        mmdoc = yaml.load(ilres.read_text(assets, f"doml_meta_{ver.value}.yaml"), yaml.Loader)
+        MetaModels[ver] = parse_metamodel(mmdoc)
+        InverseAssociations[ver] = parse_inverse_associations(mmdoc)
 
 
 def _find_association_class(
