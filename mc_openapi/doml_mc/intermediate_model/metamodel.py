@@ -13,6 +13,7 @@ from .._utils import merge_dicts
 class DOMLVersion(Enum):
     V1_0 = "v1.0"
     V2_0 = "v2.0"
+    V2_1 = "v2.1"
 
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]
@@ -151,6 +152,7 @@ def parse_inverse_associations(doc: dict) -> list[tuple[str, str]]:
 
 
 def init_metamodels():
+    global MetaModels, InverseAssociations
     for ver in DOMLVersion:
         mmdoc = yaml.load(ilres.read_text(assets, f"doml_meta_{ver.value}.yaml"), yaml.Loader)
         MetaModels[ver] = parse_metamodel(mmdoc)

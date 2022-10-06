@@ -2,16 +2,16 @@ from typing import Optional, Tuple
 import copy
 import importlib.resources as ilres
 from lxml import etree
-from ipaddress import ip_address, ip_network
 
 from mc_openapi import assets
 from mc_openapi.bytes_uri import BytesURI
 from pyecore.ecore import EObject
 from pyecore.resources import ResourceSet
 
-from ..intermediate_model.doml_element import Attributes, IntermediateModel, reciprocate_inverse_associations
+from ..intermediate_model.doml_element import IntermediateModel, reciprocate_inverse_associations
 from ..intermediate_model.metamodel import DOMLVersion, MetaModels, InverseAssociations
-from .ecore import ELayerParser, SpecialParser
+from .ecore import ELayerParser
+from .special_parsers import SpecialParsers
 
 
 doml_rsets = {}
@@ -62,29 +62,12 @@ def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
 
 
 def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:
-    def parse_network_address_range(arange: str) -> Attributes:
-        ipnet = ip_network(arange)
-        return {"address_lb": [int(ipnet[0])], "address_ub": [int(ipnet[-1])]}
-
-    def parse_iface_address(addrport: str) -> Attributes:
-        addr, _, port = addrport.rpartition(":")
-        if addr == "":
-            addr = port
-        return {"endPoint": [int(ip_address(addr))]}
-
     if doml_version is None:
         doml_version = infer_domlx_version(raw_model)
 
     model = parse_xmi_model(raw_model, doml_version)
 
-    mm = MetaModels[doml_version]
-    sp = SpecialParser(mm, {
-        ("infrastructure_Network", "addressRange"): parse_network_address_range,
-        ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
-        ("infrastructure_ComputingNode", "memory_mb"): lambda mem: {"memory_mb":  [int(mem)], "memory_kb": [int(mem * 1024)]},
-        ("commons_FProperty", "value"): lambda fval: {"value": [str(fval)]},
-    })
-    elp = ELayerParser(mm, sp)
+    elp = ELayerParser(MetaModels[doml_version], SpecialParsers[doml_version])
     if model.application:
         elp.parse_elayer(model.application)
     if model.infrastructure:

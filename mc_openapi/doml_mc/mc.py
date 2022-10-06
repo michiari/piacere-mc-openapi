@@ -22,13 +22,13 @@ from .consistency_reqs import (
 
 class ModelChecker:
     def __init__(self, xmi_model: bytes, doml_version: Optional[DOMLVersion] = None):
-        self.intermediate_model, doml_version = parse_doml_model(xmi_model, doml_version)
-        self.metamodel = MetaModels[doml_version]
-        self.inv_assoc = InverseAssociations[doml_version]
+        self.intermediate_model, self.doml_version = parse_doml_model(xmi_model, doml_version)
+        self.metamodel = MetaModels[self.doml_version]
+        self.inv_assoc = InverseAssociations[self.doml_version]
 
     def check_common_requirements(self, threads: int = 1, consistency_checks: bool = False, timeout: Optional[int] = None) -> MCResults:
         assert self.metamodel and self.inv_assoc
-        req_store = CommonRequirements
+        req_store = CommonRequirements[self.doml_version]
         if consistency_checks:
             req_store = req_store \
                 + get_attribute_type_reqs(self.metamodel) \

@@ -1,5 +1,6 @@
 from mc_openapi import __version__
 from mc_openapi.doml_mc.common_reqs import CommonRequirements
+from mc_openapi.doml_mc import DOMLVersion
 import requests
 
 
@@ -29,7 +30,7 @@ def test_post_faas_sat():
     assert payload["result"] == "unsat"
 
 
-def test_post_common_reqs():
+def test_post_common_reqs_V2_0():
     check_strings = [
         "is connected to no network interface.",
         "but they are deployed to nodes that cannot communicate through a common network.",
@@ -39,7 +40,7 @@ def test_post_common_reqs():
         "is mapped to no abstract infrastructure element."
     ]
 
-    for req, err_desc in zip(CommonRequirements.get_all_requirements(), check_strings):
+    for req, err_desc in zip(CommonRequirements[DOMLVersion.V2_0].get_all_requirements(), check_strings):
         with open(f"tests/doml/nginx-openstack_v2.0_wrong_{req.assert_name}.domlx", "r") as f:
             doml = f.read()
 

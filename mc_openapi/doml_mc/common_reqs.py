@@ -9,7 +9,7 @@ from z3 import (
 from .imc import (
     SMTEncoding, SMTSorts, Requirement, RequirementStore
 )
-from .intermediate_model.doml_element import IntermediateModel
+from .intermediate_model import IntermediateModel, DOMLVersion
 
 
 def get_consts(smtsorts: SMTSorts, consts: list[str]) -> list[ExprRef]:
@@ -32,9 +32,9 @@ def vm_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
 
 
 def software_package_iface_net(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
-    asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm, dc = get_consts(
+    asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm = get_consts(
         smtsorts,
-        ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cnode", "cdeployment", "enode", "edeployment", "vm", "dc"]
+        ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cnode", "cdeployment", "enode", "edeployment", "vm"]
     )
     return And(
         smtenc.association_rel(asc_consumer, smtenc.associations["application_SoftwareComponent::exposedInterfaces"], siface),
@@ -75,6 +75,68 @@ def software_package_iface_net(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
                             ),
                             And(  # asc_exposer is deployed on a container hosted on a VM with an interface in network n
                                 smtenc.association_rel(enode, smtenc.associations["infrastructure_Container::hosts"], vm),
+                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                            And(  # asc_exposer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                smtenc.association_rel(enode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                        )
+                    )
+                )
+            )
+        )
+    )
+
+
+def software_package_iface_net_v2_1(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+    asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm, cconf = get_consts(
+        smtsorts,
+        ["asc_consumer", "asc_exposer", "siface", "net", "net_iface", "cnode", "cdeployment", "enode", "edeployment", "vm", "cconf"]
+    )
+    return And(
+        smtenc.association_rel(asc_consumer, smtenc.associations["application_SoftwareComponent::exposedInterfaces"], siface),
+        smtenc.association_rel(asc_exposer, smtenc.associations["application_SoftwareComponent::consumedInterfaces"], siface),
+        Not(
+            Exists(
+                [cdeployment, cnode, edeployment, enode, net],
+                And(
+                    smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::component"], asc_consumer),
+                    smtenc.association_rel(cdeployment, smtenc.associations["commons_Deployment::node"], cnode),
+                    Exists(
+                        [vm, net_iface, cconf],
+                        Or(
+                            And(  # asc_consumer is deployed on a component with an interface in network n
+                                smtenc.association_rel(cnode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                            And(  # asc_consumer is deployed on a container hosted in a VM with an interface in network n
+                                smtenc.association_rel(cnode, smtenc.associations["infrastructure_Container::configs"], cconf),
+                                smtenc.association_rel(cconf, smtenc.associations["infrastructure_ContainerConfig::host"], vm),
+                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                            And(  # asc_consumer is deployed on a VM in an AutoScalingGroup with an interface in network n
+                                smtenc.association_rel(cnode, smtenc.associations["infrastructure_AutoScalingGroup::machineDefinition"], vm),
+                                smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                        )
+                    ),
+                    smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::component"], asc_exposer),
+                    smtenc.association_rel(edeployment, smtenc.associations["commons_Deployment::node"], enode),
+                    Exists(
+                        [vm, net_iface, cconf],
+                        Or(
+                            And(  # asc_exposer is deployed on a component with an interface in network n
+                                smtenc.association_rel(enode, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
+                                smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
+                            ),
+                            And(  # asc_exposer is deployed on a container hosted on a VM with an interface in network n
+                                smtenc.association_rel(enode, smtenc.associations["infrastructure_Container::configs"], cconf),
+                                smtenc.association_rel(cconf, smtenc.associations["infrastructure_ContainerConfig::host"], vm),
                                 smtenc.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], net_iface),
                                 smtenc.association_rel(net_iface, smtenc.associations["infrastructure_NetworkInterface::belongsTo"], net),
                             ),
@@ -303,15 +365,32 @@ def ed_all_concrete_map_something(solver: Solver, smtsorts: SMTSorts, intermedia
         return "A concrete infrastructure element is mapped to no abstract infrastructure element."
 
 
-CommonRequirements = RequirementStore(
-    [
-        Requirement(*rt) for rt in [
-            (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
-            (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
-            (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-            (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
-            (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
-            (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
-        ]
-    ]
-)
+RequirementLists = {
+    DOMLVersion.V1_0: [
+        (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
+        (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
+        (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
+        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
+        (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+    ],
+    DOMLVersion.V2_0: [
+        (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
+        (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
+        (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
+        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
+        (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+    ],
+    DOMLVersion.V2_1: [
+        (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
+        (software_package_iface_net_v2_1, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
+        (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
+        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
+        (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+    ],
+}
+
+
+CommonRequirements = {ver: RequirementStore([Requirement(*rt) for rt in reqs]) for ver, reqs in RequirementLists.items()}
