@@ -9,6 +9,10 @@ class MCResult(Enum):
 
     @staticmethod
     def from_z3result(z3res: CheckSatResult, flipped: bool = False) -> "MCResult":
+        """Returns an Enum which is either sat, unsat or dontknow.
+        If flipped is true, then the sat and unsat are swapped: it's useful when
+        we are evaluating an expression in negative form.
+        """
         if flipped:
             if z3res == sat:
                 return MCResult.unsat
@@ -35,7 +39,7 @@ class MCResults:
         some_dontknow = any(res == MCResult.dontknow for res, _ in self.results)
 
         if some_unsat:
-            err_msg = " ".join(msg for res, msg in self.results if res == MCResult.unsat)
+            err_msg = "\n\n".join("> " + msg for res, msg in self.results if res == MCResult.unsat)
             if some_dontknow:
                 err_msg = err_msg + MCResults.dontknow_msg
             return MCResult.unsat, err_msg
