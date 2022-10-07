@@ -30,7 +30,7 @@ def vm_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
         )
     )
 
-
+# All software packages can see the interfaces they need through a common network.
 def software_package_iface_net(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     asc_consumer, asc_exposer, siface, net, net_iface, cnode, cdeployment, enode, edeployment, vm = get_consts(
         smtsorts,
@@ -153,6 +153,7 @@ def software_package_iface_net_v2_1(smtenc: SMTEncoding, smtsorts: SMTSorts) -> 
     )
 
 
+# There are no duplicated interfaces.
 def iface_uniq(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     endPointAttr = smtenc.attributes["infrastructure_NetworkInterface::endPoint"]
     ni1, ni2 = get_consts(smtsorts, ["ni1", "ni2"])
@@ -163,7 +164,7 @@ def iface_uniq(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
         ni1 != ni2,
     )
 
-
+# All software components have been deployed to some node.
 def all_SoftwareComponents_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     sc, deployment, ielem = get_consts(smtsorts, ["sc", "deployment", "ielem"])
     return And(
@@ -179,7 +180,7 @@ def all_SoftwareComponents_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts) -> 
         )
     )
 
-
+# All abstract infrastructure elements are mapped to an element in the active concretization.
 def all_infrastructure_elements_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     def checkOneClass(ielem, concr, provider, celem, ielemClass, providerAssoc, celemAssoc):
         return And(
@@ -227,7 +228,7 @@ def all_infrastructure_elements_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts
         )
     )
 
-
+# All elements in the active concretization are mapped to some abstract infrastructure element.
 def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     def checkOneClass(ielem, provider, celem, providerAssoc, celemAssoc):
         return And(
@@ -281,6 +282,32 @@ def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
                 "concrete_ComputingGroup::maps"
             ),
         )
+    )
+
+# def sw_components_have_source_code_property(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+#     sw_comp, prop = get_consts(smtsorts, ["sw_comp prop"])
+
+#     big_x = smtsorts.attr_data_sort.ss(smtenc.str_symbols["source_code"])
+
+#     return And(
+#         smtenc.element_class_fun(sw_comp) == smtenc.classes["application_SoftwareComponent"],
+#         Not(
+#             Exists([prop], And(
+#                 smtenc.element_class_fun(prop) == smtenc.classes["commons_SProperty"],
+#                 smtenc.attribute_rel(prop, smtenc.attributes["commons_Property::key"], big_x),
+#                 smtenc.association_rel(sw_comp, smtenc.associations["commons_DOMLElement::annotations"], prop)
+#             ))
+#         )
+#     )
+
+def iface_must_have_security_group(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+    sg, iface = get_consts(smtsorts, ["sg iface"])
+    return And(
+        smtenc.element_class_fun(sg) == smtenc.classes["infrastructure_SecurityGroup"],
+        Not(Exists([iface], 
+            # smtenc.element_class_fun(iface) == smtenc.classes["infrastructure_NetworkInterface"],
+            smtenc.association_rel(iface, smtenc.associations["infrastructure_NetworkInterface::associated"], sg)
+        ))
     )
 
 
@@ -364,6 +391,16 @@ def ed_all_concrete_map_something(solver: Solver, smtsorts: SMTSorts, intermedia
     else:
         return "A concrete infrastructure element is mapped to no abstract infrastructure element."
 
+def ed_iface_must_have_security_group(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    sg, iface = get_consts(smtsorts, ["sg iface"])
+    sg_name = get_user_friendly_name(intermediate_model, solver.model(), sg)
+    iface_name = get_user_friendly_name(intermediate_model, solver.model(), iface)
+    if iface_name:
+        return f"Network interface '{iface_name}' doesn't belong to any security group."
+    elif  sg_name:
+        return f"Security group '{sg_name}' is not associated with any network interface."
+    else:
+        return "A network interface doesn't belong to any security group, or a security group is not associated with any network interface."
 
 RequirementLists = {
     DOMLVersion.V1_0: [
@@ -380,7 +417,8 @@ RequirementLists = {
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
         (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
-        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something),
+        (iface_must_have_security_group, "iface_must_have_security_group", "All interfaces should have a security group.", ed_iface_must_have_security_group)
     ],
     DOMLVersion.V2_1: [
         (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
