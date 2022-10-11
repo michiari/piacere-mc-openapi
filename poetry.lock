@@ -474,6 +474,19 @@ traitlets = "*"
 test = ["ipykernel", "pre-commit", "pytest", "pytest-cov", "pytest-timeout"]
 
 [[package]]
+name = "lark"
+version = "1.1.2"
+description = "a modern parsing library"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+atomic_cache = ["atomicwrites"]
+nearley = ["js2py"]
+regex = ["regex"]
+
+[[package]]
 name = "lxml"
 version = "4.9.1"
 description = "Powerful and Pythonic XML processing library combining libxml2/libxslt with the ElementTree API."
@@ -1138,7 +1151,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "a9d927113aa49367234cc4d09abee6d3743b94f59a0f47c6d1b707abd47c246e"
+content-hash = "fc9397419978608b5e4ad6a2a07408614f25d513ac10f6adf23f85c4b608e52a"
 
 [metadata.files]
 alabaster = [
@@ -1409,6 +1422,10 @@ jupyter-client = [
 jupyter-core = [
     {file = "jupyter_core-4.11.1-py3-none-any.whl", hash = "sha256:715e22bb6cc7db3718fddfac1f69f1c7e899ca00e42bdfd4bf3705452b9fd84a"},
     {file = "jupyter_core-4.11.1.tar.gz", hash = "sha256:2e5f244d44894c4154d06aeae3419dd7f1b0ef4494dc5584929b398c61cfd314"},
+]
+lark = [
+    {file = "lark-1.1.2-py2.py3-none-any.whl", hash = "sha256:c1ab213fc5e2d273fe2d91da218ccc8b5b92d065b17faa5e743499cb16594b7d"},
+    {file = "lark-1.1.2.tar.gz", hash = "sha256:7a8d0c07d663da9391d7faee1bf1d7df4998c47ca43a593cbef5c7566acd057a"},
 ]
 lxml = [
     {file = "lxml-4.9.1-cp27-cp27m-macosx_10_15_x86_64.whl", hash = "sha256:98cafc618614d72b02185ac583c6f7796202062c41d2eeecdf07820bad3295ed"},
