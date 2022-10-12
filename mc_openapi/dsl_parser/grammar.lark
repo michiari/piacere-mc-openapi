@@ -53,7 +53,8 @@ CONST: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
 // Must start with uppercase letter
 VALUE: (UCASE_LETTER) ("_"|LETTER|DIGIT)*
 
-
+// Comment: python/sh style
+COMMENT: /#[^\n]*/
 
 %import common.LETTER
 %import common.DIGIT
@@ -61,3 +62,4 @@ VALUE: (UCASE_LETTER) ("_"|LETTER|DIGIT)*
 %import common.UCASE_LETTER
 %import common.WS
 %ignore WS
+%ignore COMMENT
