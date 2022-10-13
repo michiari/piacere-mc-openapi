@@ -296,7 +296,7 @@ def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
 #         )
 #     )
 
-def iface_must_have_security_group(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+def security_group_must_have_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     sg, iface = get_consts(smtsorts, ["sg iface"])
     return And(
         smtenc.element_class_fun(sg) == smtenc.classes["infrastructure_SecurityGroup"],
@@ -395,13 +395,10 @@ def ed_all_concrete_map_something(solver: Solver, smtsorts: SMTSorts, intermedia
     else:
         return "A concrete infrastructure element is mapped to no abstract infrastructure element."
 
-def ed_iface_must_have_security_group(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
-    sg, iface = get_consts(smtsorts, ["sg iface"])
+def ed_security_group_must_have_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
+    sg = Const("sg", smtsorts.element_sort)
     sg_name = get_user_friendly_name(intermediate_model, solver.model(), sg)
-    iface_name = get_user_friendly_name(intermediate_model, solver.model(), iface)
-    if iface_name:
-        return f"Network interface '{iface_name}' doesn't belong to any security group."
-    elif  sg_name:
+    if  sg_name:
         return f"Security group '{sg_name}' is not associated with any network interface."
     else:
         return "A network interface doesn't belong to any security group, or a security group is not associated with any network interface."
@@ -431,7 +428,7 @@ RequirementLists = {
         (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
         (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something),
-        (iface_must_have_security_group, "iface_must_have_security_group", "All interfaces should have a security group.", ed_iface_must_have_security_group),
+        (security_group_must_have_iface, "security_group_must_have_iface", "All security group should be a associated to a network interface", ed_security_group_must_have_iface),
         (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_1: [
