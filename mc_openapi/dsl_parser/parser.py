@@ -1,17 +1,28 @@
 from asyncio import constants
+from dataclasses import dataclass
+from typing import Callable
 from lark import Lark, Transformer
-from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
-from z3 import Not, And, Or, Xor, Implies, Exists, ForAll, BoolRef
-
+from mc_openapi.doml_mc.imc import Requirement, RequirementStore, SMTEncoding, SMTSorts
+from z3 import Not, And, Or, Xor, Implies, Exists, ForAll, BoolRef, Solver
+from mc_openapi.doml_mc.intermediate_model import IntermediateModel
+from mc_openapi.doml_mc.error_desc_helper import get_user_friendly_name
 from mc_openapi.dsl_parser.utils import RefHandler, UniqueVarStore
 
+import os
+
+class ParserData:
+    def __init__(self) -> None:
+        grammar_path = os.path.join(os.path.dirname(__file__), "grammar.lark")
+        with open(grammar_path, "r") as grammar:
+            self.grammar = grammar.read()
+
 class Parser:
-    def __init__(self, grammar: str, encodings: SMTEncoding, sorts: SMTSorts):
+    def __init__(self, encodings: SMTEncoding, sorts: SMTSorts, grammar: str = ParserData().grammar):
         self.parser = Lark(grammar, start="start")
         self.encodings = encodings
         self.sorts = sorts
 
-    def parse(self, input: str) -> BoolRef:
+    def parse(self, input: str) -> RequirementStore:
         self.tree = self.parser.parse(input)
 
         constants_store = UniqueVarStore(self.encodings, self.sorts.element_sort)
@@ -20,8 +31,7 @@ class Parser:
 
         transformer = DSLTransformer(constants_store, values_store, ref_handler)
 
-        return transformer.transform(self.tree), constants_store.get_free_vars()
-    
+        return RequirementStore(transformer.transform(self.tree))
 
 class DSLTransformer(Transformer):
     def __init__(self, 
@@ -39,8 +49,36 @@ class DSLTransformer(Transformer):
     # is matched. It starts from the leaves.
 
     def start(self, args):
-        return args[0]
+        def flatten(items):
+            return sum(map(flatten, items), []) if isinstance(items, list) else [items]
+        # flatten the requirement list, otherwise we get nested lists
+        # like [a, [b, [c, ...]]]
+        return flatten(args)
 
+    def __default__(self, data, children, meta):
+        # print("DATA", data)
+        # print("CHILDREN", children)
+        # print("META", meta)
+        return children
+
+    def requirements(self, args):
+        
+        return args
+
+    def requirement(self, args):
+        name: str = args[0]
+        expr: BoolRef = args[1]
+        errd: Callable = args[2]
+        return [Requirement(
+            lambda enc, sort: expr,
+            name.lower().replace(" ", "_"),
+            name,
+            errd
+        )]
+
+    def req_name(self, args):
+        return str(args[0].value.replace('"', ''))
+    
     def expression(self, args):
         return args[0]
 
@@ -108,3 +146,19 @@ class DSLTransformer(Transformer):
             return self.ref_handler.get_element_class(_const)
         elif args[0].type == "CLASS":
             return self.ref_handler.get_class(args[0].value)
+    
+    def error_desc(self, args):
+        def err_callback(
+            solver: Solver,
+            smtsorts: SMTSorts,
+            intermediate_model: IntermediateModel
+        ) -> str:
+            msg: str = args[0].value.replace('"', '')
+            consts = self.constants_store.get_free_vars()
+            model = solver.model()
+            for const in consts:
+                name = get_user_friendly_name(intermediate_model, model, const)
+                msg = msg.replace("{" + str(const) + "}", f"'{name}'")
+            return msg
+        return err_callback
+

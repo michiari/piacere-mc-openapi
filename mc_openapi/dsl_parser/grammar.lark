@@ -1,43 +1,53 @@
-start: expression
+start: requirements
 
-expression  : "(" expression ")"
-            | QUANTIFIER consts "(" expression ")"       -> quantification
-            | binary_op_exp
-            | NOT expression                            -> negation
-            | CONST ASSOCIATION_OP RELATIONSHIP CONST   -> association_expr
-            | CONST ATTRIBUTE_OP RELATIONSHIP VALUE     -> attribute_expr
-            | class_or_const IS class_or_const          -> equal
-            | class_or_const IS_NOT class_or_const      -> not_equal
+requirements    : ">" requirement (requirements)*
+
+requirement     : req_name expression "---" error_desc
+
+req_name        : ESCAPED_STRING
+error_desc      : ESCAPED_STRING
+
+expression      : "(" expression ")"
+                | QUANTIFIER consts "(" expression ")"       -> quantification
+                | binary_op_exp
+                | NOT expression                            -> negation
+                | CONST ASSOCIATION_OP RELATIONSHIP CONST   -> association_expr
+                | CONST ATTRIBUTE_OP RELATIONSHIP VALUE     -> attribute_expr
+                | class_or_const IS class_or_const          -> equal
+                | class_or_const IS_NOT class_or_const      -> not_equal
 
 binary_op_exp   : double_implication
                 | implication
                 | and_or_xor_exp
 
 double_implication: expression DOUBLE_IMPLIES expression
-implication: expression IMPLIES expression
-and_or_xor_exp: expression (AND|OR|XOR) expression
+implication     : expression IMPLIES expression
+and_or_xor_exp  : expression (AND|OR|XOR) expression
 
 // consts_declaration: "const" [CONST ("," CONST)*]
 // values_declaration: "value" [VALUE ("," VALUE)*]
-class_or_const: CLASS|CONST
-consts: [CONST ("," CONST)*]
+class_or_const  : "class" CLASS
+                | CONST
+consts          : [CONST ("," CONST)*]
+
 
 // Operators
 DOUBLE_IMPLIES  : "<=>"
-                |"iff"
+                |"iff"i
 IMPLIES         : "=>"
-                |"implies"
-AND             : "and"
-OR              : "or"
-XOR             : "xor"
+                |"implies"i
+AND             : "and"i
+OR              : "or"i
+XOR             : "xor"i
 
-QUANTIFIER: "exists"|"forall"
-IS: "is"
-IS_NOT: "is not"
-NOT: "not"
+QUANTIFIER      : "exists"i
+                |"forall"i
+IS              : "is"i
+IS_NOT          : "is not"i
+NOT             : "not"i
 
-ASSOCIATION_OP: "has association"
-ATTRIBUTE_OP: "has attribute"
+ASSOCIATION_OP  : "has association"
+ATTRIBUTE_OP    : "has attribute"
 
 // Values
 
@@ -56,6 +66,8 @@ VALUE: (UCASE_LETTER) ("_"|LETTER|DIGIT)*
 // Comment: python/sh style
 COMMENT: /#[^\n]*/
 
+%import common.ESCAPED_STRING
+%import common.NEWLINE
 %import common.LETTER
 %import common.DIGIT
 %import common.LCASE_LETTER

@@ -1,16 +1,11 @@
 from re import M
 from typing import Optional
 
-from z3 import (
-    Const, Consts, ExprRef,
-    Exists, And, Or, Not,
-    Solver, ModelRef
-)
+from z3 import And, Const, Consts, Exists, ExprRef, ModelRef, Not, Or, Solver
 
-from .imc import (
-    SMTEncoding, SMTSorts, Requirement, RequirementStore
-)
-from .intermediate_model import IntermediateModel, DOMLVersion
+from .error_desc_helper import get_user_friendly_name
+from .imc import Requirement, RequirementStore, SMTEncoding, SMTSorts
+from .intermediate_model import DOMLVersion, IntermediateModel
 
 
 def get_consts(smtsorts: SMTSorts, consts: list[str]) -> list[ExprRef]:
@@ -334,19 +329,6 @@ def external_services_must_have_https(smtenc: SMTEncoding, smtsorts: SMTSorts) -
     )
 
 # Error Descriptions
-
-def get_user_friendly_name(
-    intermediate_model: IntermediateModel,
-    model: ModelRef,
-    const: ExprRef
-) -> Optional[str]:
-    z3_elem = model[const]
-    if z3_elem is not None:
-        im_elem = intermediate_model.get(str(z3_elem))
-        if im_elem is not None:
-            return im_elem.user_friendly_name
-    return None
-
 
 def ed_vm_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
     vm = Const("vm", smtsorts.element_sort)
