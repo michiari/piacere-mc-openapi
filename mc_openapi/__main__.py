@@ -12,7 +12,7 @@ parser.add_argument("-d", "--doml", dest="doml", help="the DOMLX file to check")
 parser.add_argument("-V", "--doml-version", dest="doml_version", default="V2_0", help="(optional) the version used by the DOMLX file")
 parser.add_argument("-r", "--requirements", dest="requirements", help="the user-specified requirements file to check")
 parser.add_argument("-c", "--check-consistency", dest="consistency", action='store_true', help="check additional built-in consistency requirements")
-parser.add_argument("-t", "--threads", dest="threads", type=int, help="number of threads used by the model checker")
+parser.add_argument("-t", "--threads", dest="threads", type=int, default=2, help="number of threads used by the model checker")
 
 args = parser.parse_args()
 

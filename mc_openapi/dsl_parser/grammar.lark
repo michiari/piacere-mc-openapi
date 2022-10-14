@@ -8,7 +8,7 @@ req_name        : ESCAPED_STRING
 error_desc      : ESCAPED_STRING
 
 expression      : "(" expression ")"
-                | QUANTIFIER consts "(" expression ")"       -> quantification
+                | QUANTIFIER bound_consts "(" expression ")"       -> quantification
                 | binary_op_exp
                 | NOT expression                            -> negation
                 | CONST ASSOCIATION_OP RELATIONSHIP CONST   -> association_expr
@@ -28,7 +28,7 @@ and_or_xor_exp  : expression (AND|OR|XOR) expression
 // values_declaration: "value" [VALUE ("," VALUE)*]
 class_or_const  : "class" CLASS
                 | CONST
-consts          : [CONST ("," CONST)*]
+bound_consts    : [CONST ("," CONST)*]
 
 
 // Operators

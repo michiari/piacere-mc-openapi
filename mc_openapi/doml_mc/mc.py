@@ -44,6 +44,10 @@ class ModelChecker:
                 + get_association_type_reqs(self.metamodel) \
                 + get_association_multiplicity_reqs(self.metamodel) \
                 + get_inverse_association_reqs(self.inv_assoc)
+        
+        if user_requirements:
+            parser = Parser()
+            req_store += parser.parse(user_requirements)
 
         def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
@@ -66,13 +70,6 @@ class ModelChecker:
             for res in results:
                 ret.add_results(res)
 
-            if user_requirements:
-                imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
-                parser = Parser(imc.smt_encoding, imc.smt_sorts)
-                user_reqs_store = parser.parse(user_requirements)
-                user_results = imc.check_requirements(user_reqs_store)
-                ret.add_results(user_results)
-                
             return ret
         except TimeoutError:
             return MCResults([(MCResult.dontknow, "")])
