@@ -1,55 +1,40 @@
-start: requirements
-
-requirements    : ">" requirement (requirements)*
+requirements    : ">" requirement (">" requirement)*
 
 requirement     : req_name expression "---" error_desc
 
 req_name        : ESCAPED_STRING
 error_desc      : ESCAPED_STRING
 
-expression      : "(" expression ")"
-                | QUANTIFIER bound_consts "(" expression ")"       -> quantification
-                | binary_op_exp
-                | NOT expression                            -> negation
-                | CONST ASSOCIATION_OP RELATIONSHIP CONST   -> association_expr
-                | CONST ATTRIBUTE_OP RELATIONSHIP VALUE     -> attribute_expr
-                | class_or_const IS class_or_const          -> equal
-                | class_or_const IS_NOT class_or_const      -> not_equal
+?expression     : iff_expr
 
-binary_op_exp   : double_implication
-                | implication
-                | and_or_xor_exp
+?iff_expr       : (implies_expr "iff")? implies_expr
 
-double_implication: expression DOUBLE_IMPLIES expression
-implication     : expression IMPLIES expression
-and_or_xor_exp  : expression (AND|OR|XOR) expression
+?implies_expr   : (and_expr "implies")? and_expr
 
-// consts_declaration: "const" [CONST ("," CONST)*]
-// values_declaration: "value" [VALUE ("," VALUE)*]
-class_or_const  : "class" CLASS
-                | CONST
+?and_expr       : (or_expr "and")* or_expr
+
+?or_expr        : (not_expr "or")* not_expr
+
+?not_expr       : "not" not_expr -> negation
+                | quantification
+
+?quantification : "exists" bound_consts "(" expression ")" -> exists
+                | "forall" bound_consts "(" expression ")" -> forall
+                | "(" expression ")"
+                | property
+
+?property       : CONST "has association" RELATIONSHIP CONST    -> association_expr
+                | CONST "has attribute" RELATIONSHIP VALUE      -> attribute_expr
+                | const_or_class "is" const_or_class            -> equality
+                | const_or_class "is not" const_or_class        -> inequality
+
 bound_consts    : [CONST ("," CONST)*]
 
+const_or_class  : "class" CLASS
+                | CONST 
 
-// Operators
-DOUBLE_IMPLIES  : "<=>"
-                |"iff"i
-IMPLIES         : "=>"
-                |"implies"i
-AND             : "and"i
-OR              : "or"i
-XOR             : "xor"i
-
-QUANTIFIER      : "exists"i
-                |"forall"i
-IS              : "is"i
-IS_NOT          : "is not"i
-NOT             : "not"i
-
-ASSOCIATION_OP  : "has association"
-ATTRIBUTE_OP    : "has attribute"
-
-// Values
+EQUALITY_OP     : "is"
+                | "is not"
 
 // regex: /[a-zA-Z]+_[a-zA-Z]+::[a-zA-Z]+/
 //RELATIONSHIP: (LCASE_LETTER) ("_"|"::"|LETTER|DIGIT)*
@@ -58,9 +43,9 @@ RELATIONSHIP: /[^\W\d_]+\.[^\W\d_]+->[^\W\d_]+/
 //CLASS: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
 CLASS: /[^\W\d_]+\.[^\W\d_]+/
 
-// Must start with lowercase letter
+// Const must start with lowercase letter
 CONST: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
-// Must start with uppercase letter
+// Value must start with uppercase letter
 VALUE: (UCASE_LETTER) ("_"|LETTER|DIGIT)*
 
 // Comment: python/sh style

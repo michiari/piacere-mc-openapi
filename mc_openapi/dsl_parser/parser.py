@@ -16,7 +16,7 @@ class ParserData:
 
 class Parser:
     def __init__(self, grammar: str = ParserData().grammar):
-        self.parser = Lark(grammar, start="start")
+        self.parser = Lark(grammar, start="requirements")
 
     def parse(self, input: str) -> RequirementStore:
         self.tree = self.parser.parse(input)
@@ -34,39 +34,26 @@ class DSLTransformer(Transformer):
         super().__init__(visit_tokens)
         self.const_store = const_store
 
-    def start(self, args):
-        def flatten(items):
-            return sum(map(flatten, items), []) if isinstance(items, list) else [items]
-        # flatten the requirement list, otherwise we get nested lists
-        # like [a, [b, [c, ...]]]
-        return flatten(args)
-
     def __default__(self, data, children, meta):
         return children
 
-    def requirements(self, args):
-        
+    # start
+    def requirements(self, args) -> list[Requirement]:
         return args
 
-    def requirement(self, args):
+    def requirement(self, args) -> Requirement:
         name: str = args[0]
         expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[1]
         errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[2]
-        return [Requirement(
+        return Requirement(
             expr,
             name.lower().replace(" ", "_"),
             name,
             lambda solver, sorts, model: errd(solver, sorts, model, self.const_store.get_index_and_push())
-        )]
+        )
 
-    def req_name(self, args):
+    def req_name(self, args) -> str:
         return str(args[0].value.replace('"', ''))
-    
-    def expression(self, args):
-        return lambda enc, sorts: args[0](enc, sorts)
-
-    def binary_op_exp(self, args):
-        return lambda enc, sorts: args[0](enc, sorts)
 
     def bound_consts(self, args):
         const_names = list(map(lambda arg: arg.value, args))
@@ -76,62 +63,52 @@ class DSLTransformer(Transformer):
         return lambda _, sorts: RefHandler.get_consts(const_names, sorts)
 
     def negation(self, args):
-        return lambda enc, sorts: Not(args[1](enc, sorts))
+        return lambda enc, sorts: Not(args[0](enc, sorts))
 
-    def double_implication(self, args):        
-        return lambda enc, sorts: args[0](enc, sorts) == args[2](enc, sorts)
+    def iff_expr(self, args):
+        return lambda enc, sorts: args[0](enc, sorts) == args[1](enc, sorts)
     
-    def implication(self, args):        
-        return lambda enc, sorts: Implies(args[0](enc, sorts), args[2](enc, sorts))
+    def implies_expr(self, args):
+        return lambda enc, sorts: Implies(args[0](enc, sorts), args[1](enc, sorts))
 
-    def and_or_xor_exp(self, args):        
-        op = args[1].value
-        a = args[0]
-        b = args[2]
+    def and_expr(self, args):
+        return lambda enc, sorts: And(args[0](enc, sorts), args[1](enc, sorts))
 
-        if op == "and":
-            return lambda enc, sorts: And(a(enc, sorts), b(enc, sorts))
-        elif op == "or":
-            return lambda enc, sorts: Or(a(enc, sorts), b(enc, sorts))
-        else: # xor
-            return lambda enc, sorts: Xor(a(enc, sorts), b(enc, sorts))
+    def or_expr(self, args):
+        return lambda enc, sorts: Or(args[0](enc, sorts), args[1](enc, sorts))
 
-    def quantification(self, args):
-        quantifier = args[0].value
+    def exists(self, args):
+        return lambda enc, sorts: Exists(args[0](enc, sorts), args[1](enc, sorts))
 
-        bound_vars = args[1] # lambda that return list of consts
-
-        if quantifier == "exists":
-            return lambda enc, sorts: Exists(bound_vars(enc, sorts), args[2](enc, sorts))
-        else: # forall
-            return lambda enc, sorts: ForAll(bound_vars(enc, sorts), args[2](enc, sorts))
-
+    def forall(self, args):
+        return lambda enc, sorts: ForAll(args[0](enc, sorts), args[1](enc, sorts))
 
     def association_expr(self, args):
         self.const_store.use(args[0].value)
-        self.const_store.use(args[3].value)
+        self.const_store.use(args[2].value)
         return lambda enc, sorts: RefHandler.get_association_rel(
             enc,
             RefHandler.get_const(args[0].value, sorts),
-            RefHandler.get_association(enc, args[2].value),
-            RefHandler.get_const(args[3].value, sorts)
+            RefHandler.get_association(enc, args[1].value),
+            RefHandler.get_const(args[2].value, sorts)
         )
 
     def attribute_expr(self, args):
+        self.const_store.use(args[0].value)
         return lambda enc, sorts: RefHandler.get_attribute_rel(
             enc,
             RefHandler.get_const(args[0].value, sorts),
-            RefHandler.get_attribute(enc, args[2].value),
-            RefHandler.get_value(args[3].value, sorts)
+            RefHandler.get_attribute(enc, args[1].value),
+            RefHandler.get_value(args[2].value, sorts)
         )
 
-    def equal(self, args):
-        return lambda enc, sorts: args[0](enc, sorts) == args[2](enc, sorts)
+    def equality(self, args):
+        return lambda enc, sorts: args[0](enc, sorts) == args[1](enc, sorts)
 
-    def not_equal(self, args):
-        return lambda enc, sorts: args[0](enc, sorts) != args[2](enc, sorts)
+    def inequality(self, args):
+        return lambda enc, sorts: args[0](enc, sorts) != args[1](enc, sorts)
 
-    def class_or_const(self, args):
+    def const_or_class(self, args):
         if args[0].type == "CONST":
             self.const_store.use(args[0].value)
             return lambda enc, sorts: RefHandler.get_element_class(enc, RefHandler.get_const(args[0].value, sorts))
@@ -154,4 +131,3 @@ class DSLTransformer(Transformer):
                 msg = msg.replace("{" + str(const) + "}", f"'{name}'")
             return msg
         return err_callback
-
