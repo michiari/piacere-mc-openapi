@@ -1,6 +1,16 @@
 from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
 from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef
 
+class StringValuesCache:
+    def __init__(self) -> None:
+        self.values: set[str] = set()
+
+    def add(self, value: str):
+        self.values.add(value)
+    
+    def get_list(self):
+        return list(self.values)
+
 class VarStore:
     """This class provides a way to instance a Z3 variable only the first time
        it's called, and subsequent uses of that variable simply retrieve it
@@ -43,6 +53,15 @@ class RefHandler:
 
     def get_value(name: str, sorts: SMTSorts):
         return Const(name, sorts.attr_data_sort)
+
+    def get_int(value: str, sorts: SMTSorts):
+        return sorts.attr_data_sort.int(int(value))
+
+    def get_bool(value: str, sorts: SMTSorts):
+        return sorts.attr_data_sort.bool(value == "true")
+
+    def get_str(value: str, enc: SMTEncoding, sorts: SMTSorts):
+        return sorts.attr_data_sort.ss(enc.str_symbols[value])
 
     def get_element_class(enc: SMTEncoding, const: ExprRef) -> FuncDeclRef:
         return enc.element_class_fun(const)

@@ -17,14 +17,7 @@ from z3 import (
 
 from .types import Refs, SortAndRefs
 
-
-def mk_enum_sort_dict(name: str, values: list[str], z3ctx: Context) -> SortAndRefs:
-    """Makes a Z3 sort and a dict indexing sort values by their name"""
-
-    sort, dtrefs = EnumSort(name, values, ctx=z3ctx)
-    return sort, dict(zip(values, dtrefs))
-
-
+# Assertions
 def assert_relation_tuples(
     rel: FuncDeclRef,
     solver: Solver,
@@ -60,7 +53,6 @@ def assert_relation_tuples(
 
     assert_function_tuples_raw(rel, solver, sym_tpls)
 
-
 def assert_function_tuples(
     f: FuncDeclRef,
     solver: Solver,
@@ -92,7 +84,6 @@ def assert_function_tuples(
 
     assert_function_tuples_raw(f, solver, sym_tpls)
 
-
 def assert_function_tuples_raw(
     f: FuncDeclRef,
     solver: Solver,
@@ -119,14 +110,20 @@ def assert_function_tuples_raw(
             f"{f.name()} " + " ".join(str(x) for x in xs) + f" {y}",
         )
 
+def symbolize(s: str) -> str:
+    return "".join([c.lower() if c.isalnum() else "_" for c in s[:16]])
+
+# Constructors used by IMC
+def mk_enum_sort_dict(name: str, values: list[str], z3ctx: Context) -> SortAndRefs:
+    """Makes a Z3 sort and a dict indexing sort values by their name"""
+
+    sort, dtrefs = EnumSort(name, values, ctx=z3ctx)
+    return sort, dict(zip(values, dtrefs))
 
 def mk_stringsym_sort_from_strings(
     strings: list[str],
     z3ctx: Context
 ) -> SortAndRefs:
-    def symbolize(s: str) -> str:
-        return "".join([c.lower() if c.isalnum() else "_" for c in s[:16]])
-
     ss_list = [f"ss_{i}_{symbolize(s)}" for i, s in enumerate(strings)]
     stringsym_sort, ss_refs_dict = mk_enum_sort_dict("StringSym", ss_list, z3ctx=z3ctx)
     stringsym_sort_dict = {
@@ -134,16 +131,15 @@ def mk_stringsym_sort_from_strings(
     }
     return stringsym_sort, stringsym_sort_dict
 
-
-def mk_adata_sort(
+def mk_attr_data_sort(
     ss_sort: DatatypeSortRef,
     z3ctx: Context
 ) -> DatatypeSortRef:
-    AData = Datatype("AttributeData", ctx=z3ctx)
-    AData.declare("int", ("get_int", IntSort(ctx=z3ctx)))
-    AData.declare("bool", ("get_bool", BoolSort(ctx=z3ctx)))
-    AData.declare("ss", ("get_ss", ss_sort))
-    return AData.create()
+    attr_data = Datatype("AttributeData", ctx=z3ctx)
+    attr_data.declare("int", ("get_int", IntSort(ctx=z3ctx)))
+    attr_data.declare("bool", ("get_bool", BoolSort(ctx=z3ctx)))
+    attr_data.declare("ss", ("get_ss", ss_sort)) # ss_sort is the one returned by the function above
+    return attr_data.create()
 
 
 def Iff(a, b):

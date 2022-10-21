@@ -18,7 +18,7 @@ from .z3encoding.metamodel_encoding import (
     mk_attribute_sort_dict, mk_class_sort_dict
 )
 from .z3encoding.types import Refs
-from .z3encoding.utils import mk_adata_sort
+from .z3encoding.utils import mk_attr_data_sort
 from .mc_result import MCResult, MCResults
 
 
@@ -72,75 +72,80 @@ class RequirementStore:
 
 class IntermediateModelChecker:
     def __init__(self, metamodel, inv_assoc, intermediate_model: IntermediateModel):
-        def instantiate_solver():
-            self.z3Context = Context()
-            self.solver = Solver(ctx=self.z3Context)
-
-            class_sort, class_ = mk_class_sort_dict(self.metamodel, self.z3Context)
-            assoc_sort, assoc = mk_association_sort_dict(self.metamodel, self.z3Context)
-            attr_sort, attr = mk_attribute_sort_dict(self.metamodel, self.z3Context)
-            elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, self.z3Context)
-            ss_sort, ss = mk_stringsym_sort_dict(self.intermediate_model, self.metamodel, self.z3Context)
-            AData = mk_adata_sort(ss_sort, self.z3Context)
-            elem_class_f = def_elem_class_f_and_assert_classes(
-                self.intermediate_model,
-                self.solver,
-                elem_sort,
-                elem,
-                class_sort,
-                class_
-            )
-            attr_rel = def_attribute_rel(
-                attr_sort,
-                elem_sort,
-                AData
-            )
-            assert_im_attributes(
-                attr_rel,
-                self.solver,
-                self.intermediate_model,
-                self.metamodel,
-                elem,
-                attr_sort,
-                attr,
-                AData,
-                ss
-            )
-            assoc_rel = def_association_rel(
-                assoc_sort,
-                elem_sort
-            )
-            assert_im_associations_q(
-                assoc_rel,
-                self.solver,
-                {k: v for k, v in self.intermediate_model.items()},
-                elem,
-                assoc_sort,
-                assoc,
-            )
-            self.smt_encoding = SMTEncoding(
-                class_,
-                assoc,
-                attr,
-                elem,
-                ss,
-                elem_class_f,
-                attr_rel,
-                assoc_rel
-            )
-            self.smt_sorts = SMTSorts(
-                class_sort,
-                assoc_sort,
-                attr_sort,
-                elem_sort,
-                ss_sort,
-                AData
-            )
-
         self.metamodel = metamodel
         self.inv_assoc = inv_assoc
         self.intermediate_model = intermediate_model
-        instantiate_solver()
+        self.instantiate_solver()
+
+    def instantiate_solver(self, user_string_values=[]):
+        self.z3Context = Context()
+        self.solver = Solver(ctx=self.z3Context)
+
+        class_sort, class_ = mk_class_sort_dict(self.metamodel, self.z3Context)
+        assoc_sort, assoc = mk_association_sort_dict(self.metamodel, self.z3Context)
+        attr_sort, attr = mk_attribute_sort_dict(self.metamodel, self.z3Context)
+        elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, self.z3Context)
+        ss_sort, ss = mk_stringsym_sort_dict(
+            self.intermediate_model,
+            self.metamodel,
+            self.z3Context,
+            user_string_values
+        )
+        attr_data_sort = mk_attr_data_sort(ss_sort, self.z3Context)
+        elem_class_f = def_elem_class_f_and_assert_classes(
+            self.intermediate_model,
+            self.solver,
+            elem_sort,
+            elem,
+            class_sort,
+            class_
+        )
+        attr_rel = def_attribute_rel(
+            attr_sort,
+            elem_sort,
+            attr_data_sort
+        )
+        assert_im_attributes(
+            attr_rel,
+            self.solver,
+            self.intermediate_model,
+            self.metamodel,
+            elem,
+            attr_sort,
+            attr,
+            attr_data_sort,
+            ss
+        )
+        assoc_rel = def_association_rel(
+            assoc_sort,
+            elem_sort
+        )
+        assert_im_associations_q(
+            assoc_rel,
+            self.solver,
+            {k: v for k, v in self.intermediate_model.items()},
+            elem,
+            assoc_sort,
+            assoc,
+        )
+        self.smt_encoding = SMTEncoding(
+            class_,
+            assoc,
+            attr,
+            elem,
+            ss,
+            elem_class_f,
+            attr_rel,
+            assoc_rel
+        )
+        self.smt_sorts = SMTSorts(
+            class_sort,
+            assoc_sort,
+            attr_sort,
+            elem_sort,
+            ss_sort,
+            attr_data_sort
+        )
 
     def check_requirements(self, reqs: RequirementStore, timeout: int = 0) -> MCResults:
         self.solver.set(timeout=(timeout * 1000))

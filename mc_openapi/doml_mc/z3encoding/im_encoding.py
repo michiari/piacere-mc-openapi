@@ -172,7 +172,8 @@ def assert_im_associations_q(
 def mk_stringsym_sort_dict(
     im: IntermediateModel,
     mm: MetaModel,
-    z3ctx: Context
+    z3ctx: Context,
+    additional_strings: list[str] = []
 ) -> SortAndRefs:
     strings = (
         {
@@ -191,5 +192,9 @@ def mk_stringsym_sort_dict(
             if isinstance(v, str)
         }
         | {"SCRIPT", "IMAGE"}  # GeneratorKind values
+        | {
+            v
+            for v in additional_strings
+        }
     )
     return mk_stringsym_sort_from_strings(list(strings), z3ctx=z3ctx)

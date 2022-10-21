@@ -1,25 +1,20 @@
-from typing import Optional
-from joblib import parallel_backend, Parallel, delayed
 from multiprocessing import TimeoutError
+from typing import Optional
 
-from mc_openapi.dsl_parser.parser import Parser
+from joblib import Parallel, delayed, parallel_backend
 
-from .intermediate_model.metamodel import (
-    DOMLVersion,
-    MetaModels,
-    InverseAssociations
-)
-from .xmi_parser.doml_model import parse_doml_model
-from .mc_result import MCResult, MCResults
-from .imc import Requirement, RequirementStore, IntermediateModelChecker
 from .common_reqs import CommonRequirements
-from .consistency_reqs import (
-    get_attribute_type_reqs,
-    get_attribute_multiplicity_reqs,
-    get_association_type_reqs,
-    get_association_multiplicity_reqs,
-    get_inverse_association_reqs
-)
+from .consistency_reqs import (get_association_multiplicity_reqs,
+                               get_association_type_reqs,
+                               get_attribute_multiplicity_reqs,
+                               get_attribute_type_reqs,
+                               get_inverse_association_reqs)
+from .dsl_parser.parser import Parser
+from .imc import IntermediateModelChecker, Requirement, RequirementStore
+from .intermediate_model.metamodel import (DOMLVersion, InverseAssociations,
+                                           MetaModels)
+from .mc_result import MCResult, MCResults
+from .xmi_parser.doml_model import parse_doml_model
 
 
 class ModelChecker:
@@ -45,13 +40,17 @@ class ModelChecker:
                 + get_association_multiplicity_reqs(self.metamodel) \
                 + get_inverse_association_reqs(self.inv_assoc)
         
+        user_str_values = []
+
         if user_requirements:
             parser = Parser()
-            req_store += parser.parse(user_requirements)
+            user_reqs, user_str_values = parser.parse(user_requirements)
+            req_store += user_reqs
 
         def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
             rs = RequirementStore(req_store.get_all_requirements()[rfrom:rto])
+            imc.instantiate_solver(user_str_values)
             return imc.check_requirements(rs)
 
         def split_reqs(n_reqs: int, n_split: int):
