@@ -442,4 +442,4 @@ RequirementLists = {
 }
 
 
-CommonRequirements = {ver: RequirementStore([Requirement(*rt) for rt in reqs]) for ver, reqs in RequirementLists.items()}
+CommonRequirements = {ver: RequirementStore([Requirement(*rt, flipped=True) for rt in reqs]) for ver, reqs in RequirementLists.items()}

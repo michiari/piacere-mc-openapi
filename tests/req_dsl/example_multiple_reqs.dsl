@@ -9,7 +9,7 @@
 #     )
 # )
 
->   "Something that will be unsatisfiable"
+-   "Something that will be unsatisfiable"
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
@@ -32,7 +32,7 @@
     ---
     "VM {vm} has some problems."
 
->   "All VMs have at least one interface 2"
+-   "All VMs have at least one interface 2"
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
@@ -41,7 +41,7 @@
     ---
     "VM {vm} has no associated interface."
 
->   "All VMs have at least one interface 3"
++   "All VMs have at least one interface 3"
     vm is class infrastructure.VirtualMachine
     and
     exists iface (

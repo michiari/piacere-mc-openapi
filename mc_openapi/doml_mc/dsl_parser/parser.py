@@ -48,14 +48,16 @@ class DSLTransformer(Transformer):
         return args
 
     def requirement(self, args) -> Requirement:
-        name: str = args[0]
-        expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[1]
-        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[2]
+        flip_expr: bool = args[0].value == "-"
+        name: str = args[1]
+        expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[2]
+        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[3]
         return Requirement(
             expr,
             name.lower().replace(" ", "_"),
             name,
-            lambda solver, sorts, model: errd(solver, sorts, model, self.const_store.get_index_and_push())
+            lambda solver, sorts, model: errd(solver, sorts, model, self.const_store.get_index_and_push()),
+            flipped=flip_expr
         )
 
     def req_name(self, args) -> str:

@@ -1,6 +1,6 @@
-requirements    : ">" requirement (">" requirement)*
+requirements    : requirement (requirement)*
 
-requirement     : req_name expression "---" error_desc
+requirement     : FLIP_EXPR req_name expression "---" error_desc
 
 req_name        : ESCAPED_STRING
 error_desc      : ESCAPED_STRING
@@ -37,6 +37,9 @@ value           : ESCAPED_STRING
                 | NUMBER
                 | BOOL
                 | VALUE
+
+FLIP_EXPR       : "+"
+                | "-"
 
 EQUALITY_OP     : "is"
                 | "is not"

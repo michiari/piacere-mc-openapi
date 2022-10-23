@@ -1,25 +1,22 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from z3 import (
-    Context, FuncDeclRef, Solver, ExprRef, SortRef, DatatypeSortRef, sat
-)
+from z3 import (Context, DatatypeSortRef, ExprRef, FuncDeclRef, Solver,
+                SortRef, sat)
 
 from .intermediate_model.doml_element import IntermediateModel
-from .z3encoding.im_encoding import (
-    assert_im_associations_q, assert_im_attributes,
-    def_elem_class_f_and_assert_classes,
-    mk_elem_sort_dict, mk_stringsym_sort_dict
-)
-from .z3encoding.metamodel_encoding import (
-    def_association_rel,
-    def_attribute_rel,
-    mk_association_sort_dict,
-    mk_attribute_sort_dict, mk_class_sort_dict
-)
+from .mc_result import MCResult, MCResults
+from .z3encoding.im_encoding import (assert_im_associations_q,
+                                     assert_im_attributes,
+                                     def_elem_class_f_and_assert_classes,
+                                     mk_elem_sort_dict, mk_stringsym_sort_dict)
+from .z3encoding.metamodel_encoding import (def_association_rel,
+                                            def_attribute_rel,
+                                            mk_association_sort_dict,
+                                            mk_attribute_sort_dict,
+                                            mk_class_sort_dict)
 from .z3encoding.types import Refs
 from .z3encoding.utils import mk_attr_data_sort
-from .mc_result import MCResult, MCResults
 
 
 @dataclass
@@ -50,7 +47,7 @@ class Requirement:
     assert_name: str
     description: str
     error_description: Callable[[Solver, SMTSorts, IntermediateModel], str]
-
+    flipped: bool = False
 
 class RequirementStore:
     def __init__(self, requirements: list[Requirement]):
@@ -159,7 +156,7 @@ class IntermediateModelChecker:
             )
             res = self.solver.check()
             results.append((
-                MCResult.from_z3result(res, flipped=True),
+                MCResult.from_z3result(res, flipped=req.flipped),
                 req.error_description(self.solver, self.smt_sorts, self.intermediate_model)
                 if res == sat else ""
             ))

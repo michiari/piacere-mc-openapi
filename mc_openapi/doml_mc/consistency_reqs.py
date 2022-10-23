@@ -58,6 +58,7 @@ def get_attribute_type_reqs(mm: MetaModel) -> RequirementStore:
                     f"attribute_st_types {cname}::{mm_attr.name}",
                     f"Attribute {mm_attr.name} from class {cname} must have type {mm_attr.type}.",
                     lambda _s, _m, _i: f"Attribute {mm_attr.name} from class {cname} has a type different from {mm_attr.type}.",
+                    flipped=True
                 )
             )
     return RequirementStore(reqs)
@@ -100,6 +101,7 @@ def get_attribute_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
                         f"attribute_mult_lb {cname}::{mm_attr.name}",
                         f"Attribute {mm_attr.name} from class {cname} must have at least one value.",
                         lambda _s, _m, _i: f"Mandatory attribute {mm_attr.name} from class {cname} has no value.",
+                        flipped=True
                     )
                 )
             if ub == "1":
@@ -109,6 +111,7 @@ def get_attribute_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
                         f"attribute_mult_ub {cname}::{mm_attr.name}",
                         f"Attribute {mm_attr.name} from class {cname} must have at most one value.",
                         lambda _s, _m, _i: f"Attribute {mm_attr.name} from class {cname} has more than one value.",
+                        flipped=True
                     )
                 )
     return RequirementStore(reqs)
@@ -141,6 +144,7 @@ def get_association_type_reqs(mm: MetaModel) -> RequirementStore:
                     f"association_st_classes {cname}::{mm_assoc.name}",
                     f"Association {mm_assoc.name} from class {cname} must target class {mm_assoc.class_}.",
                     lambda _s, _m, _i: f"Association {mm_assoc.name} from class {cname} has a class different from {mm_assoc.class_}.",
+                    flipped=True
                 )
             )
     return RequirementStore(reqs)
@@ -180,6 +184,7 @@ def get_association_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
                         f"association_mult_lb {cname}::{mm_assoc.name}",
                         f"Association {mm_assoc.name} from class {cname} must have at least one target.",
                         lambda _s, _m, _i: f"Mandatory association {mm_assoc.name} is missing from an element of class {cname}.",
+                        flipped=True
                     )
                 )
             if ub == "1":
@@ -189,6 +194,7 @@ def get_association_multiplicity_reqs(mm: MetaModel) -> RequirementStore:
                         f"association_mult_ub {cname}::{mm_assoc.name}",
                         f"Association {mm_assoc.name} from class {cname} must have at most one target.",
                         lambda _s, _m, _i: f"Association {mm_assoc.name} has more than one target in an element of class {cname}.",
+                        flipped=True
                     )
                 )
     return RequirementStore(reqs)
@@ -213,6 +219,7 @@ def get_inverse_association_reqs(inv_assoc: list[tuple[str, str]]) -> Requiremen
                 f"association_inverse {an1} {an2}",
                 f"Association {an1} must be the inverse of {an2}.",
                 lambda _s, _m, _i: f"Association {an1} is not the inverse of {an2}.",
+                flipped=True
             )
         )
     return RequirementStore(reqs)

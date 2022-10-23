@@ -9,7 +9,7 @@
 #     )
 # )
 
->   "All VMs have at least one interface 1"
+-   "All VMs have at least one interface 1"
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
