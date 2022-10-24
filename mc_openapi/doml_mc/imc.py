@@ -158,7 +158,8 @@ class IntermediateModelChecker:
             results.append((
                 MCResult.from_z3result(res, flipped=req.flipped),
                 req.error_description(self.solver, self.smt_sorts, self.intermediate_model)
-                if res == sat else ""
+                # if res == sat else "" # not needed since we're try/catching model() errors 
+                # in each requirement now
             ))
             self.solver.pop()
 

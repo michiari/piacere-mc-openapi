@@ -30,13 +30,15 @@ class VarStore:
     
     def get_index_and_push(self):
         self.expressions.append(self.curr_vars)
-        self.curr_vars = set()
+        self.curr_vars = dict()
 
         self.curr_index += 1
         return self.curr_index - 1
 
     def get_free_vars(self, index: int) -> list[ExprRef]:
         vars = self.expressions[index]
+        if not vars: 
+            return []
         free_vars = [key for key, val in vars.items() if not val]
         return free_vars
 

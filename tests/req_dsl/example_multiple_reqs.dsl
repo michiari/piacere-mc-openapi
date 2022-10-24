@@ -1,51 +1,28 @@
-# vm, iface = get_consts(smtsorts, ["vm", "iface"])
-# return And(
-#     smtenc.element_class_fun(vm) == smtenc.classes["infrastructure_VirtualMachine"],
-#     Not(
-#         Exists(
-#             [iface],
-#             ENCODINGS.association_rel(vm, smtenc.associations["infrastructure_ComputingNode::ifaces"], iface)
-#         )
-#     )
-# )
-
--   "Something that will be unsatisfiable"
-    vm is class infrastructure.VirtualMachine
-    and
-    not exists iface (
-        vm has association infrastructure.ComputingNode->ifaces iface
-        and
-        vm has association infrastructure.ComputingNode->ifaces iface
-        or
-        vm has attribute infrastructure.ComputingNode->os Os1
-        and
-        vm has attribute infrastructure.ComputingNode->memory_mb 1024
-        and
-        vm has attribute infrastructure.ComputingNode->architecture "linux"
-        and
-        vm has attribute infrastructure.ComputingNode->architecture "linux"
-        and
-        vm has attribute infrastructure.Location->region "europe"
-        and
-        vm has attribute application.SoftwareComponent->isPersistent true
-    )
-    ---
-    "VM {vm} has some problems."
-
--   "All VMs have at least one interface 2"
+-   "VM must have iface"
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
         vm has association infrastructure.ComputingNode->ifaces iface
     )
     ---
-    "VM {vm} has no associated interface."
+    "VM {vm} must have iface {iface}"
 
-+   "All VMs have at least one interface 3"
-    vm is class infrastructure.VirtualMachine
-    and
-    exists iface (
-        vm has association infrastructure.ComputingNode->ifaces iface
++   "VM must have iface"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+        exists iface (
+            vm has association infrastructure.ComputingNode->ifaces iface
+        )
     )
     ---
-    "Virtual Machine {vm} has no associated interface."
+    "VM {vm} must have iface {iface}"
+
+-   "Iface must be unique"
+    ni1 has attribute infrastructure.NetworkInterface->endPoint Value
+    and
+    ni1 is not ni2
+    and
+    ni2 has attribute infrastructure.NetworkInterface->endPoint Value
+    ---
+    "Iface {ni1} and {ni2} must have different values"
