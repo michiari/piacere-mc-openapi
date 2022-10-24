@@ -27,11 +27,16 @@ class ModelChecker:
         self,
         threads: int = 1,
         user_requirements: Optional[str] = None,
+        skip_common_requirements: bool = False,
         consistency_checks: bool = False,
         timeout: Optional[int] = None
     ) -> MCResults:
         assert self.metamodel and self.inv_assoc
-        req_store = CommonRequirements[self.doml_version]
+        req_store = RequirementStore([])
+        
+        if not skip_common_requirements:
+            req_store += CommonRequirements[self.doml_version]
+
         if consistency_checks:
             req_store = req_store \
                 + get_attribute_type_reqs(self.metamodel) \

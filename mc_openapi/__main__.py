@@ -11,7 +11,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--doml", dest="doml", help="the DOMLX file to check")
 parser.add_argument("-V", "--doml-version", dest="doml_version", default="V2_0", help="(optional) the version used by the DOMLX file")
 parser.add_argument("-r", "--requirements", dest="requirements", help="the user-specified requirements file to check")
-parser.add_argument("-c", "--check-consistency", dest="consistency", action='store_true', help="check additional built-in consistency requirements")
+parser.add_argument("-c", "--check-consistency", dest="consistency", action='store_true', help="check on additional built-in consistency requirements")
+parser.add_argument("-S", "--skip-common-checks", dest="skip_common", action='store_true', help="skip check on common built-in requirements")
 parser.add_argument("-t", "--threads", dest="threads", type=int, default=2, help="number of threads used by the model checker")
 
 args = parser.parse_args()
@@ -49,7 +50,8 @@ else:
         results = dmc.check_requirements(
             threads=args.threads, 
             user_requirements=user_reqs, 
-            consistency_checks=args.consistency
+            consistency_checks=args.consistency,
+            skip_common_requirements=args.skip_common
         )
 
         res, msg = results.summarize()
@@ -58,5 +60,5 @@ else:
             print("sat")
         else:
             print(res.name)
-            print("\033[91m {}\033[00m".format(msg))
+            print("\033[91m{}\033[00m".format(msg))
         
