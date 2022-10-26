@@ -3,6 +3,7 @@ import argparse
 
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion
+from mc_openapi.doml_mc.dsl_parser.exceptions import RequirementException
 from mc_openapi.doml_mc.mc import ModelChecker
 from mc_openapi.doml_mc.mc_result import MCResult
 
@@ -45,20 +46,21 @@ else:
             # Read the user requirements written in DSL
                 user_reqs = reqsf.read()
 
+        try:
+            # Check satisfiability
+            results = dmc.check_requirements(
+                threads=args.threads, 
+                user_requirements=user_reqs, 
+                consistency_checks=args.consistency,
+                skip_common_requirements=args.skip_common
+            )
 
-        # Check satisfiability
-        results = dmc.check_requirements(
-            threads=args.threads, 
-            user_requirements=user_reqs, 
-            consistency_checks=args.consistency,
-            skip_common_requirements=args.skip_common
-        )
+            res, msg = results.summarize()
 
-        res, msg = results.summarize()
-
-        if res == MCResult.sat:
-            print("sat")
-        else:
-            print(res.name)
-            print("\033[91m{}\033[00m".format(msg))
-        
+            if res == MCResult.sat:
+                print("sat")
+            else:
+                print(res.name)
+                print("\033[91m{}\033[00m".format(msg))
+        except RequirementException as e:
+            print(e.message)

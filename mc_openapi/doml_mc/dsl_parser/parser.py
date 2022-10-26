@@ -2,7 +2,9 @@ import os
 import re
 from typing import Callable
 
-from lark import Lark, Transformer
+import yaml
+from lark import Lark, Transformer, UnexpectedCharacters
+from mc_openapi.doml_mc.dsl_parser.exceptions import RequirementBadSyntaxException
 from mc_openapi.doml_mc.dsl_parser.utils import (RefHandler, StringValuesCache,
                                                  VarStore)
 from mc_openapi.doml_mc.error_desc_helper import get_user_friendly_name
@@ -15,22 +17,31 @@ from z3 import And, Exists, ExprRef, ForAll, Implies, Not, Or, Solver, Xor
 class ParserData:
     def __init__(self) -> None:
         grammar_path = os.path.join(os.path.dirname(__file__), "grammar.lark")
+        exceptions_path = os.path.join(os.path.dirname(__file__), "exceptions.yaml")
         with open(grammar_path, "r") as grammar:
             self.grammar = grammar.read()
+        with open(exceptions_path, "r") as exceptions:
+            self.exceptions = yaml.safe_load(exceptions)
+
+PARSER_DATA = ParserData()
 
 class Parser:
-    def __init__(self, grammar: str = ParserData().grammar):
+    def __init__(self, grammar: str = PARSER_DATA.grammar):
         self.parser = Lark(grammar, start="requirements")
 
     def parse(self, input: str):
-        self.tree = self.parser.parse(input)
+        try:
+            self.tree = self.parser.parse(input)
 
-        const_store = VarStore()
-        user_values_cache = StringValuesCache()
+            const_store = VarStore()
+            user_values_cache = StringValuesCache()
 
-        transformer = DSLTransformer(const_store, user_values_cache)
+            transformer = DSLTransformer(const_store, user_values_cache)
 
-        return RequirementStore(transformer.transform(self.tree)), user_values_cache.get_list()
+            return RequirementStore(transformer.transform(self.tree)), user_values_cache.get_list()
+        except UnexpectedCharacters as e:
+            msg = _get_error_desc_for_unexpected_characters()
+            raise RequirementBadSyntaxException(e.line, e.column, msg)       
 
 class DSLTransformer(Transformer):
     # These callbacks will be called when a rule with the same name
@@ -55,7 +66,7 @@ class DSLTransformer(Transformer):
         flip_expr: bool = args[0].value == "-"
         name: str = args[1]
         expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[2]
-        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[3]
+        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[4]
         index = self.const_store.get_index_and_push()
         return Requirement(
             expr,
@@ -196,3 +207,21 @@ class DSLTransformer(Transformer):
 
             return msg + ("\n\n\tNOTES:" + notes if notes else "")
         return err_callback
+
+def _get_error_desc_for_unexpected_characters(e: UnexpectedCharacters):
+    # Error description
+    desc = ""
+    desc_prefix = "Expected one of the following:\n"
+    for val in e.allowed:
+        val = PARSER_DATA.exceptions["TOKENS"].get(val, "")
+        desc += (f"• {val}\n") if val else ""
+    # Suggestion that might be useful
+    hints = ""
+    if e.char == ".":
+        hints += PARSER_DATA.exceptions["HINTS"]["DOT"]
+    # Print line highlighting the error
+    ctx = e.get_context(input)
+    
+    msg = ctx
+    msg += (desc_prefix + desc) if desc else "Unknown error occurred during parsing!"
+    msg += f"\nHINTS:\n{hints}" if hints else ""

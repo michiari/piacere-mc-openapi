@@ -1,5 +1,10 @@
+from difflib import get_close_matches
+
+from mc_openapi.doml_mc.dsl_parser.exceptions import \
+    RequirementMissingKeyException
 from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
 from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef
+
 
 class StringValuesCache:
     def __init__(self) -> None:
@@ -74,9 +79,8 @@ class RefHandler:
         if _class is not None:
             return _class
         else:
-            raise Exception(f"No class named '{class_name}' found.")
-            # TODO: Try to suggest the correct class with difflib
-            # see: https://docs.python.org/3/library/difflib.html?highlight=get_close_matches#difflib.get_close_matches
+            close_matches = get_close_matches(class_name, enc.classes.keys())
+            raise RequirementMissingKeyException("class", class_name, close_matches)
 
     def get_association(enc: SMTEncoding, assoc_name: str) -> DatatypeRef:
         assoc_name = assoc_name.replace(".", "_")
@@ -85,7 +89,8 @@ class RefHandler:
         if assoc is not None:
             return assoc
         else:
-            raise Exception(f"No association named '{assoc_name}' found.")
+            close_matches = get_close_matches(assoc_name, enc.associations.keys())
+            raise RequirementMissingKeyException("association", assoc_name, close_matches)
 
     def get_association_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.association_rel(a, rel, b)
@@ -97,7 +102,8 @@ class RefHandler:
         if attr is not None:
             return attr
         else:
-            raise Exception(f"No attribute named '{attr_name}' found.")
+            close_matches = get_close_matches(attr_name, enc.attributes.keys())
+            raise RequirementMissingKeyException("attribute", attr_name, close_matches)
 
     def get_attribute_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.attribute_rel(a, rel, b)

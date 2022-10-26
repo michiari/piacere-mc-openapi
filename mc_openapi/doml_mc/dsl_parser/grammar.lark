@@ -1,6 +1,6 @@
 requirements    : requirement (requirement)*
 
-requirement     : FLIP_EXPR req_name expression "---" error_desc
+requirement     : FLIP_EXPR req_name expression ERR_DESC_SYMBOL error_desc
 
 req_name        : ESCAPED_STRING
 error_desc      : ESCAPED_STRING
@@ -58,6 +58,8 @@ CLASS: /[^\W\d_]+\.[^\W\d_]+/
 CONST: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
 // Value must start with uppercase letter
 VALUE: (UCASE_LETTER) ("_"|LETTER|DIGIT)*
+
+ERR_DESC_SYMBOL: "---"
 
 // Comment: python/sh style
 COMMENT: /#[^\n]*/
