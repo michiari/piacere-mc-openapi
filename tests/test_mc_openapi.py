@@ -8,8 +8,9 @@ def test_version():
     assert __version__ == '1.2.0'
 
 
-def test_post_nginx_sat():
-    with open("tests/doml/nginx-openstack_v2.0.domlx", "r") as f:
+# V2_0 tests
+def test_post_nginx_sat_V2_0():
+    with open("tests/doml/v2.0/nginx-openstack_v2.0.domlx", "r") as f:
         doml = f.read()
 
     r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
@@ -19,8 +20,8 @@ def test_post_nginx_sat():
     assert payload["result"] == "sat"
 
 
-def test_post_faas_sat():
-    with open("tests/doml/faas.domlx", "r") as f:
+def test_post_faas_unsat_V2_0():
+    with open("tests/doml/v2.0/faas.domlx", "r") as f:
         doml = f.read()
 
     r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
@@ -41,7 +42,7 @@ def test_post_common_reqs_V2_0():
     ]
 
     for req, err_desc in zip(CommonRequirements[DOMLVersion.V2_0].get_all_requirements(), check_strings):
-        with open(f"tests/doml/nginx-openstack_v2.0_wrong_{req.assert_name}.domlx", "r") as f:
+        with open(f"tests/doml/v2.0/nginx-openstack_v2.0_wrong_{req.assert_name}.domlx", "r") as f:
             doml = f.read()
 
         r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
@@ -50,3 +51,26 @@ def test_post_common_reqs_V2_0():
         assert payload["result"] is not None
         assert payload["result"] == "unsat"
         assert err_desc in payload["description"]
+
+
+# V2_1 tests
+def test_post_nginx_sat_V2_1():
+    with open("tests/doml/v2.1/nginx-aws-ec2.domlx", "r") as f:
+        doml = f.read()
+
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
+    payload = r.json()
+    assert r.status_code == requests.codes.ok
+    assert payload["result"] is not None
+    assert payload["result"] == "sat"
+
+
+def test_post_faas_unsat_V2_1():
+    with open("tests/doml/v2.1/faas.domlx", "r") as f:
+        doml = f.read()
+
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
+    payload = r.json()
+    assert r.status_code == requests.codes.ok
+    assert payload["result"] is not None
+    assert payload["result"] == "unsat"
