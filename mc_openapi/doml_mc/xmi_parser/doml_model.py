@@ -56,7 +56,7 @@ def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
                 else:
                     raise RuntimeError(f"Supplied with DOMLX model of unsupported version {v_str}")
         else:
-            return DOMLVersion.V1_0
+            return DOMLVersion.V2_0  # Should be DOMLVersion.V1_0, but we use V2_0 because the 2.0 IDE doesn't fill it
     else:
         raise RuntimeError("Supplied with malformed DOMLX model.")
 
