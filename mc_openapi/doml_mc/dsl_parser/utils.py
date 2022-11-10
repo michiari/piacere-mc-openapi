@@ -65,7 +65,7 @@ class RefHandler:
         return sorts.attr_data_sort.int(int(value))
 
     def get_bool(value: str, sorts: SMTSorts):
-        return sorts.attr_data_sort.bool(value == "true")
+        return sorts.attr_data_sort.bool(value == "!True")
 
     def get_str(value: str, enc: SMTEncoding, sorts: SMTSorts):
         return sorts.attr_data_sort.ss(enc.str_symbols[value])
@@ -74,7 +74,7 @@ class RefHandler:
         return enc.element_class_fun(const)
 
     def get_class(enc: SMTEncoding, class_name: str) -> DatatypeRef:
-        class_name = class_name.replace(".", "_")
+        class_name = _convert_rel_str(class_name)
         _class = enc.classes.get(class_name, None)
         if _class is not None:
             return _class
@@ -82,29 +82,27 @@ class RefHandler:
             close_matches = get_close_matches(class_name, enc.classes.keys())
             raise RequirementMissingKeyException("class", class_name, close_matches)
 
-    def get_association(enc: SMTEncoding, assoc_name: str) -> DatatypeRef:
-        assoc_name = assoc_name.replace(".", "_")
-        assoc_name = assoc_name.replace("->", "::")
-        assoc = enc.associations.get(assoc_name, None)
-        if assoc is not None:
-            return assoc
+    ASSOCIATION = 0
+    ATTRIBUTE = 1
+
+    def get_relationship(enc: SMTEncoding, rel_name: str) -> tuple[DatatypeRef, int]:
+        rel_name = _convert_rel_str(rel_name)
+        rel = enc.associations.get(rel_name, None)
+        if rel is not None:
+            return rel, RefHandler.ASSOCIATION
         else:
-            close_matches = get_close_matches(assoc_name, enc.associations.keys())
-            raise RequirementMissingKeyException("association", assoc_name, close_matches)
+            rel = enc.attributes.get(rel_name, None)
+            if rel is not None:
+                return rel, RefHandler.ATTRIBUTE
+            else:
+                close_matches = get_close_matches(rel_name, enc.associations.keys())
+                raise RequirementMissingKeyException("association", rel_name, close_matches)
 
     def get_association_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.association_rel(a, rel, b)
 
-    def get_attribute(enc: SMTEncoding, attr_name: str) -> DatatypeRef:
-        attr_name = attr_name.replace(".", "_")
-        attr_name = attr_name.replace("->", "::")
-        attr = enc.attributes.get(attr_name, None)
-        if attr is not None:
-            return attr
-        else:
-            close_matches = get_close_matches(attr_name, enc.attributes.keys())
-            raise RequirementMissingKeyException("attribute", attr_name, close_matches)
-
     def get_attribute_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.attribute_rel(a, rel, b)
 
+def _convert_rel_str(rel: str) -> str:
+    return rel.replace(".", "_").replace("->", "::").replace("abstract", "infrastructure")

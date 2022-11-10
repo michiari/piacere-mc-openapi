@@ -48,7 +48,7 @@ class DSLTransformer(Transformer):
     # is matched. It starts from the leaves.
     def __init__(self, 
         const_store: VarStore, 
-        user_values_cache: StringValuesCache, 
+        user_values_cache: StringValuesCache,
         visit_tokens: bool = True
     ) -> None:
         super().__init__(visit_tokens)
@@ -111,24 +111,35 @@ class DSLTransformer(Transformer):
     def forall(self, args):
         return lambda enc, sorts: ForAll(args[0](enc, sorts), args[1](enc, sorts))
 
-    def association_expr(self, args):
-        self.const_store.use(args[0].value)
-        self.const_store.use(args[2].value)
-        return lambda enc, sorts: RefHandler.get_association_rel(
-            enc,
-            RefHandler.get_const(args[0].value, sorts),
-            RefHandler.get_association(enc, args[1].value),
-            RefHandler.get_const(args[2].value, sorts)
-        )
+    def relationship_expr(self, args):
+        rel_name = args[1].value
 
-    def attribute_expr(self, args):
-        self.const_store.use(args[0].value)
-        return lambda enc, sorts: RefHandler.get_attribute_rel(
-            enc,
-            RefHandler.get_const(args[0].value, sorts),
-            RefHandler.get_attribute(enc, args[1].value),
-            args[2](enc, sorts)
-        )
+        def _gen_rel_expr(enc, sorts):
+            rel, rel_type = RefHandler.get_relationship(enc, rel_name)
+            
+            if rel_type == RefHandler.ASSOCIATION:
+                self.const_store.use(args[0].value)
+                self.const_store.use(args[2].value)
+
+                return RefHandler.get_association_rel(
+                    enc,
+                    RefHandler.get_const(args[0].value, sorts),
+                    rel,
+                    RefHandler.get_const(args[2].value, sorts)
+                )
+            elif rel_type == RefHandler.ATTRIBUTE:
+                self.const_store.use(args[0].value)
+
+                return RefHandler.get_attribute_rel(
+                    enc,
+                    RefHandler.get_const(args[0].value, sorts),
+                    rel,
+                    args[2](enc, sorts)
+                )
+            else:
+                raise f"Error parsing relationship {rel_name}"
+        
+        return _gen_rel_expr
 
     def _get_equality_sides(self, arg1, arg2):
         # We track use of const in const_or_class
