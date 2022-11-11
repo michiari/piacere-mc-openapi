@@ -64,7 +64,7 @@ def assert_im_attributes(
     elem: Refs,
     attr_sort: DatatypeSortRef,
     attr: Refs,
-    AData: DatatypeSortRef,
+    attr_data_sort: DatatypeSortRef,
     ss: Refs,
 ) -> None:
     """
@@ -72,16 +72,16 @@ def assert_im_attributes(
     This procedure is effectful on `solver`.
     """
 
-    def encode_adata(v: Union[str, int, bool]) -> DatatypeRef:
+    def encode_attr_data(v: Union[str, int, bool]) -> DatatypeRef:
         if type(v) is str:
-            return AData.ss(ss[v])  # type: ignore
+            return attr_data_sort.ss(ss[v])  # type: ignore
         elif type(v) is int:
-            return AData.int(v)  # type: ignore
+            return attr_data_sort.int(v)  # type: ignore
         else:  # type(v) is bool
-            return AData.bool(v)  # type: ignore
+            return attr_data_sort.bool(v)  # type: ignore
 
     a = Const("a", attr_sort)
-    d = Const("d", AData)
+    d = Const("d", attr_data_sort)
     for esn, im_es in im.items():
         mangled_attrs = get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
         if mangled_attrs:
@@ -93,7 +93,7 @@ def assert_im_attributes(
                         *(
                             And(
                                 a == attr[aname],
-                                d == encode_adata(avalue),
+                                d == encode_attr_data(avalue),
                             )
                             for aname, avalues in mangled_attrs.items()
                             for avalue in avalues

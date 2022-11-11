@@ -11,7 +11,7 @@ from mc_openapi.doml_mc.error_desc_helper import get_user_friendly_name
 from mc_openapi.doml_mc.imc import (Requirement, RequirementStore, SMTEncoding,
                                     SMTSorts)
 from mc_openapi.doml_mc.intermediate_model import IntermediateModel
-from z3 import And, Exists, ExprRef, ForAll, Implies, Not, Or, Solver, Xor
+from z3 import And, Exists, ExprRef, ForAll, Implies, Not, Or, Solver, Xor, simplify
 
 
 class ParserData:
@@ -114,7 +114,7 @@ class DSLTransformer(Transformer):
     def relationship_expr(self, args):
         rel_name = args[1].value
 
-        def _gen_rel_expr(enc, sorts):
+        def _gen_rel_expr(enc: SMTEncoding, sorts: SMTSorts):
             rel, rel_type = RefHandler.get_relationship(enc, rel_name)
             
             if rel_type == RefHandler.ASSOCIATION:
@@ -174,6 +174,36 @@ class DSLTransformer(Transformer):
             self.const_store.use(args[0].value)
         return args[0]
     
+    def comparison(self, args):
+        def _gen_comparison(enc: SMTEncoding, sorts: SMTSorts):
+            a = args[0](enc, sorts)
+            b = args[2](enc, sorts)
+            op = args[1].value
+
+            # To extract the `int` contained in the attr_data_sort,
+            # we need to call its `get_int` method on the `DatatypeRef`
+            get_int = sorts.attr_data_sort.get_int
+
+            # TODO: Find a way to check if we're actually comparing Integers?
+
+            a = get_int(a)
+            b = get_int(b)
+
+            if op == ">":
+                return a > b
+            if op == ">=":
+                return a >= b
+            if op == "<":
+                return a < b
+            if op == "<=":
+                return a <= b
+            if op == "==":
+                return a == b
+            if op == "!=":
+                return a != b
+
+        return _gen_comparison
+
     def value(self, args):        
         type = args[0].type
         value = args[0].value

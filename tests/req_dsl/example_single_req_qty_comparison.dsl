@@ -9,11 +9,16 @@
 #     )
 # )
 
--   "All VMs have at least one interface 1"
-    vm is class infrastructure.VirtualMachine
-    and
-    not exists iface (
-        vm has infrastructure.ComputingNode->ifaces iface
++   "All VMs have at least 512 MB of memory"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+        (
+            vm has abstract.ComputingNode.memory_mb Mem
+            and
+            Mem < 512
+        )
     )
+    
     ---
-    "VM {vm} has no associated interface."
+    "All VMs have at least 256 MB of memory"

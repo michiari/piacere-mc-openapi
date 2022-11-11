@@ -26,6 +26,7 @@ error_desc      : ESCAPED_STRING
 ?property       : CONST "has" RELATIONSHIP (CONST|value)        -> relationship_expr
                 | const_or_class "is" const_or_class            -> equality
                 | const_or_class "is not" const_or_class        -> inequality
+                | value COMPARISON_OP value                     -> comparison
 
 bound_consts    : [CONST ("," CONST)*]
 
@@ -43,12 +44,16 @@ FLIP_EXPR       : "+"
 EQUALITY_OP     : "is"
                 | "is not"
 
+COMPARISON_OP   : ">" | ">="
+                | "<" | "<="
+                | "==" | "!="
+
 BOOL            : "!True"
                 | "!False"
 
 // regex: /[a-zA-Z]+_[a-zA-Z]+::[a-zA-Z]+/
 //RELATIONSHIP: (LCASE_LETTER) ("_"|"::"|LETTER|DIGIT)*
-RELATIONSHIP: /[^\W\d_]+\.[^\W\d_]+->([^\W\d]|_)+/
+RELATIONSHIP: /[^\W\d_]+\.[^\W\d_]+\.([^\W\d]|_)+/
 
 //CLASS: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
 CLASS: /[^\W\d_]+\.[^\W\d_]+/

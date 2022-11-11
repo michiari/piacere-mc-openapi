@@ -13,9 +13,9 @@
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
-        vm has association infrastructure.ComputingNode->ifaces iface
+        vm has infrastructure.ComputingNode->ifaces iface
         and
-        vm has attribute infrastructure.ComputingNode->ifaces X
+        vm has infrastructure.ComputingNode->ifaces X
     )
     ---
     "VM {vm} has no associated interface."

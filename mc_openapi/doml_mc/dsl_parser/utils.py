@@ -3,7 +3,7 @@ from difflib import get_close_matches
 from mc_openapi.doml_mc.dsl_parser.exceptions import \
     RequirementMissingKeyException
 from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
-from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef
+from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef, Ints
 
 
 class StringValuesCache:
@@ -105,4 +105,10 @@ class RefHandler:
         return enc.attribute_rel(a, rel, b)
 
 def _convert_rel_str(rel: str) -> str:
-    return rel.replace(".", "_").replace("->", "::").replace("abstract", "infrastructure")
+    tokens = rel.replace("abstract", "infrastructure").split(".")
+    ret = tokens[0]
+    if len(tokens) >= 2:
+        ret += "_" + tokens[1]
+        if len(tokens) >= 3:
+            ret += "::" + tokens[2]
+    return ret
