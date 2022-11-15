@@ -283,7 +283,7 @@ def all_concrete_map_something(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprR
 # def sw_components_have_source_code_property(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
 #     sw_comp, prop = get_consts(smtsorts, ["sw_comp prop"])
 
-#     big_x = smtsorts.attr_data_sort.ss(smtenc.str_symbols["source_code"])
+#     big_x = smtsorts.attr_data_sort.str(smtenc.str_symbols["source_code"])
 
 #     return And(
 #         smtenc.element_class_fun(sw_comp) == smtenc.classes["application_SoftwareComponent"],
@@ -323,7 +323,7 @@ def external_services_must_have_https(smtenc: SMTEncoding, smtsorts: SMTSorts) -
                 smtenc.association_rel(sec_group, smtenc.associations["infrastructure_SecurityGroup::rules"], rule),
                 smtenc.attribute_rel(rule, smtenc.attributes["infrastructure_Rule::fromPort"], smtsorts.attr_data_sort.int(443)),
                 smtenc.attribute_rel(rule, smtenc.attributes["infrastructure_Rule::toPort"], smtsorts.attr_data_sort.int(443)),
-                smtenc.attribute_rel(rule, smtenc.attributes["infrastructure_Rule::kind"], smtsorts.attr_data_sort.ss(smtenc.str_symbols["INGRESS"]))
+                smtenc.attribute_rel(rule, smtenc.attributes["infrastructure_Rule::kind"], smtsorts.attr_data_sort.str(smtenc.str_symbols["INGRESS"]))
             )
         ))
     )

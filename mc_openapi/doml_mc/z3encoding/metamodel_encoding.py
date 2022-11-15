@@ -42,9 +42,9 @@ def mk_association_sort_dict(
 def def_attribute_rel(
     attr_sort: DatatypeSortRef,
     elem_sort: DatatypeSortRef,
-    AData: DatatypeSortRef
+    attr_data_sort: DatatypeSortRef
 ) -> FuncDeclRef:
-    return Function("attribute", elem_sort, attr_sort, AData, BoolSort(ctx=elem_sort.ctx))
+    return Function("attribute", elem_sort, attr_sort, attr_data_sort, BoolSort(ctx=elem_sort.ctx))
 
 
 def def_association_rel(

@@ -6,7 +6,7 @@ from z3 import (Context, DatatypeSortRef, ExprRef, FuncDeclRef, Solver,
 
 from .intermediate_model.doml_element import IntermediateModel
 from .mc_result import MCResult, MCResults
-from .z3encoding.im_encoding import (assert_im_associations_q,
+from .z3encoding.im_encoding import (assert_im_associations,
                                      assert_im_attributes,
                                      def_elem_class_f_and_assert_classes,
                                      mk_elem_sort_dict, mk_stringsym_sort_dict)
@@ -82,13 +82,13 @@ class IntermediateModelChecker:
         assoc_sort, assoc = mk_association_sort_dict(self.metamodel, self.z3Context)
         attr_sort, attr = mk_attribute_sort_dict(self.metamodel, self.z3Context)
         elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, self.z3Context)
-        ss_sort, ss = mk_stringsym_sort_dict(
+        str_sort, str = mk_stringsym_sort_dict(
             self.intermediate_model,
             self.metamodel,
             self.z3Context,
             user_string_values
         )
-        attr_data_sort = mk_attr_data_sort(ss_sort, self.z3Context)
+        attr_data_sort = mk_attr_data_sort(str_sort, self.z3Context)
         elem_class_f = def_elem_class_f_and_assert_classes(
             self.intermediate_model,
             self.solver,
@@ -111,13 +111,13 @@ class IntermediateModelChecker:
             attr_sort,
             attr,
             attr_data_sort,
-            ss
+            str
         )
         assoc_rel = def_association_rel(
             assoc_sort,
             elem_sort
         )
-        assert_im_associations_q(
+        assert_im_associations(
             assoc_rel,
             self.solver,
             {k: v for k, v in self.intermediate_model.items()},
@@ -130,7 +130,7 @@ class IntermediateModelChecker:
             assoc,
             attr,
             elem,
-            ss,
+            str,
             elem_class_f,
             attr_rel,
             assoc_rel
@@ -140,7 +140,7 @@ class IntermediateModelChecker:
             assoc_sort,
             attr_sort,
             elem_sort,
-            ss_sort,
+            str_sort,
             attr_data_sort
         )
 
