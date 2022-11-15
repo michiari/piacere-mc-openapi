@@ -18,6 +18,7 @@ from z3 import (
 from .types import Refs, SortAndRefs
 
 # Assertions
+# TODO: Check if deprecated?
 def assert_relation_tuples(
     rel: FuncDeclRef,
     solver: Solver,
@@ -52,7 +53,7 @@ def assert_relation_tuples(
     ]
 
     assert_function_tuples_raw(rel, solver, sym_tpls)
-
+# TODO: Check if deprecated?
 def assert_function_tuples(
     f: FuncDeclRef,
     solver: Solver,
@@ -83,7 +84,7 @@ def assert_function_tuples(
     ]
 
     assert_function_tuples_raw(f, solver, sym_tpls)
-
+# TODO: Check if deprecated?
 def assert_function_tuples_raw(
     f: FuncDeclRef,
     solver: Solver,
@@ -110,6 +111,7 @@ def assert_function_tuples_raw(
             f"{f.name()} " + " ".join(str(x) for x in xs) + f" {y}",
         )
 
+
 def symbolize(s: str) -> str:
     return "".join([c.lower() if c.isalnum() else "_" for c in s[:16]])
 
@@ -124,21 +126,21 @@ def mk_stringsym_sort_from_strings(
     strings: list[str],
     z3ctx: Context
 ) -> SortAndRefs:
-    ss_list = [f"ss_{i}_{symbolize(s)}" for i, s in enumerate(strings)]
-    stringsym_sort, ss_refs_dict = mk_enum_sort_dict("StringSym", ss_list, z3ctx=z3ctx)
-    stringsym_sort_dict = {
-        s: ss_refs_dict[ss] for s, ss in zip(strings, ss_list)
+    str_list = [f"str_{i}_{symbolize(s)}" for i, s in enumerate(strings)]
+    string_sort, str_refs_dict = mk_enum_sort_dict("string", str_list, z3ctx=z3ctx)
+    string_sort_dict = {
+        s: str_refs_dict[str] for s, str in zip(strings, str_list)
     }
-    return stringsym_sort, stringsym_sort_dict
+    return string_sort, string_sort_dict
 
 def mk_attr_data_sort(
-    ss_sort: DatatypeSortRef,
+    str_sort: DatatypeSortRef,
     z3ctx: Context
 ) -> DatatypeSortRef:
     attr_data = Datatype("AttributeData", ctx=z3ctx)
     attr_data.declare("int", ("get_int", IntSort(ctx=z3ctx)))
     attr_data.declare("bool", ("get_bool", BoolSort(ctx=z3ctx)))
-    attr_data.declare("ss", ("get_ss", ss_sort)) # ss_sort is the one returned by the function above
+    attr_data.declare("str", ("get_str", str_sort)) # str_sort is the one returned by the function above
     return attr_data.create()
 
 

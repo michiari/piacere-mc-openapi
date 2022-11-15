@@ -61,11 +61,11 @@ def assert_im_attributes(
     solver: Solver,
     im: IntermediateModel,
     mm: MetaModel,
-    elem: Refs,
+    elems: Refs,
     attr_sort: DatatypeSortRef,
-    attr: Refs,
+    attrs: Refs,
     attr_data_sort: DatatypeSortRef,
-    ss: Refs,
+    strings: Refs,
 ) -> None:
     """
     ### Effects
@@ -74,7 +74,7 @@ def assert_im_attributes(
 
     def encode_attr_data(v: Union[str, int, bool]) -> DatatypeRef:
         if type(v) is str:
-            return attr_data_sort.ss(ss[v])  # type: ignore
+            return attr_data_sort.str(strings[v])  # type: ignore
         elif type(v) is int:
             return attr_data_sort.int(v)  # type: ignore
         else:  # type(v) is bool
@@ -88,11 +88,11 @@ def assert_im_attributes(
             assn = ForAll(
                 [a, d],
                 Iff(
-                    attr_rel(elem[esn], a, d),
+                    attr_rel(elems[esn], a, d),
                     Or(
                         *(
                             And(
-                                a == attr[aname],
+                                a == attrs[aname],
                                 d == encode_attr_data(avalue),
                             )
                             for aname, avalues in mangled_attrs.items()
@@ -104,40 +104,40 @@ def assert_im_attributes(
         else:
             assn = ForAll(
                 [a, d],
-                Not(attr_rel(elem[esn], a, d))
+                Not(attr_rel(elems[esn], a, d))
             )
         solver.assert_and_track(assn, f"attribute_values {esn}")
 
+# TODO: Remove if deprecated?
+# def assert_im_associations(
+#     assoc_rel: FuncDeclRef,
+#     solver: Solver,
+#     im: IntermediateModel,
+#     mm: MetaModel,
+#     elem: Refs,
+#     assoc: Refs,
+# ) -> None:
+#     """
+#     ### Effects
+#     This procedure is effectful on `solver`.
+#     """
+#     elem_names = set(im.keys())
+#     assoc_mangled_names = {
+#         f"{cname}::{aname}"
+#         for cname, c in mm.items()
+#         for aname in c.associations
+#     }
+#     rel_tpls = [
+#         [esn, amn, etn]
+#         for esn, amn, etn in product(
+#             elem_names, assoc_mangled_names, elem_names
+#         )
+#         if etn in im[esn].associations.get(amn, set())
+#     ]
+#     assert_relation_tuples(assoc_rel, solver, rel_tpls, elem, assoc, elem)
+
 
 def assert_im_associations(
-    assoc_rel: FuncDeclRef,
-    solver: Solver,
-    im: IntermediateModel,
-    mm: MetaModel,
-    elem: Refs,
-    assoc: Refs,
-) -> None:
-    """
-    ### Effects
-    This procedure is effectful on `solver`.
-    """
-    elem_names = set(im.keys())
-    assoc_mangled_names = {
-        f"{cname}::{aname}"
-        for cname, c in mm.items()
-        for aname in c.associations
-    }
-    rel_tpls = [
-        [esn, amn, etn]
-        for esn, amn, etn in product(
-            elem_names, assoc_mangled_names, elem_names
-        )
-        if etn in im[esn].associations.get(amn, set())
-    ]
-    assert_relation_tuples(assoc_rel, solver, rel_tpls, elem, assoc, elem)
-
-
-def assert_im_associations_q(
     assoc_rel: FuncDeclRef,
     solver: Solver,
     im: IntermediateModel,

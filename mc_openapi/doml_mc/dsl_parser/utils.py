@@ -68,7 +68,7 @@ class RefHandler:
         return sorts.attr_data_sort.bool(value == "!True")
 
     def get_str(value: str, enc: SMTEncoding, sorts: SMTSorts):
-        return sorts.attr_data_sort.ss(enc.str_symbols[value])
+        return sorts.attr_data_sort.str(enc.str_symbols[value])
 
     def get_element_class(enc: SMTEncoding, const: ExprRef) -> FuncDeclRef:
         return enc.element_class_fun(const)

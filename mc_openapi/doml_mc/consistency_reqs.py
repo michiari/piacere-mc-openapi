@@ -41,8 +41,8 @@ def get_attribute_type_reqs(mm: MetaModel) -> RequirementStore:
                     tgt_type_cond = smtsorts.attr_data_sort.is_ss(attr_val)  # type: ignore
                 else:  # mm_attr.type == "GeneratorKind"
                     tgt_type_cond = Or(
-                        attr_val == smtsorts.attr_data_sort.ss(smtenc.str_symbols["IMAGE"]),  # type: ignore
-                        attr_val == smtsorts.attr_data_sort.ss(smtenc.str_symbols["SCRIPT"]),  # type: ignore
+                        attr_val == smtsorts.attr_data_sort.str(smtenc.str_symbols["IMAGE"]),  # type: ignore
+                        attr_val == smtsorts.attr_data_sort.str(smtenc.str_symbols["SCRIPT"]),  # type: ignore
                     )
                 return And(
                     smtenc.attribute_rel(elem, smtenc.attributes[f"{cname}::{mm_attr.name}"], attr_val),
@@ -254,8 +254,8 @@ def assert_attribute_rel_constraints(
                 tgt_type_cond = smtsorts.attr_data_sort.is_ss(ad)  # type: ignore
             else:  # mm_attr.type == "GeneratorKind"
                 tgt_type_cond = Or(
-                    ad == smtsorts.attr_data_sort.ss(smtenc.str_symbols["IMAGE"]),  # type: ignore
-                    ad == smtsorts.attr_data_sort.ss(smtenc.str_symbols["SCRIPT"]),  # type: ignore
+                    ad == smtsorts.attr_data_sort.str(smtenc.str_symbols["IMAGE"]),  # type: ignore
+                    ad == smtsorts.attr_data_sort.str(smtenc.str_symbols["SCRIPT"]),  # type: ignore
                 )
             assn = ForAll(
                 [es, ad],
