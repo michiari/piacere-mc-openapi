@@ -1,14 +1,13 @@
-from dataclasses import dataclass
-from typing import cast, Literal, Optional, Union
-from enum import Enum
-
 import importlib.resources as ilres
-import yaml
+from dataclasses import dataclass
+from enum import Enum
+from typing import Literal, Optional, Union, cast
+
 import networkx as nx
+import yaml
 
 from ... import assets
-from .._utils import merge_dicts
-
+from ..utils import merge_dicts
 
 class DOMLVersion(Enum):
     V1_0 = "v1.0"

@@ -4,12 +4,11 @@ from z3 import (
     DatatypeSortRef,
     FuncDeclRef,
     Function,
+    EnumSort
 )
 from ..intermediate_model import MetaModel
 
 from .types import SortAndRefs
-from .utils import mk_enum_sort_dict
-
 
 def mk_class_sort_dict(mm: MetaModel, z3ctx: Context) -> SortAndRefs:
     return mk_enum_sort_dict("Class", list(mm), z3ctx)
@@ -38,6 +37,11 @@ def mk_association_sort_dict(
     ]
     return mk_enum_sort_dict("Association", assocs, z3ctx)
 
+def mk_enum_sort_dict(name: str, values: list[str], z3ctx: Context) -> SortAndRefs:
+    """Makes a Z3 sort and a dict indexing sort values by their name"""
+
+    sort, datatype_refs = EnumSort(name, values, ctx=z3ctx)
+    return sort, dict(zip(values, datatype_refs))
 
 def def_attribute_rel(
     attr_sort: DatatypeSortRef,

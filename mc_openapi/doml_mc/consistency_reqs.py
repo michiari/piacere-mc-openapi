@@ -8,7 +8,7 @@ from .intermediate_model.metamodel import get_subclasses_dict
 from .imc import (
     SMTEncoding, SMTSorts, Requirement, RequirementStore
 )
-from .z3encoding.utils import Iff
+from .utils import Iff
 
 
 def subclass_cond(smtenc: SMTEncoding, subclasses: set[str], elem: ExprRef) -> ExprRef:

@@ -8,7 +8,7 @@ from .intermediate_model.doml_element import IntermediateModel
 from .mc_result import MCResult, MCResults
 from .z3encoding.im_encoding import (assert_im_associations,
                                      assert_im_attributes,
-                                     def_elem_class_f_and_assert_classes,
+                                     def_elem_class_f_and_assert_classes, mk_attr_data_sort,
                                      mk_elem_sort_dict, mk_stringsym_sort_dict)
 from .z3encoding.metamodel_encoding import (def_association_rel,
                                             def_attribute_rel,
@@ -16,8 +16,6 @@ from .z3encoding.metamodel_encoding import (def_association_rel,
                                             mk_attribute_sort_dict,
                                             mk_class_sort_dict)
 from .z3encoding.types import Refs
-from .z3encoding.utils import mk_attr_data_sort
-
 
 @dataclass
 class SMTEncoding:
