@@ -1,31 +1,16 @@
-from typing import Union
 from itertools import product
+from typing import Union
 
-from z3 import (
-    And,
-    Const,
-    Context,
-    DatatypeRef,
-    DatatypeSortRef,
-    ForAll,
-    FuncDeclRef,
-    Function,
-    Not,
-    Or,
-    Solver,
-)
+from z3 import (And, BoolSort, Const, Context, Datatype, DatatypeRef,
+                DatatypeSortRef, ForAll, FuncDeclRef, Function, IntSort, Not,
+                Or, Solver, EnumSort)
+
+from mc_openapi.doml_mc.z3encoding.metamodel_encoding import mk_enum_sort_dict
 
 from ..intermediate_model import IntermediateModel, MetaModel
 from ..intermediate_model.metamodel import get_mangled_attribute_defaults
-
 from .types import Refs, SortAndRefs
-from .utils import (
-    assert_relation_tuples,
-    Iff,
-    mk_enum_sort_dict,
-    mk_stringsym_sort_from_strings,
-)
-
+from ..utils import Iff
 
 def mk_elem_sort_dict(
     im: IntermediateModel,
@@ -62,10 +47,11 @@ def assert_im_attributes(
     im: IntermediateModel,
     mm: MetaModel,
     elems: Refs,
-    attr_sort: DatatypeSortRef,
-    attrs: Refs,
-    attr_data_sort: DatatypeSortRef,
+    attr_sort: DatatypeSortRef, # Relationship sort
+    attrs: Refs, # Relationship data
+    attr_data_sort: DatatypeSortRef, # Value sort
     strings: Refs,
+    allow_placeholders: bool = False
 ) -> None:
     """
     ### Effects
@@ -83,8 +69,8 @@ def assert_im_attributes(
     a = Const("a", attr_sort)
     d = Const("d", attr_data_sort)
     for esn, im_es in im.items():
-        mangled_attrs = get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
-        if mangled_attrs:
+        attr_data = get_mangled_attribute_defaults(mm, im_es.class_) | im_es.attributes
+        if attr_data:
             assn = ForAll(
                 [a, d],
                 Iff(
@@ -93,9 +79,9 @@ def assert_im_attributes(
                         *(
                             And(
                                 a == attrs[aname],
-                                d == encode_attr_data(avalue),
+                                d == encode_attr_data(avalue)
                             )
-                            for aname, avalues in mangled_attrs.items()
+                            for aname, avalues in attr_data.items()
                             for avalue in avalues
                         )
                     ),
@@ -108,39 +94,10 @@ def assert_im_attributes(
             )
         solver.assert_and_track(assn, f"attribute_values {esn}")
 
-# TODO: Remove if deprecated?
-# def assert_im_associations(
-#     assoc_rel: FuncDeclRef,
-#     solver: Solver,
-#     im: IntermediateModel,
-#     mm: MetaModel,
-#     elem: Refs,
-#     assoc: Refs,
-# ) -> None:
-#     """
-#     ### Effects
-#     This procedure is effectful on `solver`.
-#     """
-#     elem_names = set(im.keys())
-#     assoc_mangled_names = {
-#         f"{cname}::{aname}"
-#         for cname, c in mm.items()
-#         for aname in c.associations
-#     }
-#     rel_tpls = [
-#         [esn, amn, etn]
-#         for esn, amn, etn in product(
-#             elem_names, assoc_mangled_names, elem_names
-#         )
-#         if etn in im[esn].associations.get(amn, set())
-#     ]
-#     assert_relation_tuples(assoc_rel, solver, rel_tpls, elem, assoc, elem)
-
-
 def assert_im_associations(
     assoc_rel: FuncDeclRef,
     solver: Solver,
-    im: IntermediateModel,
+    im: IntermediateModel, # Contains only bounded elements
     elem: Refs,
     assoc_sort: DatatypeSortRef,
     assoc: Refs,
@@ -150,23 +107,23 @@ def assert_im_associations(
     This procedure is effectful on `solver`.
     """
 
-    a = Const("a", assoc_sort)
-    for (esn, im_es), etn in product(im.items(), im):
+    assoc_ref = Const("a", assoc_sort)
+    for (elem_1_k, elem_1_v), elem_2_k in product(im.items(), im):
         assn = ForAll(
-            [a],
+            [assoc_ref],
             Iff(
-                assoc_rel(elem[esn], a, elem[etn]),
+                assoc_rel(elem[elem_1_k], assoc_ref, elem[elem_2_k]),
                 Or(
                     *(
-                        a == assoc[amn]
-                        for amn, etns in im_es.associations.items()
-                        if etn in etns
+                        assoc_ref == assoc[elem_1_assoc_k]
+                        for elem_1_assoc_k, elem_1_assoc_elems_k in elem_1_v.associations.items()
+                        if elem_2_k in elem_1_assoc_elems_k
                     ),
                     solver.ctx
                 ),
             ),
         )
-        solver.assert_and_track(assn, f"associations {esn} {etn}")
+        solver.assert_and_track(assn, f"associations {elem_1_k} {elem_2_k}")
 
 
 def mk_stringsym_sort_dict(
@@ -198,3 +155,28 @@ def mk_stringsym_sort_dict(
         }
     )
     return mk_stringsym_sort_from_strings(list(strings), z3ctx=z3ctx)
+
+def mk_attr_data_sort(
+    str_sort: DatatypeSortRef,
+    z3ctx: Context
+) -> DatatypeSortRef:
+    attr_data = Datatype("AttributeData", ctx=z3ctx)
+    attr_data.declare("placeholder")
+    attr_data.declare("int", ("get_int", IntSort(ctx=z3ctx)))
+    attr_data.declare("bool", ("get_bool", BoolSort(ctx=z3ctx)))
+    attr_data.declare("str", ("get_str", str_sort)) # str_sort is the one returned by the function above
+    return attr_data.create()
+
+def mk_stringsym_sort_from_strings(
+    strings: list[str],
+    z3ctx: Context
+) -> SortAndRefs:
+    str_list = [f"str_{i}_{symbolize(s)}" for i, s in enumerate(strings)]
+    string_sort, str_refs_dict = mk_enum_sort_dict("string", str_list, z3ctx=z3ctx)
+    string_sort_dict = {
+        s: str_refs_dict[str] for s, str in zip(strings, str_list)
+    }
+    return string_sort, string_sort_dict
+
+def symbolize(s: str) -> str:
+    return "".join([c.lower() if c.isalnum() else "_" for c in s[:16]])
