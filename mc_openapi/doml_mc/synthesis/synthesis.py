@@ -201,10 +201,10 @@ class Synthesis:
         res = ctx.solver.check()
 
         if res == sat:
-            print(f"<Sat>\tubelems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
+            print(f"<Sat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
             return ctx
         elif res == unsat:
-            print(f"<Unsat>\tubelems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
+            print(f"<Unsat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
             if ub_elems_n > ub_vals_n:
                 new_ub_vals_n = ub_vals_n * 2 if ub_vals_n >= 1 else 1
                 return self.check(ub_elems_n, new_ub_vals_n, reqs, curr_try + 1, max_tries)
@@ -284,9 +284,9 @@ class Synthesis:
         
         if res == sat:
             print("SAT:\tAdding one more constraint and trying again")
-            # Get new ubelems_and_assoc
+            # Get new ub_elems_and_assoc
             model = ctx.solver.model()
-            thinned_ub_elems_and_assoc = self.get_ubelems_and_assoc(ctx, model)
+            thinned_ub_elems_and_assoc = self.get_ub_elems_and_assoc(ctx, model)
             
             # Print table showing the diff
             from difflib import context_diff
@@ -321,14 +321,14 @@ class Synthesis:
         
         if res == sat:
             print("SAT:\tAdding one more constraint and trying again")
-            # Get new ubelems_and_assoc
+            # Get new ub_elems_and_assoc
             model = ctx.solver.model()
             thinned_ub_vals_and_attr = self.get_ubvals_and_attr(ctx, model)
             
             # Print table showing the diff
             from difflib import context_diff
             uvar_as_text = lambda input: [self.pretty_ubvals_attrs(attr) for attr in input]
-            print("\n".join([a for a in context_diff(uvar_as_text(self.ubelems_and_assoc), uvar_as_text(thinned_ub_vals_and_attr), lineterm="", fromfile='Before', tofile="After")]))
+            print("\n".join([a for a in context_diff(uvar_as_text(ub_vals_and_attr), uvar_as_text(thinned_ub_vals_and_attr), lineterm="", fromfile='Before', tofile="After")]))
 
             # Iterate
             return self.thin_ub_vals_and_attr(ctx, thinned_ub_vals_and_attr)
