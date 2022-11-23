@@ -69,7 +69,7 @@ else:
     if args.synth:
         
 
-        # try:
+        try:
             synth = Synthesis(dmc.metamodel, dmc.intermediate_model, doml_ver)
 
             synth_req_store = RequirementStore()
@@ -104,8 +104,8 @@ else:
             print("\n".join([synth.pretty_ub_vals_attr(attr) for attr in attrs_to_implement]))
 
             
-        # except Exception as e:
-        #     print(e)
+        except Exception as e:
+            print(e)
 
     else:
         try:
