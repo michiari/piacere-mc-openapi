@@ -48,7 +48,7 @@ class Requirement:
     flipped: bool = False
 
 class RequirementStore:
-    def __init__(self, requirements: list[Requirement]):
+    def __init__(self, requirements: list[Requirement] = []):
         self.requirements = requirements
         pass
 

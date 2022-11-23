@@ -40,8 +40,15 @@ class Parser:
 
             return RequirementStore(transformer.transform(self.tree)), user_values_cache.get_list()
         except UnexpectedCharacters as e:
-            msg = _get_error_desc_for_unexpected_characters()
-            raise RequirementBadSyntaxException(e.line, e.column, msg)       
+            ctx = e.get_context(input)
+            msg = _get_error_desc_for_unexpected_characters(e, input)
+
+            print(msg)
+
+            exit()
+            # print()
+            # print()
+            # raise RequirementBadSyntaxException(e.line, e.column, msg)       
 
 class DSLTransformer(Transformer):
     # These callbacks will be called when a rule with the same name
@@ -249,20 +256,18 @@ class DSLTransformer(Transformer):
             return msg + ("\n\n\tNOTES:" + notes if notes else "")
         return err_callback
 
-def _get_error_desc_for_unexpected_characters(e: UnexpectedCharacters):
+def _get_error_desc_for_unexpected_characters(e: UnexpectedCharacters, input: str):
     # Error description
-    desc = ""
-    desc_prefix = "Expected one of the following:\n"
+    msg = "Syntax Error:\n\n"
+    msg += e.get_context(input)
+    msg += "Expected one of the following:\n"
     for val in e.allowed:
         val = PARSER_DATA.exceptions["TOKENS"].get(val, "")
-        desc += (f"• {val}\n") if val else ""
+        msg += (f"• {val}\n")
     # Suggestion that might be useful
-    hints = ""
     if e.char == ".":
-        hints += PARSER_DATA.exceptions["HINTS"]["DOT"]
+        msg += "HINTS:\n"
+        msg += PARSER_DATA.exceptions["HINTS"]["DOT"]
     # Print line highlighting the error
-    ctx = e.get_context(input)
-    
-    msg = ctx
-    msg += (desc_prefix + desc) if desc else "Unknown error occurred during parsing!"
-    msg += f"\nHINTS:\n{hints}" if hints else ""
+
+    return msg
