@@ -26,7 +26,8 @@ class ModelChecker:
     def check_requirements(
         self,
         threads: int = 1,
-        user_requirements: Optional[str] = None,
+        user_requirements: Optional[RequirementStore] = None,
+        user_str_values: list[str] = [],
         skip_common_requirements: bool = False,
         consistency_checks: bool = False,
         timeout: Optional[int] = None
@@ -47,10 +48,7 @@ class ModelChecker:
         
         user_str_values = []
 
-        if user_requirements:
-            parser = Parser()
-            user_reqs, user_str_values = parser.parse(user_requirements)
-            req_store += user_reqs
+        req_store += user_requirements
 
         def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)

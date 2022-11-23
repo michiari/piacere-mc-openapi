@@ -16,8 +16,7 @@ TOKENS:
   IS: |
     a statement such as:
     • 'is', 'is not' followed by a class or a variable
-    • 'has attribute' followed by an attribute name and a value
-    • 'has association' followed by an association name and a variable.
+    • 'has' followed by an relationship name and then a variable or value
 
   NOT: a 'not' before an expression or a quantifier.
   OR: a logical connective such as 'or' between expressions.
