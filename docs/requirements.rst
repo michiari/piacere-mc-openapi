@@ -1,5 +1,5 @@
-Checked Requirements
-====================
+Built-in Requirements
+=====================
 
 The DOML Model Checker verifies DOML models against a collection of requirements
 devised to highlight the most common mistakes made by users when specifying cloud deployments.

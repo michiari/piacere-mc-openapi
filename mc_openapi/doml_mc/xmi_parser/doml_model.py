@@ -1,18 +1,20 @@
-from typing import Optional, Tuple
 import copy
 import importlib.resources as ilres
-from lxml import etree
+from typing import Optional, Tuple
 
-from mc_openapi import assets
-from mc_openapi.bytes_uri import BytesURI
+from lxml import etree
 from pyecore.ecore import EObject
 from pyecore.resources import ResourceSet
 
-from ..intermediate_model.doml_element import IntermediateModel, reciprocate_inverse_associations
-from ..intermediate_model.metamodel import DOMLVersion, MetaModels, InverseAssociations
+from mc_openapi import assets
+
+from ..intermediate_model.doml_element import (
+    IntermediateModel, reciprocate_inverse_associations)
+from ..intermediate_model.metamodel import (DOMLVersion, InverseAssociations,
+                                            MetaModels)
+from .bytes_uri import BytesURI
 from .ecore import ELayerParser
 from .special_parsers import SpecialParsers
-
 
 doml_rsets = {}
 def init_doml_rsets():  # noqa: E302

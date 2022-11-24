@@ -19,11 +19,11 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'DOML Model Checker'
-copyright = '2022, Michele Chiari and Michele De Pascalis'
-author = 'Michele Chiari and Michele De Pascalis'
+copyright = '2022, Michele Chiari, Michele De Pascalis, Andrea Franchini'
+author = 'Michele Chiari, Michele De Pascalis, Andrea Franchini'
 
 # The full version, including alpha/beta/rc tags
-release = '1.1.0'
+release = '2.0.0'
 
 
 # -- General configuration ---------------------------------------------------

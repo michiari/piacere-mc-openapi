@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--doml", dest="doml", help="the DOMLX file to check")
 parser.add_argument("-V", "--doml-version", dest="doml_version", default="V2_0", help="(optional) the version used by the DOMLX file")
 parser.add_argument("-r", "--requirements", dest="requirements", help="the user-specified requirements file to check")
+parser.add_argument("-p", "--port", dest="port", type=int, default=8080, help="the port exposing the model checker REST API (default: 8080)")
 # Model Checker
 parser.add_argument("-c", "--check-consistency", dest="consistency", action='store_true', help="check on additional built-in consistency requirements")
 parser.add_argument("-S", "--skip-common-checks", dest="skip_common", action='store_true', help="skip check on common built-in requirements")
@@ -28,7 +29,7 @@ args = parser.parse_args()
 
 if not args.doml and not args.synth:
     # Start the webserver
-    app.run(port=8080)
+    app.run(port=args.port)
 else:
     # Run only it via command line
     doml_path = args.doml
