@@ -41,9 +41,6 @@ value           : ESCAPED_STRING
 FLIP_EXPR       : "+"
                 | "-"
 
-EQUALITY_OP     : "is"
-                | "is not"
-
 COMPARISON_OP   : ">" | ">="
                 | "<" | "<="
                 | "==" | "!="

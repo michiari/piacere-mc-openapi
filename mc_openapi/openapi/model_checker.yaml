@@ -17,13 +17,6 @@ paths:
             schema:
               type: string
         required: true
-      parameters:
-        - in: query
-          name: requirement
-          required: false
-          schema:
-            type: string
-          description: Requirement to be verified (optional)
       responses:
         "200":
           content:

@@ -48,7 +48,8 @@ class ModelChecker:
         
         user_str_values = []
 
-        req_store += user_requirements
+        if user_requirements:
+            req_store += user_requirements
 
         def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(self.metamodel, self.inv_assoc, self.intermediate_model)
