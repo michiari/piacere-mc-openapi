@@ -1,12 +1,12 @@
 # PIACERE Model Checker
 
+> **You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.**
+
 The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
 in charge of checking the correctness and consistency of
 [DOML](https://www.piacere-doml.deib.polimi.it/) models.
 
 This project is packaged with [Poetry](https://python-poetry.org/).
-
-> You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.
 
 ## Build and Run
 
