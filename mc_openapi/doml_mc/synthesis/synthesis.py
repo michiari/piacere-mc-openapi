@@ -53,7 +53,6 @@ class Synthesis:
     def __init__(self,
         metamodel: MetaModel,
         intermediate_model: IntermediateModel, 
-        doml_version=DOMLVersion.V2_0
     ) -> None:
         """
         Initialize the data required to synthetize a new DOML according to provided requirements.
