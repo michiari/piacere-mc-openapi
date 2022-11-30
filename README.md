@@ -6,6 +6,7 @@ in charge of checking the correctness and consistency of
 
 This project is packaged with [Poetry](https://python-poetry.org/).
 
+> You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.
 
 ## Build and Run
 
