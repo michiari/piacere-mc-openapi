@@ -57,6 +57,7 @@ def generate_xmi(root: EObject, new_assocs: list[AssocAndElems], im: Intermediat
             e1_class = re.search("^.*_(.+?)$", e1.class_).group(1)
             e1_name = e1.attributes["commons_DOMLElement::name"][0]
             print(e1_class, e1_name)
+        # TODO: Should I handle the case where the first element is an unbound one?
 
         e1_instance = find_elem(e1_name)
 
@@ -73,6 +74,7 @@ def generate_xmi(root: EObject, new_assocs: list[AssocAndElems], im: Intermediat
             e2_class = re.search("^.*_(.+?)$", e2.class_).group(1)
             e2_name = e2.attributes["commons_DOMLElement::name"][0]
             print(e2_class, e2_name)
+            # TODO: Add relationship between the two?
         else:
             e1_container = getattr(e1_instance, assoc_name)
             e2_instance_type = e1_container.feature.eType
