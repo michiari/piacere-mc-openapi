@@ -12,7 +12,7 @@ Getting Started
 
 First, create a new file with a ``.domlr`` extension.
 
-If you use VS Code, there's an `Syntax Highlight`_ extension for it.
+If you use VS Code, there's a `Syntax Highlight`_ extension for it.
 
 Every user requirement file is a list of requirement::
 

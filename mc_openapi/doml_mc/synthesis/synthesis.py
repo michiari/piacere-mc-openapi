@@ -52,7 +52,8 @@ class Context:
 class Synthesis:
     def __init__(self,
         metamodel: MetaModel,
-        intermediate_model: IntermediateModel, 
+        intermediate_model: IntermediateModel,
+        verbose: bool = False
     ) -> None:
         """
         Initialize the data required to synthetize a new DOML according to provided requirements.
@@ -63,6 +64,7 @@ class Synthesis:
         """
         self.mm = metamodel
         self.im = intermediate_model
+        self.verbose = verbose
 
     def _init_context(
         self,
@@ -200,14 +202,17 @@ class Synthesis:
         res = ctx.solver.check()
 
         if res == sat:
-            print(f"<Sat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
+            if self.verbose:
+                print(f"<Sat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
             return ctx
         elif res == unsat:
-            print(f"<Unsat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
+            if self.verbose:
+                print(f"<Unsat>\tub_elems_n={ub_elems_n}, ubvals_n={ub_vals_n}")
+            
+            # TODO: Choose which goes first in a smart way?
             if ub_elems_n > ub_vals_n:
                 new_ub_vals_n = ub_vals_n * 2 if ub_vals_n >= 1 else 1
                 return self.check(ub_elems_n, new_ub_vals_n, reqs, curr_try + 1, max_tries)
-                # TODO: Choose which goes first in a smart way?
             elif ub_elems_n <= ub_vals_n:
                 new_ub_elems_n = ub_elems_n * 2 if ub_elems_n >= 1 else 1
                 return self.check(new_ub_elems_n, ub_vals_n, reqs, curr_try + 1, max_tries)
@@ -276,13 +281,15 @@ class Synthesis:
         # Add negated constraint
         ctx.solver.push()
 
-        print(f"\tAdd constraint Not({self.pretty_ub_elems_assoc(assoc)})")
+        if self.verbose:
+            print(f"\tAdd constraint Not({self.pretty_ub_elems_assoc(assoc)})")
         ctx.solver.add(Not(assoc_rel))
         
         res = ctx.solver.check()
         
         if res == sat:
-            print("SAT:\tAdding one more constraint and trying again")
+            if self.verbose:
+                print("SAT:\tAdding one more constraint and trying again")
             # Get new ub_elems_and_assoc
             model = ctx.solver.model()
             thinned_ub_elems_and_assoc = self.get_ub_elems_and_assoc(ctx, model)
@@ -290,17 +297,20 @@ class Synthesis:
             # Print table showing the diff
             from difflib import context_diff
             uvar_as_text = lambda input: [self.pretty_ub_elems_assoc(assoc) for assoc in input]
-            print("\n".join([a for a in context_diff(uvar_as_text(ub_elems_and_assoc), uvar_as_text(thinned_ub_elems_and_assoc), lineterm="", fromfile='Before', tofile="After")]))
+            if self.verbose:
+                print("\n".join([a for a in context_diff(uvar_as_text(ub_elems_and_assoc), uvar_as_text(thinned_ub_elems_and_assoc), lineterm="", fromfile='Before', tofile="After")]))
 
             # Iterate
             return self.thin_ub_elems_and_assoc(ctx, thinned_ub_elems_and_assoc)
         else:
-            print("UNSAT\tLast constraint was the association we are looking for!")
+            if self.verbose:
+                print("UNSAT\tLast constraint was the association we are looking for!")
             ctx.solver.pop()
             
             if ub_elems_and_assoc[1:]:
-                print("\tIterating over")
-                print("\t\t" + "\n\t\t".join([self.pretty_ub_elems_assoc(assoc) for assoc in ub_elems_and_assoc[1:]]))
+                if self.verbose:
+                    print("\tIterating over")
+                    print("\t\t" + "\n\t\t".join([self.pretty_ub_elems_assoc(assoc) for assoc in ub_elems_and_assoc[1:]]))
             return [*set([assoc] + self.thin_ub_elems_and_assoc(ctx, ub_elems_and_assoc[1:]))]
 
     def thin_ub_vals_and_attr(self, ctx: Context, ub_vals_and_attr: list[AttrAndValues]):
@@ -312,8 +322,8 @@ class Synthesis:
 
         # Add negated constraint
         ctx.solver.push()
-
-        print(f"\tAdd constraint Not({self.pretty_ubvals_attrs(attr)})")
+        if self.verbose:
+            print(f"\tAdd constraint Not({self.pretty_ubvals_attrs(attr)})")
         ctx.solver.add(Not(attr_rel))
         
         res = ctx.solver.check()
@@ -327,15 +337,18 @@ class Synthesis:
             # Print table showing the diff
             from difflib import context_diff
             uvar_as_text = lambda input: [self.pretty_ubvals_attrs(attr) for attr in input]
-            print("\n".join([a for a in context_diff(uvar_as_text(ub_vals_and_attr), uvar_as_text(thinned_ub_vals_and_attr), lineterm="", fromfile='Before', tofile="After")]))
+            if self.verbose:
+                print("\n".join([a for a in context_diff(uvar_as_text(ub_vals_and_attr), uvar_as_text(thinned_ub_vals_and_attr), lineterm="", fromfile='Before', tofile="After")]))
 
             # Iterate
             return self.thin_ub_vals_and_attr(ctx, thinned_ub_vals_and_attr)
         else:
-            print("UNSAT\tLast constraint was the attribute we are looking for!")
+            if self.verbose:
+                print("UNSAT\tLast constraint was the attribute we are looking for!")
             ctx.solver.pop()
             
             if ub_vals_and_attr[1:]:
-                print("\tIterating over")
-                print("\t\t" + "\n\t\t".join([self.pretty_ubvals_attrs(attr) for attr in ub_vals_and_attr[1:]]))
+                if self.verbose:
+                    print("\tIterating over")
+                    print("\t\t" + "\n\t\t".join([self.pretty_ubvals_attrs(attr) for attr in ub_vals_and_attr[1:]]))
             return [*set([attr] + self.thin_ub_vals_and_attr(ctx, ub_vals_and_attr[1:]))]

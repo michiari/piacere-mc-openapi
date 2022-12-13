@@ -149,6 +149,8 @@ def mk_stringsym_sort_dict(
             if isinstance(v, str)
         }
         | {"SCRIPT", "IMAGE"}  # GeneratorKind values
+        | {"INGRESS", "EGRESS"} # TODO: Check if this fix is required
+        # It solves a KeyError when MC is run on openstack_template.domlx
         | {
             v
             for v in additional_strings

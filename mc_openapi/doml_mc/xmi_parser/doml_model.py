@@ -27,6 +27,7 @@ def init_doml_rsets():  # noqa: E302
         doml_metamodel = resource.contents[0]
 
         rset.metamodel_registry[doml_metamodel.nsURI] = doml_metamodel
+        # .ecore file is loaded in the rset as a metamodel
         for subp in doml_metamodel.eSubpackages:
             rset.metamodel_registry[subp.nsURI] = subp
 
@@ -86,3 +87,23 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
     reciprocate_inverse_associations(im, InverseAssociations[doml_version])
 
     return im, doml_version
+
+def get_pyecore_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> EObject:
+    if doml_version is None:
+        doml_version = infer_domlx_version(raw_model)
+
+    return parse_xmi_model(raw_model, doml_version)
+
+from typing import Optional
+
+def serialize_pyecore_model(root: EObject, doml_version: DOMLVersion = DOMLVersion.V2_0, path: Optional[str] = None):
+    from pyecore.resources import URI
+
+    # Get rset with metamodel
+    rset = get_rset(doml_version) 
+    # Create the resource where we'll save the updated model/DOMLX
+    res = rset.create_resource(URI("./output.domlx"))
+    # Append updated EObject
+    res.append(root)
+    # Serialize to file
+    res.save()

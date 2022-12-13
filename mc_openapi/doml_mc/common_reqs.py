@@ -336,7 +336,7 @@ def ed_vm_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: Intermed
         vm_name = get_user_friendly_name(intermediate_model, solver.model(), vm)
         if vm_name:
             return f"Virtual machine {vm_name} is connected to no network interface."
-    finally:
+    except:
         return "A virtual machine is connected to no network interface."
 
 
@@ -356,7 +356,7 @@ def ed_software_package_iface_net(solver: Solver, smtsorts: SMTSorts, intermedia
                 f"are supposed to communicate through interface '{siface_name}', "
                 "but they are deployed to nodes that cannot communicate through a common network."
             )
-    finally:
+    except:
         return "A software package is deployed on a node that has no access to an interface it consumes."
 
 
@@ -368,7 +368,7 @@ def ed_iface_uniq(solver: Solver, smtsorts: SMTSorts, intermediate_model: Interm
         ni2_name = get_user_friendly_name(intermediate_model, model, ni2)
         if ni1_name and ni2_name:
             return f"Network interfaces '{ni1_name}' and '{ni2_name}' share the same IP address."
-    finally:
+    except:
         return "Two network interfaces share the same IP address."
 
 
@@ -378,7 +378,7 @@ def ed_all_SoftwareComponents_deployed(solver: Solver, smtsorts: SMTSorts, inter
         sc_name = get_user_friendly_name(intermediate_model, solver.model(), sc)
         if sc_name:
             return f"Software component '{sc_name}' is not deployed to any abstract infrastructure node."
-    finally:
+    except:
         return "A software component is not deployed to any abstract infrastructure node."
 
 
@@ -388,7 +388,7 @@ def ed_all_infrastructure_elements_deployed(solver: Solver, smtsorts: SMTSorts, 
         ielem_name = get_user_friendly_name(intermediate_model, solver.model(), ielem)
         if ielem_name:
             return f"Abstract infrastructure element '{ielem_name}' has not been mapped to any element in the active concretization."
-    finally:
+    except:
         return "An abstract infrastructure element has not been mapped to any element in the active concretization."
 
 
@@ -398,7 +398,7 @@ def ed_all_concrete_map_something(solver: Solver, smtsorts: SMTSorts, intermedia
         celem_name = get_user_friendly_name(intermediate_model, solver.model(), celem)
         if celem_name:
             return f"Concrete infrastructure element '{celem_name}' is mapped to no abstract infrastructure element."
-    finally:
+    except:
         return "A concrete infrastructure element is mapped to no abstract infrastructure element."
 
 def ed_security_group_must_have_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
@@ -407,7 +407,7 @@ def ed_security_group_must_have_iface(solver: Solver, smtsorts: SMTSorts, interm
         sg_name = get_user_friendly_name(intermediate_model, solver.model(), sg)
         if  sg_name:
             return f"Security group '{sg_name}' is not associated with any network interface."
-    finally:
+    except:
         return "A network interface doesn't belong to any security group, or a security group is not associated with any network interface."
 
 def ed_external_services_must_have_https(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
@@ -422,7 +422,7 @@ def ed_external_services_must_have_https(solver: Solver, smtsorts: SMTSorts, int
             return f"A Security Group doesn't have a rule to access external service (SaaS) named '{saas_name}' through HTTPS (port 443)."
         if sec_group:
             return f"Security Group {sec_group_name} doesn't have a rule to access external service (SaaS) through HTTPS (port 443)."
-    finally:
+    except:
         return "A Security Group doesn't have a rule to access an external service (SaaS) through HTTPS (port 443)."
 
 RequirementLists = {

@@ -82,7 +82,8 @@ Flags                              Mode       Description
 ---------------------------------  ---------  -----------------
 Short   Long         
 ======  =========================  =========  =================
-``-h``  ``--help``                 C, S, T    Prints the all the available flags with an explanation
+``-h``  ``--help``                 C, S, T    Print the all the available flags with an explanation
+``-v``  ``--verbose``              C, S, T    Print a detailed human-readable output of everything going on. Helpful for debugging
 ``-p``  ``--port``                 R          The port that will expose the REST API (default: 8080)
 ``-d``  ``--doml``                 C, S       The DOMLX file to check with the model checker
 ``-V``  ``--doml-version``         C, S       The DOML version in which the DOMLX file is written in
