@@ -1,35 +1,48 @@
 # PIACERE Model Checker
-
-> **You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.**
+_______________________
+## **You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.**
+_______________________
 
 The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
 in charge of checking the correctness and consistency of
 [DOML](https://www.piacere-doml.deib.polimi.it/) models.
 
-This project is packaged with [Poetry](https://python-poetry.org/).
 
-## Build and Run
+ We provide a `requirements.txt` file for CI/CD purposes.
 
-Build with
+ If you add a new package, regenerate it by running:
+ 
+ ```sh
+ poetry run pip freeze > requirements.txt
+ ```
+
+## Setup
+
+Activate the Python Virtual Environment with:
 ```sh
-poetry install
+source .venv/bin/activate
 ```
-then run with
+Install the required packages with:
 ```sh
-poetry run python -m mc_openapi
+pip install -r requirements.txt
 ```
 
-Run tests with:
+## Run the model checker web server
 ```sh
-poetry run python -m pytest
+python -m mc_openapi
 ```
-
 
 ## Run with Uvicorn
 
 The project may be run with [Uvicorn](https://www.uvicorn.org/) as follows:
 ```sh
 uvicorn --port 8080 --host 0.0.0.0 --interface wsgi --workers 2 mc_openapi.app_config:app
+```
+## Run tests
+
+Run tests with:
+```sh
+python -m pytest
 ```
 
 
@@ -53,11 +66,7 @@ by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
 The documentation has been written in [Sphinx](https://www.sphinx-doc.org/)
 and covers both usage through the PIACERE IDE and the REST APIs.
 
-To build it, type
-```sh
-poetry shell
-```
-and then
+Build the documentation with:
 ```sh
 cd docs
 make html
