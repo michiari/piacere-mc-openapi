@@ -1,6 +1,8 @@
+[![Documentation Status](https://readthedocs.org/projects/piacere-model-checker/badge/?version=latest)](https://piacere-model-checker.readthedocs.io/en/latest/?badge=latest)
+
 # PIACERE Model Checker
 _______________________
-## **You can read the [docs here](https://andreafranchini.com/piacere-model-checker/) for more details.**
+## **You can read the [docs here](https://piacere-model-checker.readthedocs.io/en/latest/) for more details.**
 _______________________
 
 The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
@@ -65,6 +67,8 @@ by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
 
 The documentation has been written in [Sphinx](https://www.sphinx-doc.org/)
 and covers both usage through the PIACERE IDE and the REST APIs.
+
+Read it at [readthedocs.io](https://piacere-model-checker.readthedocs.io/en/latest/)
 
 Build the documentation with:
 ```sh
