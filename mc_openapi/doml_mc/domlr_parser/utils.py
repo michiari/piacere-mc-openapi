@@ -1,6 +1,6 @@
 from difflib import get_close_matches
 
-from mc_openapi.doml_mc.dsl_parser.exceptions import \
+from mc_openapi.doml_mc.domlr_parser.exceptions import \
     RequirementMissingKeyException
 from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
 from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef, Ints

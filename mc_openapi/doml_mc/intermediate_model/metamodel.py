@@ -52,6 +52,7 @@ class DOMLAssociation:
 MetaModel = dict[str, DOMLClass]
 InverseAssociation = list[tuple[str, str]]
 
+MetaModelDocs: dict[DOMLVersion, dict] = {}
 MetaModels: dict[DOMLVersion, MetaModel] = {}
 InverseAssociations: dict[DOMLVersion, InverseAssociation] = {}
 
@@ -151,9 +152,12 @@ def parse_inverse_associations(doc: dict) -> list[tuple[str, str]]:
 
 
 def init_metamodels():
-    global MetaModels, InverseAssociations
+    global MetaModelDocs, MetaModels, InverseAssociations
     for ver in DOMLVersion:
-        mmdoc = yaml.load(ilres.read_text(assets, f"doml_meta_{ver.value}.yaml"), yaml.Loader)
+        source = ilres.files(assets).joinpath(f"doml_meta_{ver.value}.yaml")
+        
+        mmdoc = yaml.load(source.read_text()  , yaml.Loader)
+        MetaModelDocs[ver] = mmdoc
         MetaModels[ver] = parse_metamodel(mmdoc)
         InverseAssociations[ver] = parse_inverse_associations(mmdoc)
 

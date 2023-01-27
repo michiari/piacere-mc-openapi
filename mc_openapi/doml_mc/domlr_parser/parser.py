@@ -4,8 +4,8 @@ from typing import Callable
 
 import yaml
 from lark import Lark, Transformer, UnexpectedCharacters
-from mc_openapi.doml_mc.dsl_parser.exceptions import RequirementBadSyntaxException
-from mc_openapi.doml_mc.dsl_parser.utils import (RefHandler, StringValuesCache,
+from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementBadSyntaxException
+from mc_openapi.doml_mc.domlr_parser.utils import (RefHandler, StringValuesCache,
                                                  VarStore)
 from mc_openapi.doml_mc.error_desc_helper import get_user_friendly_name
 from mc_openapi.doml_mc.imc import (Requirement, RequirementStore, SMTEncoding,
@@ -16,6 +16,7 @@ from z3 import And, Exists, ExprRef, ForAll, Implies, Not, Or, Solver, Xor, simp
 
 class ParserData:
     def __init__(self) -> None:
+        # TODO: Replace with files api?
         grammar_path = os.path.join(os.path.dirname(__file__), "grammar.lark")
         exceptions_path = os.path.join(os.path.dirname(__file__), "exceptions.yaml")
         with open(grammar_path, "r") as grammar:
@@ -30,19 +31,25 @@ class Parser:
         self.parser = Lark(grammar, start="requirements")
 
     def parse(self, input: str):
+        """Parse the input string containing the DOMLR requirements and
+           returns a tuple with:
+           - RequirementStore with the parsed requirements inside
+           - A list of strings to be added to the string constant EnumSort
+        """
         try:
             self.tree = self.parser.parse(input)
 
             const_store = VarStore()
             user_values_cache = StringValuesCache()
 
-            transformer = DSLTransformer(const_store, user_values_cache)
+            transformer = DOMLRTransformer(const_store, user_values_cache)
 
             return RequirementStore(transformer.transform(self.tree)), user_values_cache.get_list()
         except UnexpectedCharacters as e:
             ctx = e.get_context(input)
             msg = _get_error_desc_for_unexpected_characters(e, input)
 
+            # TODO: Replace before production
             print(msg)
 
             exit()
@@ -50,7 +57,7 @@ class Parser:
             # print()
             # raise RequirementBadSyntaxException(e.line, e.column, msg)       
 
-class DSLTransformer(Transformer):
+class DOMLRTransformer(Transformer):
     # These callbacks will be called when a rule with the same name
     # is matched. It starts from the leaves.
     def __init__(self, 
@@ -73,7 +80,7 @@ class DSLTransformer(Transformer):
         flip_expr: bool = args[0].value == "-"
         name: str = args[1]
         expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[2]
-        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[4]
+        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[3]
         index = self.const_store.get_index_and_push()
         return Requirement(
             expr,
@@ -89,6 +96,8 @@ class DSLTransformer(Transformer):
 
     def req_name(self, args) -> str:
         return str(args[0].value.replace('"', ''))
+
+    # Requirement requirement expression
 
     def bound_consts(self, args):
         const_names = list(map(lambda arg: arg.value, args))
@@ -119,6 +128,7 @@ class DSLTransformer(Transformer):
         return lambda enc, sorts: ForAll(args[0](enc, sorts), args[1](enc, sorts))
 
     def relationship_expr(self, args):
+        print(args)
         rel_name = args[1].value
 
         def _gen_rel_expr(enc: SMTEncoding, sorts: SMTSorts):
@@ -147,6 +157,25 @@ class DSLTransformer(Transformer):
                 raise f"Error parsing relationship {rel_name}"
         
         return _gen_rel_expr
+
+    def attribute_value(self, args):
+        """Parse rhs of expression containing:
+           <, <=, >, >=, ==, != can be followed by a NUMBER
+           ==, != can be followed by a BOOL or STRING
+           should generate attr(e1, rel, attr_data_sort(VALUE)) for ==, !=
+           or attr(e1, rel, val) and get_int(val) >= NUMBER
+
+        """
+        print(args)
+        return args
+
+    def rhs_const_attribute(self, args):
+        """Parse rhs of expression
+           ==, != followed by CONST RELATIONSHIP
+           should generate attr(e1, rel, val) and attr(e2, rel, val) and e1 COMP_OP e2
+        """
+        print(args)
+        return args
 
     def _get_equality_sides(self, arg1, arg2):
         # We track use of const in const_or_class
@@ -181,35 +210,35 @@ class DSLTransformer(Transformer):
             self.const_store.use(args[0].value)
         return args[0]
     
-    def comparison(self, args):
-        def _gen_comparison(enc: SMTEncoding, sorts: SMTSorts):
-            a = args[0](enc, sorts)
-            b = args[2](enc, sorts)
-            op = args[1].value
+    # def comparison(self, args):
+    #     def _gen_comparison(enc: SMTEncoding, sorts: SMTSorts):
+    #         a = args[0](enc, sorts)
+    #         b = args[2](enc, sorts)
+    #         op = args[1].value
 
-            # To extract the `int` contained in the attr_data_sort,
-            # we need to call its `get_int` method on the `DatatypeRef`
-            get_int = sorts.attr_data_sort.get_int
+    #         # To extract the `int` contained in the attr_data_sort,
+    #         # we need to call its `get_int` method on the `DatatypeRef`
+    #         get_int = sorts.attr_data_sort.get_int
 
-            # TODO: Find a way to check if we're actually comparing Integers?
+    #         # TODO: Find a way to check if we're actually comparing Integers?
 
-            a = get_int(a)
-            b = get_int(b)
+    #         a = get_int(a)
+    #         b = get_int(b)
 
-            if op == ">":
-                return a > b
-            if op == ">=":
-                return a >= b
-            if op == "<":
-                return a < b
-            if op == "<=":
-                return a <= b
-            if op == "==":
-                return a == b
-            if op == "!=":
-                return a != b
+    #         if op == ">":
+    #             return a > b
+    #         if op == ">=":
+    #             return a >= b
+    #         if op == "<":
+    #             return a < b
+    #         if op == "<=":
+    #             return a <= b
+    #         if op == "==":
+    #             return a == b
+    #         if op == "!=":
+    #             return a != b
 
-        return _gen_comparison
+    #     return _gen_comparison
 
     def value(self, args):        
         type = args[0].type

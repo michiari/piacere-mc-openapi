@@ -21,8 +21,9 @@ def init_doml_rsets():  # noqa: E302
     global doml_rsets
     for ver in DOMLVersion:
         rset = ResourceSet()
+        source = ilres.files(assets).joinpath(f"doml_{ver.value}.ecore")
         resource = rset.get_resource(BytesURI(
-            "doml", bytes=ilres.read_binary(assets, f"doml_{ver.value}.ecore")
+            "doml", bytes=source.read_bytes()
         ))
         doml_metamodel = resource.contents[0]
 

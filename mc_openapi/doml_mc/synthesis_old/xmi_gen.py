@@ -6,7 +6,7 @@ from pyecore.ecore import EClass, EObject
 from mc_openapi.doml_mc.intermediate_model.doml_element import \
     IntermediateModel
 from mc_openapi.doml_mc.intermediate_model.metamodel import DOMLVersion
-from mc_openapi.doml_mc.synthesis.synthesis import AssocAndElems
+from mc_openapi.doml_mc.synthesis_old.synthesis import AssocAndElems
 from mc_openapi.doml_mc.xmi_parser.doml_model import get_rset
 
 import secrets

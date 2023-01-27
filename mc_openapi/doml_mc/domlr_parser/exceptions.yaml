@@ -38,6 +38,6 @@ TOKENS:
   FORALL: a 'forall' quantifier.
 
   CLASS_PREFIX: a 'class' followed by a class name
-  ERR_DESC_SYMBOL: a '---' (three hyphens) to separate the logic expression from the error message.
+  ERR_DESC_SYMBOL: a 'error:' to separate the logic expression from the error message.
 HINTS:
   DOT: If you're trying to use a class, did you put 'class' before the class name?

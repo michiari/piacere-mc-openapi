@@ -3,8 +3,8 @@ import argparse
 
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion
-from mc_openapi.doml_mc.dsl_parser.exceptions import RequirementException
-from mc_openapi.doml_mc.dsl_parser.parser import Parser
+from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementException
+from mc_openapi.doml_mc.domlr_parser.parser import Parser
 from mc_openapi.doml_mc.imc import RequirementStore
 from mc_openapi.doml_mc.intermediate_model.metamodel import MetaModelDocs
 from mc_openapi.doml_mc.mc import ModelChecker

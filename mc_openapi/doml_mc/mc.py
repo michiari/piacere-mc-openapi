@@ -9,8 +9,7 @@ from .consistency_reqs import (get_association_multiplicity_reqs,
                                get_attribute_multiplicity_reqs,
                                get_attribute_type_reqs,
                                get_inverse_association_reqs)
-from .dsl_parser.parser import Parser
-from .imc import IntermediateModelChecker, Requirement, RequirementStore
+from .imc import IntermediateModelChecker, RequirementStore
 from .intermediate_model.metamodel import (DOMLVersion, InverseAssociations,
                                            MetaModels)
 from .mc_result import MCResult, MCResults
