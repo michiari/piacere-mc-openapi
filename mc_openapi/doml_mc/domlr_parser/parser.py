@@ -178,7 +178,7 @@ class DOMLRTransformer(Transformer):
         return _gen_rel_elem_expr
 
     def rel_attr_value_expr(self, args):
-        """An ATTRIBUTE relationship"""
+        """An ATTRIBUTE relationship with a rhs that is a value"""
 
         rel_name = args[1].value
         def _gen_rel_attr_value_expr(enc: SMTEncoding, sorts: SMTSorts):
@@ -219,15 +219,62 @@ class DOMLRTransformer(Transformer):
         return _gen_rel_attr_value_expr
 
     def rel_attr_elem_expr(self, args):
-        """Parse rhs of expression containing:
-           <, <=, >, >=, ==, != can be followed by a NUMBER
-           ==, != can be followed by a BOOL or STRING
-           should generate attr(e1, rel, attr_data_sort(VALUE)) for ==, !=
-           or attr(e1, rel, val) and get_int(val) >= NUMBER
+        """An ATTRIBUTE relationship with a rhs that is another element"""
 
-        """
-        print("rel_attr_elem_expr", args)
-        return args
+        rel1_name = args[1].value
+        rel2_name = args[4].value
+        op = args[2].value
+
+        def _gen_rel_attr_elem_expr(enc: SMTEncoding, sorts: SMTSorts):
+            elem1 = RefHandler.get_const(args[0].value, sorts)
+            elem2 = RefHandler.get_const(args[3].value, sorts)
+            rel1, rel1_type = RefHandler.get_relationship(enc, rel1_name)
+            rel2, rel2_type = RefHandler.get_relationship(enc, rel2_name)
+
+            assert rel1_type == RefHandler.ATTRIBUTE
+            assert rel2_type == RefHandler.ATTRIBUTE
+
+            rhs_value = RefHandler.get_value("x", sorts)
+
+            expr = And(
+                RefHandler.get_attribute_rel(enc,
+                    elem1,
+                    rel1,
+                    rhs_value
+                ),
+                RefHandler.get_attribute_rel(enc,
+                    elem2,
+                    rel2,
+                    rhs_value
+                )
+            )
+            if op == "==":
+                return expr
+            elif op == "!=":
+                return Not(expr)
+            else:
+                rhs1_value = RefHandler.get_value("rhs1", sorts)
+                rhs2_value = RefHandler.get_value("rhs2", sorts)
+                expr = And(
+                    RefHandler.get_attribute_rel(enc,
+                        elem1,
+                        rel1,
+                        rhs1_value
+                    ),
+                    RefHandler.get_attribute_rel(enc,
+                        elem2,
+                        rel2,
+                        rhs2_value
+                    ),
+                    self.compare_int(sorts, op, rhs1_value, rhs2_value)
+                )
+                print(
+                    "Warning: Comparing attributes of two elements with {op} is experimental!\n",
+                    "Assumption: the attribute is an Integer."
+                )
+                return expr            
+
+        return _gen_rel_attr_elem_expr
 
     def _get_equality_sides(self, arg1, arg2):
         # We track use of const in const_or_class
