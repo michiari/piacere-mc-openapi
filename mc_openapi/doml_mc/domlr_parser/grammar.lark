@@ -23,12 +23,12 @@ error_desc      : ESCAPED_STRING
                 | "(" expression ")"
                 | property
 
-?property       : CONST "has" RELATIONSHIP (CONST|attr_rhs)     -> relationship_expr
-                | const_or_class "is" const_or_class            -> equality
-                | const_or_class "is not" const_or_class        -> inequality
+?property       : CONST "has" RELATIONSHIP CONST                            -> rel_elem_expr
+                | CONST "has" RELATIONSHIP COMPARISON_OP value              -> rel_attr_value_expr
+                | CONST "has" RELATIONSHIP COMPARISON_OP CONST RELATIONSHIP -> rel_attr_elem_expr
+                | const_or_class "is" const_or_class                        -> equality
+                | const_or_class "is not" const_or_class                    -> inequality
 
-?attr_rhs       : COMPARISON_OP value                           -> attribute_value
-                | COMPARISON_OP CONST RELATIONSHIP              -> rhs_const_attribute
 
 bound_consts    : [CONST ("," CONST)*]
 

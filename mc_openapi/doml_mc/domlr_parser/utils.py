@@ -85,6 +85,10 @@ class RefHandler:
     ASSOCIATION = 0
     ATTRIBUTE = 1
 
+    INTEGER = 2
+    BOOLEAN = 3
+    STRING = 4
+
     def get_relationship(enc: SMTEncoding, rel_name: str) -> tuple[DatatypeRef, int]:
         rel_name = _convert_rel_str(rel_name)
         rel = enc.associations.get(rel_name, None)

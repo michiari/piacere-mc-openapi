@@ -127,38 +127,98 @@ class DOMLRTransformer(Transformer):
     def forall(self, args):
         return lambda enc, sorts: ForAll(args[0](enc, sorts), args[1](enc, sorts))
 
-    def relationship_expr(self, args):
-        print(args)
-        rel_name = args[1].value
+    # def relationship_expr(self, args):
+    #     print(args)
+    #     rel_name = args[1].value
 
-        def _gen_rel_expr(enc: SMTEncoding, sorts: SMTSorts):
-            rel, rel_type = RefHandler.get_relationship(enc, rel_name)
+    #     def _gen_rel_expr(enc: SMTEncoding, sorts: SMTSorts):
+    #         rel, rel_type = RefHandler.get_relationship(enc, rel_name)
             
-            if rel_type == RefHandler.ASSOCIATION:
-                self.const_store.use(args[0].value)
-                self.const_store.use(args[2].value)
+    #         if rel_type == RefHandler.ASSOCIATION:
+    #             self.const_store.use(args[0].value)
+    #             self.const_store.use(args[2].value)
 
-                return RefHandler.get_association_rel(
-                    enc,
-                    RefHandler.get_const(args[0].value, sorts),
-                    rel,
-                    RefHandler.get_const(args[2].value, sorts)
-                )
-            elif rel_type == RefHandler.ATTRIBUTE:
-                self.const_store.use(args[0].value)
+    #             return RefHandler.get_association_rel(
+    #                 enc,
+    #                 RefHandler.get_const(args[0].value, sorts),
+    #                 rel,
+    #                 RefHandler.get_const(args[2].value, sorts)
+    #             )
+    #         elif rel_type == RefHandler.ATTRIBUTE:
+    #             self.const_store.use(args[0].value)
 
-                return RefHandler.get_attribute_rel(
-                    enc,
-                    RefHandler.get_const(args[0].value, sorts),
-                    rel,
-                    args[2](enc, sorts)
-                )
-            else:
-                raise f"Error parsing relationship {rel_name}"
+    #             return RefHandler.get_attribute_rel(
+    #                 enc,
+    #                 RefHandler.get_const(args[0].value, sorts),
+    #                 rel,
+    #                 args[2](enc, sorts)
+    #             )
+    #         else:
+    #             raise f"Error parsing relationship {rel_name}"
         
-        return _gen_rel_expr
+    #     return _gen_rel_expr
 
-    def attribute_value(self, args):
+    def rel_elem_expr(self, args):
+        """An ASSOCIATION relationship"""
+        rel_name = args[1].value
+        self.const_store.use(args[0].value)
+        self.const_store.use(args[2].value)
+
+        def _gen_rel_elem_expr(enc: SMTEncoding, sorts: SMTSorts):
+            rel, rel_type = RefHandler.get_relationship(enc, rel_name)
+
+            assert rel_type == RefHandler.ASSOCIATION
+
+            return RefHandler.get_association_rel(
+                enc,
+                RefHandler.get_const(args[0].value, sorts),
+                rel,
+                RefHandler.get_const(args[2].value, sorts)
+            )
+        return _gen_rel_elem_expr
+
+    def rel_attr_value_expr(self, args):
+        """An ATTRIBUTE relationship"""
+
+        rel_name = args[1].value
+        def _gen_rel_attr_value_expr(enc: SMTEncoding, sorts: SMTSorts):
+            elem = RefHandler.get_const(args[0].value, sorts)
+            rel, rel_type = RefHandler.get_relationship(enc, rel_name)
+            assert rel_type == RefHandler.ATTRIBUTE
+
+            rhs_value, rhs_value_type = args[3]
+            rhs_value = rhs_value(enc, sorts)
+            op = args[2].value
+
+            if rhs_value_type == RefHandler.INTEGER:
+
+                lhs_value = RefHandler.get_value("x", sorts)
+
+                return And(
+                    RefHandler.get_attribute_rel(enc, 
+                        elem,
+                        rel,
+                        lhs_value
+                    ),
+                    self.compare_int(sorts, op, lhs_value, rhs_value)
+                )
+            elif rhs_value_type == RefHandler.STRING or rhs_value_type == RefHandler.BOOLEAN:
+                expr = RefHandler.get_attribute_rel(enc,
+                    elem,
+                    rel,
+                    rhs_value
+                )
+                if op == "==":
+                    return expr
+                elif op == "!=":
+                    return Not(expr)
+                else:
+                    raise f'Invalid compare operator "{op}". It must be "==" or "!=".'
+            
+
+        return _gen_rel_attr_value_expr
+
+    def rel_attr_elem_expr(self, args):
         """Parse rhs of expression containing:
            <, <=, >, >=, ==, != can be followed by a NUMBER
            ==, != can be followed by a BOOL or STRING
@@ -166,15 +226,7 @@ class DOMLRTransformer(Transformer):
            or attr(e1, rel, val) and get_int(val) >= NUMBER
 
         """
-        print(args)
-        return args
-
-    def rhs_const_attribute(self, args):
-        """Parse rhs of expression
-           ==, != followed by CONST RELATIONSHIP
-           should generate attr(e1, rel, val) and attr(e2, rel, val) and e1 COMP_OP e2
-        """
-        print(args)
+        print("rel_attr_elem_expr", args)
         return args
 
     def _get_equality_sides(self, arg1, arg2):
@@ -210,49 +262,42 @@ class DOMLRTransformer(Transformer):
             self.const_store.use(args[0].value)
         return args[0]
     
-    # def comparison(self, args):
-    #     def _gen_comparison(enc: SMTEncoding, sorts: SMTSorts):
-    #         a = args[0](enc, sorts)
-    #         b = args[2](enc, sorts)
-    #         op = args[1].value
+    def compare_int(self, sorts: SMTSorts, op: str, a, b):
+        # To extract the `int` contained in the attr_data_sort,
+        # we need to call its `get_int` method on the `DatatypeRef`
+        get_int = sorts.attr_data_sort.get_int
 
-    #         # To extract the `int` contained in the attr_data_sort,
-    #         # we need to call its `get_int` method on the `DatatypeRef`
-    #         get_int = sorts.attr_data_sort.get_int
+        a = get_int(a)
+        b = get_int(b)
 
-    #         # TODO: Find a way to check if we're actually comparing Integers?
+        if op == ">":
+            return a > b
+        if op == ">=":
+            return a >= b
+        if op == "<":
+            return a < b
+        if op == "<=":
+            return a <= b
+        if op == "==":
+            return a == b
+        if op == "!=":
+            return a != b
+        raise f"Invalid Compare Operator Symbol: {op}"
 
-    #         a = get_int(a)
-    #         b = get_int(b)
 
-    #         if op == ">":
-    #             return a > b
-    #         if op == ">=":
-    #             return a >= b
-    #         if op == "<":
-    #             return a < b
-    #         if op == "<=":
-    #             return a <= b
-    #         if op == "==":
-    #             return a == b
-    #         if op == "!=":
-    #             return a != b
-
-    #     return _gen_comparison
-
-    def value(self, args):        
+    def value(self, args):  
         type = args[0].type
         value = args[0].value
 
         if type == "ESCAPED_STRING":
             self.user_values_cache.add(value)
-            return lambda enc, sorts: RefHandler.get_str(value, enc, sorts)
+            return lambda enc, sorts: RefHandler.get_str(value, enc, sorts), RefHandler.STRING
         elif type == "NUMBER":
-            return lambda _, sorts: RefHandler.get_int(value, sorts)
+            return lambda _, sorts: RefHandler.get_int(value, sorts), RefHandler.INTEGER
         elif type == "BOOL":
-            return lambda _, sorts: RefHandler.get_bool(value, sorts)
-        elif type == "VALUE":
-            return lambda _, sorts: RefHandler.get_value(value, sorts)
+            return lambda _, sorts: RefHandler.get_bool(value, sorts), RefHandler.BOOLEAN
+        # elif type == "VALUE":
+        #     return lambda _, sorts: RefHandler.get_value(value, sorts), RefHandler.VALUE_REF
 
     def error_desc(self, args):
         def err_callback(
