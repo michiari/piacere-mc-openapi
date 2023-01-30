@@ -3,8 +3,8 @@ from difflib import get_close_matches
 from mc_openapi.doml_mc.domlr_parser.exceptions import \
     RequirementMissingKeyException
 from mc_openapi.doml_mc.imc import SMTEncoding, SMTSorts
-from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef, Ints
-
+from z3 import Const, DatatypeRef, ExprRef, FuncDeclRef, SortRef, Ints, And
+from doml_synthesis import State, AssocRel, AttrRel
 
 class StringValuesCache:
     def __init__(self) -> None:
@@ -107,6 +107,55 @@ class RefHandler:
 
     def get_attribute_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.attribute_rel(a, rel, b)
+
+class SynthesisRefHandler:
+    """A utility class that provides simplified ways to create Z3 Refs.
+    To be used when parsing requirements for synthesis
+    """
+
+    INTEGER = 2
+    BOOLEAN = 3
+    STRING = 4
+
+    def get_consts(names: list[str], state: State):
+        return [Const(name, state.sorts.Elem) for name in names]
+
+    def get_const(name: str, state: State):
+        return Const(name, state.sorts.Elem)
+
+    def get_bool(value: str):
+        return value == "!True"
+
+    def get_str(value: str, state: State):
+        return state.data.Strings[value]
+
+    def get_element_class(state: State, const: ExprRef) -> FuncDeclRef:
+        return state.rels.ElemClass(const)
+
+    def get_class(state: State, class_name: str) -> DatatypeRef:
+        class_name = _convert_rel_str(class_name)
+        _class = state.data.Classes.get(class_name, None)
+        if _class is not None:
+            return _class.ref
+        else:
+            close_matches = get_close_matches(class_name, state.data.Classes.keys())
+            raise RequirementMissingKeyException("class", class_name, close_matches)
+
+    def get_assoc(state: State, rel_name: str) -> AssocRel:
+        rel_name = _convert_rel_str(rel_name)
+        rel = state.data.Assocs.get(rel_name, None)
+        if rel is not None:
+            return rel
+        else: 
+            raise f"Association {rel_name} not present in the metamodel!"
+
+    def get_attr(state: State, rel_name: str) -> AttrRel:
+            rel_name = _convert_rel_str(rel_name)
+            rel = state.data.Attrs.get(rel_name, None)
+            if rel is not None:
+                return rel
+            else: 
+                raise f"Attribute {rel_name} not present in the metamodel!"
 
 def _convert_rel_str(rel: str) -> str:
     tokens = rel.replace("abstract", "infrastructure").split(".")

@@ -27,6 +27,15 @@
 
     error: "VM {vm} must have cpu_count >= 4 {iface}"
 
++   "VM must have os == 'rhel8'"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+        vm has infrastructure.ComputingNode.os == "rhel8"
+    )
+
+    error: "VM {vm} must have os == 'rhel'"
+
 # OLD SYNTAX:
 # -   "Iface must be unique"
 #     ni1 has infrastructure.NetworkInterface.endPoint Value

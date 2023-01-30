@@ -4,7 +4,7 @@ import argparse
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion
 from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementException
-from mc_openapi.doml_mc.domlr_parser.parser import Parser
+from mc_openapi.doml_mc.domlr_parser.parser import DOMLRTransformer, Parser, SynthesisDOMLRTransformer
 from mc_openapi.doml_mc.imc import RequirementStore
 from mc_openapi.doml_mc.intermediate_model.metamodel import MetaModelDocs
 from mc_openapi.doml_mc.mc import ModelChecker
@@ -68,7 +68,7 @@ else:
             user_reqs = reqsf.read()
         # Parse them
         try:
-            domlr_parser = Parser()
+            domlr_parser = Parser(DOMLRTransformer)
             user_req_store, user_req_str_consts = domlr_parser.parse(user_reqs)
         except Exception as e:
             print(e)
@@ -117,13 +117,23 @@ else:
             for k, v in  dmc.intermediate_model.items()
         }
 
-        # TODO: Fetch (user_reqs, user_reqs_strings)
+        # Parse
+        synth_domlr_parser = Parser(SynthesisDOMLRTransformer)
+        synth_user_reqs, user_reqs_strings = synth_domlr_parser.parse(user_reqs)
 
+        print(user_reqs_strings)
+        
         state = State()
         # Parse MM and IM
         state = init_data(state, doml=im, metamodel=mm)
         # Solve
-        state = solve(state, requirements=[builtin_requirements], strings=[], max_tries=args.tries)
+
+        state = solve(
+            state, 
+            requirements=[builtin_requirements, synth_user_reqs], 
+            strings=user_reqs_strings, 
+            max_tries=args.tries
+        )
         # Update state
         state = save_results(state)
         # Print output
