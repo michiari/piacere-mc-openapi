@@ -1,0 +1,9 @@
++   "VM has size description and cpu_count >= 4"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+            vm has infrastructure.VirtualMachine.sizeDescription == "EXAMPLE"
+            and
+            vm has infrastructure.ComputingNode.cpu_count >= 4
+    )
+    error: "Model is wrong..."

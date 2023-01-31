@@ -3,7 +3,7 @@ import re
 from typing import Callable
 
 import yaml
-from lark import Lark, Transformer, UnexpectedCharacters
+from lark import Lark, Transformer, UnexpectedCharacters, UnexpectedEOF
 from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementBadSyntaxException
 from mc_openapi.doml_mc.domlr_parser.utils import (RefHandler, StringValuesCache, SynthesisRefHandler,
                                                  VarStore)
@@ -28,10 +28,10 @@ PARSER_DATA = ParserData()
 
 class Parser:
     def __init__(self, transformer, grammar: str = PARSER_DATA.grammar):
-        self.parser = Lark(grammar, start="requirements")
+        self.parser = Lark(grammar, start="requirements", parser="lalr")
         self.transformer = transformer
 
-    def parse(self, input: str):
+    def parse(self, input: str, for_synthesis: bool = False):
         """Parse the input string containing the DOMLR requirements and
            returns a tuple with:
            - RequirementStore with the parsed requirements inside
@@ -45,7 +45,7 @@ class Parser:
 
             transformer = self.transformer(const_store, user_values_cache)
 
-            if isinstance(self.transformer, DOMLRTransformer):
+            if not for_synthesis:
                 return (
                     RequirementStore(transformer.transform(self.tree)), 
                     user_values_cache.get_list()
@@ -63,17 +63,16 @@ class Parser:
 
                 return user_reqs, user_values_cache.get_list()
 
+        except UnexpectedEOF as e:
+            msg =  "Unexpected End of File:\n"
+            msg += "Did you forget the `error:` message at the end of a requirement?"
+            raise Exception(msg)
+
         except UnexpectedCharacters as e:
-            ctx = e.get_context(input)
             msg = _get_error_desc_for_unexpected_characters(e, input)
-
-            # TODO: Replace before production
-            print(msg)
-
-            exit()
-            # print()
-            # print()
-            # raise RequirementBadSyntaxException(e.line, e.column, msg)       
+            raise RequirementBadSyntaxException(e.line, e.column, msg)
+       
+        
 
 class DOMLRTransformer(Transformer):
     # These callbacks will be called when a rule with the same name

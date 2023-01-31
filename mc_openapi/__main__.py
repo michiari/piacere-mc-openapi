@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
 import argparse
+import sys
+
+from doml_synthesis.data import init_data
+from doml_synthesis.requirements import builtin_requirements
+from doml_synthesis.results import check_synth_results, save_results
+from doml_synthesis.solver import solve
+from doml_synthesis.types import State
 
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion
 from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementException
-from mc_openapi.doml_mc.domlr_parser.parser import DOMLRTransformer, Parser, SynthesisDOMLRTransformer
+from mc_openapi.doml_mc.domlr_parser.parser import (DOMLRTransformer, Parser,
+                                                    SynthesisDOMLRTransformer)
 from mc_openapi.doml_mc.imc import RequirementStore
 from mc_openapi.doml_mc.intermediate_model.metamodel import MetaModelDocs
 from mc_openapi.doml_mc.mc import ModelChecker
@@ -23,7 +31,7 @@ parser.add_argument("-S", "--skip-common-checks", dest="skip_common", action='st
 parser.add_argument("-t", "--threads", dest="threads", type=int, default=2, help="number of threads used by the model checker")
 # Synthesis
 parser.add_argument("-s", "--synth", dest="synth", action='store_true', help="synthetize a new DOMLX file from requirements")
-parser.add_argument("-m", "--max-tries", dest="tries", type=int, default=10, help="max number of iteration while trying to solve the model with unbounded variables")
+parser.add_argument("-m", "--max-tries", dest="tries", type=int, default=8, help="max number of iteration while trying to solve the model with unbounded variables")
 
 args = parser.parse_args()
 
@@ -71,8 +79,9 @@ else:
             domlr_parser = Parser(DOMLRTransformer)
             user_req_store, user_req_str_consts = domlr_parser.parse(user_reqs)
         except Exception as e:
-            print(e)
-            raise RuntimeError("Failed to parse the DOMLR.")
+            print(e, file=sys.stderr)
+            print("Failed to parse the DOMLR.", file=sys.stderr)
+            exit(-1)
 
     if not args.synth:
         try:
@@ -97,12 +106,7 @@ else:
 
     else: # Synthesis
         printv("Running synthesis...")
-        # Lazy load libraries
-        from doml_synthesis.types import State
-        from doml_synthesis.data import init_data
-        from doml_synthesis.solver import solve
-        from doml_synthesis.requirements import builtin_requirements
-        from doml_synthesis.results import check_synth_results, save_results
+        
 
         # Required files:
         mm = MetaModelDocs[doml_ver]
@@ -118,20 +122,30 @@ else:
         }
 
         # Parse
-        synth_domlr_parser = Parser(SynthesisDOMLRTransformer)
-        synth_user_reqs, user_reqs_strings = synth_domlr_parser.parse(user_reqs)
+        try:
+            synth_domlr_parser = Parser(SynthesisDOMLRTransformer)
+            synth_user_reqs, user_reqs_strings = synth_domlr_parser.parse(user_reqs, for_synthesis=True)
+        except Exception as e:
+            print(e, file=sys.stderr)
+            print("Failed to parse the DOMLR.", file=sys.stderr)
+            exit(-1)
 
-        print(user_reqs_strings)
-        
         state = State()
         # Parse MM and IM
-        state = init_data(state, doml=im, metamodel=mm)
-        # Solve
+        state = init_data(
+            state, 
+            doml=im, 
+            metamodel=mm, 
+        )
+
+        reqs = [synth_user_reqs]
+        if not args.skip_common:
+            reqs.append(builtin_requirements)
 
         state = solve(
             state, 
-            requirements=[builtin_requirements, synth_user_reqs], 
-            strings=user_reqs_strings, 
+            requirements=reqs, 
+            strings=user_reqs_strings,
             max_tries=args.tries
         )
         # Update state

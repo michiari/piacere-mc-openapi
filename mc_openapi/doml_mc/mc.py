@@ -45,8 +45,6 @@ class ModelChecker:
                 + get_association_multiplicity_reqs(self.metamodel) \
                 + get_inverse_association_reqs(self.inv_assoc)
         
-        user_str_values = []
-
         if user_requirements:
             req_store += user_requirements
 

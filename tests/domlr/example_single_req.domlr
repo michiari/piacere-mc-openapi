@@ -15,5 +15,4 @@
     not exists iface (
         vm has infrastructure.ComputingNode.ifaces iface
     )
-    ---
-    "VM {vm} has no associated interface."
+    error: "VM {vm} has no associated interface."
