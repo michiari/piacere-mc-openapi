@@ -13,6 +13,7 @@ class DOMLVersion(Enum):
     V1_0 = "v1.0"
     V2_0 = "v2.0"
     V2_1 = "v2.1"
+    V2_1_1 = "v2.1.1"
 
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]
@@ -211,6 +212,7 @@ def _find_attribute_class(
     if aname in c.attributes:
         return c
     elif c.superclass is None:
+        print(c)
         raise AttributeNotFound(
             f"Attribute {aname} not found in subclasses of {cname}."
         )

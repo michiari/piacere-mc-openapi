@@ -1,0 +1,177 @@
+doml faas_app
+
+application ImageResizeApp {
+
+	software_component image_resize {
+		provides {
+			handle_image
+		}
+		consumes {
+			storage_interface,
+			bucket_in,
+			bucket_out
+		}
+		properties {
+			source_code = "path/lambda/function/image_resize.py";
+		}
+	}
+
+	saas s1 {
+		provides {
+			storage_interface
+			bucket_in
+		}
+	}
+
+	saas s2 {
+		provides {
+			storage_interface
+			bucket_out
+		}
+	}
+
+	software_component notification {
+		consumes {
+			handle_image,
+			bucket_in
+		}
+	}
+
+	software_component web {
+		consumes {
+			storage_interface,
+			bucket_out
+		}
+		properties {
+			source_code = "path/web_app";
+		}
+	}
+}
+
+infrastructure infra {
+	vm vm1 {
+		iface i1 {
+			address "10.0.0.1"
+			belongs_to vpc
+			security sg
+		}
+		credentials ssh_key
+		loc {
+			region "eu-central-1"
+		}
+	}
+
+	vm_image v_img {
+		generates vm1
+		image "ami-xxxxxxxxxxxxxxxxx"
+	}
+
+	container c {
+		host vm1
+	}
+
+	cont_image c_img {
+		generates c
+		image "web-app:0.1.0"
+	}
+
+	faas f { }
+
+	sto st1 { }
+
+	sto st2 { }
+
+	net vpc {
+		cidr "/24"
+		protocol "tcp/ip"
+		subnet vpc_subnet {
+			cidr "/24"
+			protocol "tcp/ip"
+		}
+	}
+
+	security_group sg {
+		egress icmp {
+			from_port -1
+			to_port -1
+			protocol "icmp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			from_port 80
+			to_port 80
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress https {
+			from_port 443
+			to_port 443
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ssh {
+			from_port 22
+			to_port 22
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ifaces i1
+	}
+
+	key_pair ssh_key {
+		user "ec2-user"
+		keyfile "/tmp/ssh_key_file"
+		algorithm "RSA"
+		bits 4096
+	}
+}
+
+deployment config1 {
+	image_resize -> f,
+	web -> c,
+	s1 -> st1,
+	s2 -> st2
+}
+
+active deployment config1
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider aws {
+			vm concrete_vm {
+				properties {
+					instance_type = "t2.micro";
+					ssh_key_name = "demo-key";
+					ec2_role_name = "demo-ec2-role";
+				}
+				maps vm1
+			}
+			faas concrete_f {
+				properties {
+					lambda_role_name = "DemoLambdaRole";
+					lambda_runtime = "python3.8";
+					lambda_handler = "image_resize.lambda_handler";
+					lambda_timeout = 5;
+					lambda_memory = 128;
+				}
+				maps f
+			}
+			storage s3_bucket_in {
+				properties {
+					bucket_name = "bucket_in";
+				}
+				maps st1
+			}
+			storage s3_bucket_out {
+				properties {
+					bucket_name = "bucket_out";
+				}
+				maps st2
+			}
+			net concrete_net {
+				maps vpc
+			}
+		}
+	}
+	active con_infra
+}
