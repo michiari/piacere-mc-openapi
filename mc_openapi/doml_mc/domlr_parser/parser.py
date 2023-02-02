@@ -381,7 +381,6 @@ class SynthesisDOMLRTransformer(Transformer):
 
     # start
     def requirements(self, args) -> list[tuple]:
-        # TODO: Transform Requirement into 
         return args
 
     def requirement(self, args) -> tuple:

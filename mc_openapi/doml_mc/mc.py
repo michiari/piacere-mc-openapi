@@ -55,16 +55,22 @@ class ModelChecker:
             return imc.check_requirements(rs)
 
         def split_reqs(n_reqs: int, n_split: int):
-            slice_size = n_reqs // n_split
+            slice_size = max(n_reqs // n_split, 1)
+
             rto = 0
             while rto < n_reqs:
                 rfrom = rto
                 rto = min(rfrom + slice_size, n_reqs)
                 yield rfrom, rto
 
+        
+
         try:
             with parallel_backend('loky', n_jobs=threads):
                 results = Parallel(timeout=timeout)(delayed(worker)(rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
+
+            # Uncomment for ease of debug
+            # results =[ worker(0, len(req_store) )]
 
             ret = MCResults([])
             for res in results:

@@ -99,8 +99,8 @@ class RefHandler:
             if rel is not None:
                 return rel, RefHandler.ATTRIBUTE
             else:
-                close_matches = get_close_matches(rel_name, enc.associations.keys())
-                raise RequirementMissingKeyException("association", rel_name, close_matches)
+                close_matches = get_close_matches(rel_name, list(enc.associations.keys()) + list(enc.attributes.keys()))
+                raise RequirementMissingKeyException("relationship", rel_name, close_matches)
 
     def get_association_rel(enc: SMTEncoding, a: ExprRef, rel: DatatypeRef, b: ExprRef) -> DatatypeRef:
         return enc.association_rel(a, rel, b)
@@ -158,10 +158,9 @@ class SynthesisRefHandler:
                 raise f"Attribute {rel_name} not present in the metamodel!"
 
 def _convert_rel_str(rel: str) -> str:
-    tokens = rel.replace("abstract", "infrastructure").split(".")
-    ret = tokens[0]
-    if len(tokens) >= 2:
-        ret += "_" + tokens[1]
-        if len(tokens) >= 3:
-            ret += "::" + tokens[2]
-    return ret
+    tokens = rel.replace("abstract", "infrastructure").split(".") 
+    if len(tokens) == 2:
+        return tokens[0] + "_" + tokens[1]
+    if len(tokens) == 3:
+        return tokens[0] + "_" + tokens[1] + "::" + tokens[2]
+    raise f"Bad relationship name: {rel}"

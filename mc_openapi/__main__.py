@@ -17,6 +17,7 @@ from mc_openapi.doml_mc.imc import RequirementStore
 from mc_openapi.doml_mc.intermediate_model.metamodel import MetaModelDocs
 from mc_openapi.doml_mc.mc import ModelChecker
 from mc_openapi.doml_mc.mc_result import MCResult
+from mc_openapi.doml_mc.xmi_parser.doml_model import get_pyecore_model
 
 parser = argparse.ArgumentParser()
 
@@ -67,8 +68,23 @@ else:
     # Config the model checker (setup metamodels and intermediate models)
     dmc = ModelChecker(doml_xmi, doml_ver)
 
+    # Store of Requirements and unique string constants
     user_req_store = RequirementStore()
     user_req_str_consts = []
+
+    synth_user_reqs = []
+    synth_user_reqs_strings = []
+
+    try:
+        domlr_parser = Parser(DOMLRTransformer)
+        if args.synth:
+            synth_domlr_parser = Parser(SynthesisDOMLRTransformer)
+    except Exception as e:
+        print(e, file=sys.stderr)
+        print("Failed to setup DOMLR Parser")
+        exit(-1)
+
+    user_reqs = None
 
     if reqs_path:
         with open(reqs_path, "r") as reqsf:
@@ -76,12 +92,31 @@ else:
             user_reqs = reqsf.read()
         # Parse them
         try:
-            domlr_parser = Parser(DOMLRTransformer)
             user_req_store, user_req_str_consts = domlr_parser.parse(user_reqs)
         except Exception as e:
             print(e, file=sys.stderr)
             print("Failed to parse the DOMLR.", file=sys.stderr)
             exit(-1)
+
+    if doml_ver == DOMLVersion.V2_1_1:
+        model = get_pyecore_model(doml_xmi, DOMLVersion.V2_1_1)
+        func_reqs = model.functionalRequirements.items
+        for req in func_reqs:
+            req_name: str = req.name
+            req_text: str = req.description
+            req_text = req_text.replace("```", "")
+
+            doml_req_store, doml_req_str_consts = domlr_parser.parse(req_text)
+            user_req_store += doml_req_store
+            user_req_str_consts += doml_req_str_consts
+
+            if args.synth:
+                synth_doml_req_store, synth_doml_req_str_consts = synth_domlr_parser.parse(req_text, for_synthesis=True)
+                synth_user_reqs.append(synth_doml_req_store)
+                synth_user_reqs_strings += synth_doml_req_str_consts
+
+    # Remove possible duplicates
+    user_req_str_consts = list(set(user_req_str_consts))
 
     if not args.synth:
         try:
@@ -121,14 +156,20 @@ else:
             for k, v in  dmc.intermediate_model.items()
         }
 
-        # Parse
-        try:
-            synth_domlr_parser = Parser(SynthesisDOMLRTransformer)
-            synth_user_reqs, user_reqs_strings = synth_domlr_parser.parse(user_reqs, for_synthesis=True)
-        except Exception as e:
-            print(e, file=sys.stderr)
-            print("Failed to parse the DOMLR.", file=sys.stderr)
-            exit(-1)
+        if user_reqs:
+            try:
+                ext_domlr_reqs, ext_domlr_reqs_strings = synth_domlr_parser.parse(user_reqs, for_synthesis=True)
+                synth_user_reqs.append(ext_domlr_reqs)
+                synth_user_reqs_strings += ext_domlr_reqs_strings
+            except Exception as e:
+                print(e, file=sys.stderr)
+                print("Failed to parse the DOMLR.", file=sys.stderr)
+                exit(-1)
+
+    
+        # Remove duplicated strings
+        print(synth_user_reqs_strings)
+        synth_user_reqs_strings = list(set(synth_user_reqs_strings))
 
         state = State()
         # Parse MM and IM
@@ -138,14 +179,14 @@ else:
             metamodel=mm, 
         )
 
-        reqs = [synth_user_reqs]
+        reqs = synth_user_reqs
         if not args.skip_common:
             reqs.append(builtin_requirements)
 
         state = solve(
             state, 
             requirements=reqs, 
-            strings=user_reqs_strings,
+            strings=synth_user_reqs_strings,
             max_tries=args.tries
         )
         # Update state

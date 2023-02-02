@@ -144,7 +144,7 @@ application:
         associations:
             exposedInterfaces:
                 class: application_SoftwareInterface
-                mutiplicity: "0..*"
+                multiplicity: "0..*"
     SoftwareInterface:
         superclass: application_ApplicationComponent
         attributes:
@@ -277,7 +277,7 @@ infrastructure:
                 class: infrastructure_ComputingNode
                 multiplicity: "0..1"
             iface:
-                class: infrastructure_NewtorkInterface
+                class: infrastructure_NetworkInterface
                 multiplicity: "0..1"
     Container:
         superclass: infrastructure_ComputingNode

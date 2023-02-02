@@ -23,10 +23,10 @@ Every user requirement file is a list of requirement::
         exists iface (
             vm has abstract.ComputingNode.ifaces iface
             and
-            vm has abstract.ComputingNode.cpu_cores >= 4 
+            vm has abstract.ComputingNode.cpu_count >= 4 
         )
     )
-    error: "A vm does lacks an associated interface or has less than 4 cpu cores"
+    error: "A vm does lacks an associated interface or has less than 4 CPUs"
 
 Rules in 1 minute
 -----------------
@@ -88,7 +88,7 @@ The syntax is the following:
     - Example:
         - ``vm has abstract.ComputingNode.ifaces iface`` is an **Association**, as it puts in relationship the element ``vm`` with the element ``iface``.
 
-        - ``vm has abstract.ComputingNode.cpu_cores >= 4`` is an **Attribute** Relationship, as it compares a property (``cpu_cores``) of the element ``vm`` with a constant number.
+        - ``vm has abstract.ComputingNode.cpu_count >= 4`` is an **Attribute** Relationship, as it compares a property (``cpu_count``) of the element ``vm`` with a constant number.
 - Classes: ``class <class name>``
     - They represent a kind of element in the architecture.
     - Classes follow this naming structure ``<package>.<class>``
@@ -98,8 +98,8 @@ The syntax is the following:
 - Comparisons: ``>``,  ``>=``,  ``<``,  ``<=``,  ``==``,  ``!=``
     - You can compare attributes with constants, or attributes with attributes.
     - Example: 
-        - ``vm has abstract.ComputingNode.cpu_cores >= 4`` compares attribute ``cpu_cores`` with a numeric constant.
-        - ``vm1 has abstract.ComputingNode.cpu_cores >= vm2 abstract.ComputingNode.cpu_cores`` compares attribute ``cpu_cores`` of ``vm1`` with the one of ``vm2``.
+        - ``vm has abstract.ComputingNode.cpu_count >= 4`` compares attribute ``cpu_count`` with a numeric constant.
+        - ``vm1 has abstract.ComputingNode.cpu_count >= vm2 abstract.ComputingNode.cpu_count`` compares attribute ``cpu_count`` of ``vm1`` with the one of ``vm2``.
 
 
 
