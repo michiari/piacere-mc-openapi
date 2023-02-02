@@ -13,6 +13,6 @@
     vm is class infrastructure.VirtualMachine
     and
     not exists iface (
-        vm has infrastructure.ComputingNode.ifaces iface
+        vm has abstract.ComputingNode.ifaces iface
     )
     error: "VM {vm} has no associated interface."

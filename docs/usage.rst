@@ -82,15 +82,15 @@ Flags                              Mode       Description
 ---------------------------------  ---------  -----------------
 Short   Long         
 ======  =========================  =========  =================
-``-h``  ``--help``                 C, S, T    Print the all the available flags with an explanation
-``-v``  ``--verbose``              C, S, T    Print a detailed human-readable output of everything going on. Helpful for debugging
+``-h``  ``--help``                 C, S, R    Print the all the available flags with an explanation
+``-v``  ``--verbose``              C, S, R    Print a detailed human-readable output of everything going on. Helpful for debugging
 ``-p``  ``--port``                 R          The port that will expose the REST API (default: 8080)
 ``-d``  ``--doml``                 C, S       The DOMLX file to check with the model checker
 ``-V``  ``--doml-version``         C, S       The DOML version in which the DOMLX file is written in
 ``-r``  ``--requirements``         C, S       A text file containing the user-defined requirements written in :doc:`DOMLR <writing-requirements>`.
 ``-S``  ``--skip-common-checks``   C          Skips :doc:`build-in requirements <requirements>` checks
 ``-c``  ``--check-consistency``    C          Perform additional consistency checks (legacy)
-``-t``  ``--threads``              C, S, T    The number of threads used by the model checker (default: 2)
+``-t``  ``--threads``              C, R       The number of threads used by the model checker (default: 2)
 ``-s``  ``--synth``                S          Synthetize a new DOMLX file from requirements
 ``-m``  ``--max-tries``            S          Max number of tries to solve a model during synthesis (default: 10)
 ======  =========================  =========  =================
@@ -106,4 +106,4 @@ To check a DOMLX file with user-provided custom requirements, you may run::
 
 To synthetize a new DOMLX file with 4 threads and a maximum of 15 tries, you may run::
 
-  python -m mc_openapi -d ./path/to/myModel.domlx --synth -t 4 -m 15
+  python -m mc_openapi -d ./path/to/myModel.domlx --synth -m 15
