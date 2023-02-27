@@ -452,7 +452,7 @@ RequirementLists = {
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
         (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
     ],
-    DOMLVersion.V2_1_1: [
+    DOMLVersion.V2_2: [
         (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net_v2_1, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),

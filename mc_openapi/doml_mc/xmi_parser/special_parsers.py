@@ -60,7 +60,7 @@ def init_special_parsers():
             ("infrastructure_ComputingNode", "memory_mb"): parse_memory_mb,
             ("commons_FProperty", "value"): parse_fproperty,
         },
-        DOMLVersion.V2_1_1: {
+        DOMLVersion.V2_2: {
             ("infrastructure_Network", "addressRange"): parse_cidr,
             ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
             ("infrastructure_ComputingNode", "memory_mb"): parse_memory_mb,
