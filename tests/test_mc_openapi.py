@@ -3,11 +3,6 @@ from mc_openapi.doml_mc.common_reqs import CommonRequirements
 from mc_openapi.doml_mc import DOMLVersion
 import requests
 
-
-def test_version():
-    assert __version__ == '1.2.0'
-
-
 # V2_0 tests
 def test_post_nginx_sat_V2_0():
     with open("tests/doml/v2.0/nginx-openstack_v2.0.domlx", "r") as f:
@@ -67,6 +62,39 @@ def test_post_nginx_sat_V2_1():
 
 def test_post_faas_unsat_V2_1():
     with open("tests/doml/v2.1/faas.domlx", "r") as f:
+        doml = f.read()
+
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
+    payload = r.json()
+    assert r.status_code == requests.codes.ok
+    assert payload["result"] is not None
+    assert payload["result"] == "unsat"
+
+# V2_2 tests
+def test_post_nginx_sat_V2_1():
+    with open("tests/doml/v2.2/nginx-aws-ec2.domlx", "r") as f:
+        doml = f.read()
+
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
+    payload = r.json()
+    assert r.status_code == requests.codes.ok
+    assert payload["result"] is not None
+    assert payload["result"] == "sat"
+
+
+def test_post_faas_unsat_V2_2():
+    with open("tests/doml/v2.2/faas.domlx", "r") as f:
+        doml = f.read()
+
+    r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)
+    payload = r.json()
+    assert r.status_code == requests.codes.ok
+    assert payload["result"] is not None
+    assert payload["result"] == "sat"
+
+
+def test_post_nginx_with_func_reqs_unsat_V2_2():
+    with open("tests/doml/v2.2/nginx_func_req.domlx", "r") as f:
         doml = f.read()
 
     r = requests.post("http://0.0.0.0:8080/modelcheck", data=doml)

@@ -66,10 +66,32 @@ def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
 
 
 def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:
-    if doml_version is None:
-        doml_version = infer_domlx_version(raw_model)
+    # if doml_version is None:
+    #     doml_version = infer_domlx_version(raw_model)
 
-    model = parse_xmi_model(raw_model, doml_version)
+    # Try every DOML version until one works!
+    if doml_version is None:
+
+        doml_versions = [x for x in DOMLVersion]
+        print(doml_versions)
+
+        def get_model(raw_model, doml_version):
+            try:
+                dv = doml_versions.pop(0)
+                doml_version = dv
+                return parse_xmi_model(raw_model, dv), dv
+            except Exception as e:
+                print(f"Couldn't parse with DOML {dv.value}. Trying another version...")
+                if len(doml_versions) == 0:
+                    raise e
+                else:
+                    return get_model(raw_model, doml_version)
+
+        model, doml_version = get_model(raw_model, doml_version)
+    else: # if user specifies DOML version, respect that choice!
+        model = parse_xmi_model(raw_model, doml_version)
+
+    print(f"Using DOML {doml_version.value}")
 
     elp = ELayerParser(MetaModels[doml_version], SpecialParsers[doml_version])
     if model.application:
