@@ -62,7 +62,7 @@ def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
         else:
             return DOMLVersion.V2_0  # Should be DOMLVersion.V1_0, but we use V2_0 because the 2.1 IDE doesn't fill it
     else:
-        raise RuntimeError(f"Supplied with malformed DOMLX model or unsupported DOML version.\nIn use version is: {DOMLVersion.V2_1}")
+        raise RuntimeError(f"Supplied with malformed DOMLX model or unsupported DOML version.\nIn use version is: {DOMLVersion.V2_0}")
 
 
 def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:
