@@ -1,9 +1,8 @@
 [![Documentation Status](https://readthedocs.org/projects/piacere-model-checker/badge/?version=latest)](https://piacere-model-checker.readthedocs.io/en/latest/?badge=latest)
 
 # PIACERE Model Checker
-_______________________
-## **You can read the [docs here](https://piacere-model-checker.readthedocs.io/en/latest/) for more details.**
-_______________________
+
+**📖 You can read the [docs here](https://piacere-model-checker.readthedocs.io/en/latest/) for more details. 📖**
 
 The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
 in charge of checking the correctness and consistency of
@@ -15,7 +14,7 @@ in charge of checking the correctness and consistency of
  If you add a new package, regenerate it by running:
  
  ```sh
- poetry run pip freeze > requirements.txt
+ pip freeze > requirements.txt
  ```
 
 ## Setup
@@ -59,7 +58,7 @@ And then run it with
 docker run -d wp4/dmc
 ```
 The Uvicorn server will be running and listening on port 80 of the container.
-To use it locally, you may e.g. bind it with port 8080 of `localhost`
+To use it locally, you may bind it with port `8080` of `localhost`
 by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
 
 
@@ -67,10 +66,9 @@ by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
 
 The documentation has been written in [Sphinx](https://www.sphinx-doc.org/)
 and covers both usage through the PIACERE IDE and the REST APIs.
+You can read the latest version at [readthedocs.io](https://piacere-model-checker.readthedocs.io/en/latest/)
 
-Read it at [readthedocs.io](https://piacere-model-checker.readthedocs.io/en/latest/)
-
-Build the documentation with:
+If you want to build the documentation manually, run:
 ```sh
 cd docs
 make html
