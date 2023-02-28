@@ -94,7 +94,7 @@ deploy-dmc:
   stage: deploy
   image: $DOCKER_IMAGE
   only:
-    - y1
+    - y2
   services:
     - $DOCKER_DIND_IMAGE
   before_script:
