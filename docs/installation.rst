@@ -7,19 +7,24 @@ First, you'll need to install the dependencies to run this tool.
 
 Installing the dependencies
 ===========================
+1. Clone/download the model checker repository.
 
-This project is packaged with `Poetry`_, so you should install it first.
+2. Setting up a Python virtual environment is recommended. You can run the following command to create it::
 
-Once *Poetry* has been installed, install the dependencies with::
+    python -m venv .venv
+
+    # Remember to activate it! e.g.:
+    source .venv/bin/activate
   
-  poetry install
+3. Install the dependencies with::
 
+    pip install -r requirements.txt
 
 Run locally for testing
 -----------------------
 Run with::
 
-  poetry run python -m mc_openapi
+  python -m mc_openapi
 
 This command serves the APIs through a `Flask`_ instance,
 which is suitable for testing, but not recommended for production.
@@ -64,11 +69,7 @@ Building the Documentation
 
 The documentation has been written in `Sphinx`_.
 
-To build it, type::
-
-  poetry shell
-
-and then::
+To build it manually, run::
 
   cd docs
   make html
@@ -76,7 +77,6 @@ and then::
 The documentation will be generated in ``docs/_build``.
 
 
-.. _Poetry: https://python-poetry.org/
 .. _Flask: https://flask.palletsprojects.com/
 .. _Swagger-UI: https://swagger.io/tools/swagger-ui/
 .. _Uvicorn: https://www.uvicorn.org/
