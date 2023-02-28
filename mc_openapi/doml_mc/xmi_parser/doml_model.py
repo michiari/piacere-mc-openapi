@@ -114,7 +114,7 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
 def get_pyecore_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> EObject:
     if doml_version is None:
         doml_version = infer_domlx_version(raw_model)
-
+    # TODO: See if its better replaced by the get_model() in parse_doml_version() 
     return parse_xmi_model(raw_model, doml_version)
 
 from typing import Optional

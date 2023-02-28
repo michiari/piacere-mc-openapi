@@ -22,7 +22,7 @@ from mc_openapi.doml_mc.xmi_parser.doml_model import get_pyecore_model
 parser = argparse.ArgumentParser()
 
 parser.add_argument("-d", "--doml", dest="doml", help="the DOMLX file to check")
-parser.add_argument("-V", "--doml-version", dest="doml_version", default="V2_0", help="(optional) the version used by the DOMLX file")
+parser.add_argument("-V", "--doml-version", dest="doml_version", help="(optional) the version used by the DOMLX file")
 parser.add_argument("-r", "--requirements", dest="requirements", help="the user-specified requirements file to check")
 parser.add_argument("-p", "--port", dest="port", type=int, default=8080, help="the port exposing the model checker REST API (default: 8080)")
 parser.add_argument("-v", "--verbose", dest="verbose", action='store_true', help="print a detailed human-readable output of everything going on. Helpful for debugging.")
@@ -52,14 +52,16 @@ else:
     reqs_path = args.requirements
 
     # Try using the user-provided DOML version
-    try:
-        doml_ver = DOMLVersion[args.doml_version]
-    except:
-        # Suggest valid DOML versions
-        print(f"Unknown DOML version '{args.doml_version}'")
-        versions = [ ver.name for ver in list(DOMLVersion)]
-        print(f"Available DOML versions = {versions}")
-        exit(1)
+    doml_ver = None
+    if args.doml_version is not None:
+        try:
+            doml_ver = DOMLVersion[args.doml_version]
+        except:
+            # Suggest valid DOML versions
+            print(f"Unknown DOML version '{args.doml_version}'")
+            versions = [ ver.name for ver in list(DOMLVersion)]
+            print(f"Available DOML versions = {versions}")
+            exit(1)
 
     with open(doml_path, "rb") as xmif:
         # Read DOML file from path
@@ -67,6 +69,7 @@ else:
 
     # Config the model checker (setup metamodels and intermediate models)
     dmc = ModelChecker(doml_xmi, doml_ver)
+    doml_ver = dmc.doml_version
 
     # Store of Requirements and unique string constants
     user_req_store = RequirementStore()
@@ -99,7 +102,7 @@ else:
             exit(-1)
 
     if doml_ver == DOMLVersion.V2_2:
-        model = get_pyecore_model(doml_xmi, DOMLVersion.V2_2)
+        model = get_pyecore_model(doml_xmi, doml_ver)
         func_reqs = model.functionalRequirements.items
         for req in func_reqs:
             req_name: str = req.name
