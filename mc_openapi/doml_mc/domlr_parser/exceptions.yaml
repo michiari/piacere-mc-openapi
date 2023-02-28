@@ -1,0 +1,43 @@
+TOKENS:
+  FLIP_EXPR: |
+    a declaration of a requirement.
+      To declare a requirement use:
+      • '+' to declare a requirement
+      • '-' to declare a requirement in negation form, which means
+        that if it's satisfied, then the DOML does not respect the 
+        requirements.
+
+  ESCAPED_STRING: a string. Strings are enclosed by double quotes '"'.
+  BOOL: a boolean value. It can be 'true' or 'false'.
+  NUMBER: a number. It must be an integer.
+  VALUE: a value constant. Values must start with an uppercase letter.
+  CONST: a logic variable. Variables must start with a lowercase letter.
+
+  IS: |
+    a statement such as:
+    • 'is', 'is not' followed by a class or a variable
+    • 'has' followed by an relationship name and then a variable or value
+
+  NOT: a 'not' before an expression or a quantifier.
+  OR: a logical connective such as 'or' between expressions.
+  AND: a logical connective such as 'and' between expressions.
+  IFF: a logical connective such as 'iff' between expressions.
+  IMPLIES: a logical connective such as 'implies' between expressions.
+
+  COMMA: a ',' separating bounded variables after an 'exists'/'forall'
+
+  LPAR: a '(' after which an expression begins.
+  RPAR: a ')' closing a previous '('.
+
+  RELATIONSHIP: |
+    a valid relationship name.
+      Relationships consists of 'package.class->relationship', with no spaces around '.' and '->'.
+
+
+  EXISTS: a 'exists' quantifier. 
+  FORALL: a 'forall' quantifier.
+
+  CLASS_PREFIX: a 'class' followed by a class name
+  ERR_DESC_SYMBOL: a 'error:' to separate the logic expression from the error message.
+HINTS:
+  DOT: If you're trying to use a class, did you put 'class' before the class name?

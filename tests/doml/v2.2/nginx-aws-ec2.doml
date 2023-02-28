@@ -1,0 +1,121 @@
+doml nginx_aws_ec2
+
+application app {
+
+	software_component nginx {
+		properties {
+			source_code="/usr/share/nginx/html/index.html";
+		}
+	}
+}
+
+infrastructure infra {
+
+	vm_image vm_img {
+		generates vm1
+		image "ami-xxxxxxxxxxxxxxxxx"
+	}
+
+	net vpc {
+		cidr "/24"
+		protocol "tcp/ip"
+		subnet vpc_subnet {
+			cidr "/24"
+			protocol "tcp/ip"
+		}
+	}
+
+	security_group sg {
+		egress icmp {
+			from_port -1
+			to_port -1
+			protocol "icmp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			from_port 80
+			to_port 80
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress https {
+			from_port 443
+			to_port 443
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ssh {
+			from_port 22
+			to_port 22
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ifaces i1
+	}
+
+	key_pair ssh_key {
+		user "ec2-user"
+		keyfile "/tmp/ssh_key_file"
+		algorithm "RSA"
+		bits 4096
+	}
+
+	autoscale_group ag {
+		vm vm1 {
+			iface i1 {
+				address "10.0.0.1"
+				belongs_to vpc
+				security sg
+			}
+			credentials ssh_key
+			loc {
+				region "eu-central-1"
+			}
+		}
+	}
+}
+
+deployment conf {
+	nginx -> vm1
+}
+
+active deployment conf
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider aws {
+			vm ec2_vm {
+				properties {
+					vm_name = "nginx-host";
+					instance_type = "t2.micro";
+					ssh_key_name = "demo-key";
+					ec2_role_name = "demo-ec2-role";
+				}
+				maps vm1
+			}
+
+			vm_image concrete_vm_image {
+				maps vm_img
+			}
+
+			net concrete_net {
+				properties {
+					vm_name = "nginx-host";
+				}
+				maps vpc
+			}
+		}
+	}
+	active con_infra
+}
+
+optimization opt {
+	objectives {
+		"cost" => min
+		"availability" => max
+	}
+	nonfunctional_requirements {
+		req1 "Cost <= 70.0" max 70.0 => "cost";
+		req2 "Availability >= 66.5%" min 66.5 => "availability";
+	}
+}

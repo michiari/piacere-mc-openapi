@@ -1,34 +1,49 @@
+[![Documentation Status](https://readthedocs.org/projects/piacere-model-checker/badge/?version=latest)](https://piacere-model-checker.readthedocs.io/en/latest/?badge=latest)
+
 # PIACERE Model Checker
+
+**📖 You can read the [docs here](https://piacere-model-checker.readthedocs.io/en/latest/) for more details. 📖**
 
 The DOML Model Checker is a component of the [PIACERE](https://www.piacere-project.eu/) framework
 in charge of checking the correctness and consistency of
 [DOML](https://www.piacere-doml.deib.polimi.it/) models.
 
-This project is packaged with [Poetry](https://python-poetry.org/).
 
+ We provide a `requirements.txt` file for CI/CD purposes.
 
-## Build and Run
+ If you add a new package, regenerate it by running:
+ 
+ ```sh
+ pip freeze > requirements.txt
+ ```
 
-Build with
+## Setup
+
+Activate the Python Virtual Environment with:
 ```sh
-poetry install
+source .venv/bin/activate
 ```
-then run with
+Install the required packages with:
 ```sh
-poetry run python -m mc_openapi
+pip install -r requirements.txt
 ```
 
-Run tests with:
+## Run the model checker web server
 ```sh
-poetry run python -m pytest
+python -m mc_openapi
 ```
-
 
 ## Run with Uvicorn
 
 The project may be run with [Uvicorn](https://www.uvicorn.org/) as follows:
 ```sh
 uvicorn --port 8080 --host 0.0.0.0 --interface wsgi --workers 2 mc_openapi.app_config:app
+```
+## Run tests
+
+Run tests with:
+```sh
+python -m pytest
 ```
 
 
@@ -42,21 +57,18 @@ And then run it with
 ```sh
 docker run -d wp4/dmc
 ```
-The Uvicorn server will be running and listening on port 80 of the container.
-To use it locally, you may e.g. bind it with port 8080 of `localhost`
-by adding `-p 127.0.0.1:8080:80/tcp` to the `docker run` command.
+The Uvicorn server will be running and listening on port `8080` of the container.
+To use it locally, you may bind it with port `8080` of `localhost`
+by adding `-p 127.0.0.1:8080:8080/tcp` to the `docker run` command.
 
 
 ## Building the Documentation
 
 The documentation has been written in [Sphinx](https://www.sphinx-doc.org/)
 and covers both usage through the PIACERE IDE and the REST APIs.
+You can read the latest version at [readthedocs.io](https://piacere-model-checker.readthedocs.io/en/latest/)
 
-To build it, type
-```sh
-poetry shell
-```
-and then
+If you want to build the documentation manually, run:
 ```sh
 cd docs
 make html

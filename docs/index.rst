@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-DOML Model Checker's documentation
+DOML Model Checker Documentation
 ==================================
 
 The DOML Model Checker is a component of the `PIACERE`_ framework
@@ -15,7 +15,9 @@ in charge of checking the correctness and consistency of `DOML`_ models.
    :caption: Contents:
 
    installation
+   tests
    usage
+   writing-requirements
    requirements
    restapis
 
@@ -28,8 +30,8 @@ in charge of checking the correctness and consistency of `DOML`_ models.
    * :ref:`search`
 
 
-This project has received funding from the European Union's Horizon 2020
-research and innovation programme under grant agreement No. 101000162.
+*This project has received funding from the European Union's Horizon 2020
+research and innovation programme under grant agreement No. 101000162.*
 
 
 .. _PIACERE: https://www.piacere-project.eu/

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" name="iot_simple_app" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="iot_simple_app">
+    <components xsi:type="app:DBMS" name="oracle">
+      <exposedInterfaces name="sql_interface"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="web_server" consumedInterfaces="//@application/@components.0/@exposedInterfaces.0 //@application/@components.3/@exposedInterfaces.0">
+      <exposedInterfaces name="sensor_info"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="iot_provider" consumedInterfaces="//@application/@components.1/@exposedInterfaces.0"/>
+    <components xsi:type="app:SaaS" name="external_meteo">
+      <exposedInterfaces name="get_weather" endPoint="https://api.mymeteo.com/get"/>
+    </components>
+  </application>
+  <infrastructure name="infra">
+    <nodes xsi:type="infra:VirtualMachine" name="vm1"/>
+    <nodes xsi:type="infra:VirtualMachine" name="vm2"/>
+    <nodes xsi:type="infra:PhysicalComputingNode" name="iot_device1"/>
+    <nodes xsi:type="infra:PhysicalComputingNode" name="iot_device2"/>
+  </infrastructure>
+  <concretizations name="con_infra1">
+    <providers name="aws">
+      <vms name="concrete_vm1" maps="//@infrastructure/@nodes.0">
+        <annotations xsi:type="commons:SProperty" key="instance_type" value="t2.micro"/>
+      </vms>
+      <vms name="concrete_vm2" maps="//@infrastructure/@nodes.1"/>
+    </providers>
+  </concretizations>
+  <configurations name="config1">
+    <deployments component="//@application/@components.0" node="//@infrastructure/@nodes.0"/>
+    <deployments component="//@application/@components.1" node="//@infrastructure/@nodes.1"/>
+    <deployments component="//@application/@components.2" node="//@infrastructure/@nodes.2"/>
+    <deployments component="//@application/@components.2" node="//@infrastructure/@nodes.3"/>
+  </configurations>
+</commons:DOMLModel>

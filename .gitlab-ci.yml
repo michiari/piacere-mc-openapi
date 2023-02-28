@@ -80,7 +80,7 @@ run-functional-tests:
     # Thus, we need to override the command so that the server is run on port 8080.
     - docker run --name $TESTS_CONTAINER_NAME -d -e "UVICORN_PORT=8080" $TMP_IMAGE
     # Install everything required for the tests.
-    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install -r dev-requirements.txt"
+    - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "pip install -r requirements.txt"
     # Run the tests.
     - docker exec -i $TESTS_CONTAINER_NAME /bin/bash -c "python -m pytest"
     # Stop the tests container.

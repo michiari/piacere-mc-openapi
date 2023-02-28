@@ -1,0 +1,52 @@
+doml iot_simple_app
+
+application iot_simple_app {
+	dbms oracle {
+		provides { sql_interface }
+	}
+
+	software_component web_server {
+		provides { sensor_info }
+		consumes { sql_interface, get_weather }
+	}
+
+	software_component iot_provider {
+		consumes { sensor_info }
+	}
+
+	saas external_meteo {
+		provides { get_weather @ "https://api.mymeteo.com/get" }
+	}
+}
+
+infrastructure infra {
+	vm vm1 {}
+	vm vm2 {}
+	node iot_device1 {}
+	node iot_device2 {}
+}
+
+deployment config1 {
+	oracle -> vm1,
+	web_server -> vm2,
+	iot_provider -> iot_device1,
+	iot_provider -> iot_device2
+}
+
+active deployment config1
+
+concretizations {
+	concrete_infrastructure con_infra1 {
+		provider aws {
+			vm concrete_vm1 {
+				properties { instance_type = "t2.micro"; }
+				maps vm1
+			}
+			vm concrete_vm2 {
+				properties {}
+				maps vm2
+			}
+		}
+	}
+	active con_infra1
+}

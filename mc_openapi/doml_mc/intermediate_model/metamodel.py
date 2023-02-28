@@ -1,19 +1,19 @@
-from dataclasses import dataclass
-from typing import cast, Literal, Optional, Union
-from enum import Enum
-
 import importlib.resources as ilres
-import yaml
+from dataclasses import dataclass
+from enum import Enum
+from typing import Literal, Optional, Union, cast
+
 import networkx as nx
+import yaml
 
 from ... import assets
-from .._utils import merge_dicts
-
+from ..utils import merge_dicts
 
 class DOMLVersion(Enum):
     V1_0 = "v1.0"
     V2_0 = "v2.0"
     V2_1 = "v2.1"
+    V2_2 = "v2.2"
 
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]
@@ -53,6 +53,7 @@ class DOMLAssociation:
 MetaModel = dict[str, DOMLClass]
 InverseAssociation = list[tuple[str, str]]
 
+MetaModelDocs: dict[DOMLVersion, dict] = {}
 MetaModels: dict[DOMLVersion, MetaModel] = {}
 InverseAssociations: dict[DOMLVersion, InverseAssociation] = {}
 
@@ -152,9 +153,12 @@ def parse_inverse_associations(doc: dict) -> list[tuple[str, str]]:
 
 
 def init_metamodels():
-    global MetaModels, InverseAssociations
+    global MetaModelDocs, MetaModels, InverseAssociations
     for ver in DOMLVersion:
-        mmdoc = yaml.load(ilres.read_text(assets, f"doml_meta_{ver.value}.yaml"), yaml.Loader)
+        source = ilres.files(assets).joinpath(f"doml_meta_{ver.value}.yaml")
+        
+        mmdoc = yaml.load(source.read_text()  , yaml.Loader)
+        MetaModelDocs[ver] = mmdoc
         MetaModels[ver] = parse_metamodel(mmdoc)
         InverseAssociations[ver] = parse_inverse_associations(mmdoc)
 
@@ -208,6 +212,7 @@ def _find_attribute_class(
     if aname in c.attributes:
         return c
     elif c.superclass is None:
+        print(c)
         raise AttributeNotFound(
             f"Attribute {aname} not found in subclasses of {cname}."
         )

@@ -1,5 +1,5 @@
-Checked Requirements
-====================
+Built-in Requirements
+=====================
 
 The DOML Model Checker verifies DOML models against a collection of requirements
 devised to highlight the most common mistakes made by users when specifying cloud deployments.
@@ -60,3 +60,18 @@ Concrete Infrastructure Elements have a maps Association
   All elements in the active concretization are mapped to some abstract infrastructure element.
 
 Makes sure each concrete infrastructure element is mapped to a node in the Abstract Infrastructure Layer.
+
+Network Interfaces belong to a Security Group
+---------------------------------------------
+
+  All network interfaces belong to a security group.
+
+Makes sure all network interfaces have been configured to belong to a security group.
+This way, the user will be reminded to configure adequate rules for each network.
+
+External Services are reached through HTTPS
+-------------------------------------------
+
+  All external SaaS can be reached only through a secure connection.
+
+Makes sure that an HTTPS rule is enforced for a Network Interface of a Software Component that interfaces with a SaaS.

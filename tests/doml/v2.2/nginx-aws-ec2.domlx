@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="nginx_aws_ec2" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="app">
+    <components xsi:type="app:SoftwareComponent" name="nginx">
+      <annotations xsi:type="commons:SProperty" key="source_code" value="/usr/share/nginx/html/index.html"/>
+    </components>
+  </application>
+  <infrastructure name="infra">
+    <generators xsi:type="infra:VMImage" name="vm_img" uri="ami-xxxxxxxxxxxxxxxxx" kind="IMAGE" generatedVMs="//@infrastructure/@groups.0/@machineDefinition"/>
+    <credentials xsi:type="commons:KeyPair" name="ssh_key" user="ec2-user" keyfile="/tmp/ssh_key_file" algorithm="RSA" bits="4096"/>
+    <groups xsi:type="infra:AutoScalingGroup" name="ag">
+      <machineDefinition name="vm1" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+        <ifaces name="i1" endPoint="10.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@securityGroups.0"/>
+        <location region="eu-central-1"/>
+      </machineDefinition>
+    </groups>
+    <securityGroups name="sg" ifaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0">
+      <rules name="icmp" protocol="icmp" fromPort="-1" toPort="-1">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="http" kind="INGRESS" protocol="tcp" fromPort="80" toPort="80">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="https" kind="INGRESS" protocol="tcp" fromPort="443" toPort="443">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+    </securityGroups>
+    <networks name="vpc" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0">
+      <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="/24"/>
+    </networks>
+  </infrastructure>
+  <concretizations name="con_infra">
+    <providers name="aws">
+      <vms name="ec2_vm" maps="//@infrastructure/@groups.0/@machineDefinition">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="nginx-host"/>
+        <annotations xsi:type="commons:SProperty" key="instance_type" value="t2.micro"/>
+        <annotations xsi:type="commons:SProperty" key="ssh_key_name" value="demo-key"/>
+        <annotations xsi:type="commons:SProperty" key="ec2_role_name" value="demo-ec2-role"/>
+      </vms>
+      <vmImages name="concrete_vm_image" maps="//@infrastructure/@generators.0"/>
+      <networks name="concrete_net" maps="//@infrastructure/@networks.0">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="nginx-host"/>
+      </networks>
+    </providers>
+  </concretizations>
+  <optimization name="opt">
+    <objectives xsi:type="optimization:MeasurableObjective" kind="min" property="cost"/>
+    <objectives xsi:type="optimization:MeasurableObjective" kind="max" property="availability"/>
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req1" description="Cost &lt;= 70.0" property="cost" max="70.0"/>
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req2" description="Availability >= 66.5%" property="availability" min="66.5"/>
+  </optimization>
+  <configurations name="conf">
+    <deployments component="//@application/@components.0" node="//@infrastructure/@groups.0/@machineDefinition"/>
+  </configurations>
+</commons:DOMLModel>

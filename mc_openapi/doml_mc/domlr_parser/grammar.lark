@@ -1,0 +1,72 @@
+requirements    : requirement (requirement)*
+
+requirement     : FLIP_EXPR req_name expression "error:" error_desc
+
+req_name        : ESCAPED_STRING
+error_desc      : ESCAPED_STRING
+
+?expression     : iff_expr
+
+?iff_expr       : (implies_expr "iff")? implies_expr
+
+?implies_expr   : (and_expr "implies")? and_expr
+
+?and_expr       : (or_expr "and")* or_expr
+
+?or_expr        : (not_expr "or")* not_expr
+
+?not_expr       : "not" not_expr -> negation
+                | quantification
+
+?quantification : "exists" bound_consts "(" expression ")" -> exists
+                | "forall" bound_consts "(" expression ")" -> forall
+                | "(" expression ")"
+                | property
+
+?property       : CONST "has" RELATIONSHIP CONST                            -> rel_assoc_expr
+                | CONST "has" RELATIONSHIP COMPARISON_OP value              -> rel_attr_value_expr
+                | CONST "has" RELATIONSHIP COMPARISON_OP CONST RELATIONSHIP -> rel_attr_elem_expr
+                | const_or_class "is" const_or_class                        -> equality
+                | const_or_class "is not" const_or_class                    -> inequality
+
+
+bound_consts    : [CONST ("," CONST)*]
+
+const_or_class  : "class" CLASS
+                | CONST
+
+value           : ESCAPED_STRING
+                | NUMBER
+                | BOOL
+
+FLIP_EXPR       : "+"
+                | "-"
+
+COMPARISON_OP   : ">" | ">="
+                | "<" | "<="
+                | "==" | "!="
+
+BOOL            : ":true"
+                | ":false"
+
+// regex: /[a-zA-Z]+_[a-zA-Z]+::[a-zA-Z]+/
+RELATIONSHIP: /[^\W\d_]+\.[^\W\d_]+\.([^\W\d]|_)+/
+
+CLASS: /[^\W\d_]+\.[^\W\d_]+/
+
+// Const must start with lowercase letter
+CONST: (LCASE_LETTER) ("_"|LETTER|DIGIT)*
+
+// Comment: python/sh style
+COMMENT: /#[^\n]*/
+
+%import common.ESCAPED_STRING
+%import common.NEWLINE
+%import common.LETTER
+%import common.DIGIT
+%import common.NUMBER
+%import common.LCASE_LETTER
+%import common.UCASE_LETTER
+%import common.WS
+%ignore WS
+%ignore COMMENT

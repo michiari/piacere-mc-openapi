@@ -1,0 +1,52 @@
+-   "VM must have iface"
+    vm is class infrastructure.VirtualMachine
+    and
+    not exists iface (
+        vm has infrastructure.ComputingNode.ifaces iface
+    )
+
+    error: "VM {vm} must have iface {iface}"
+
+# +   "VM must have iface"
+#     forall vm (
+#         vm is class infrastructure.VirtualMachine
+#         implies
+#         exists iface (
+#             vm has infrastructure.ComputingNode.ifaces iface
+#         )
+#     )
+
+#     error: "VM {vm} must have iface {iface}"
+
++   "VM must have cpu_count >= 4"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+        vm has infrastructure.ComputingNode.cpu_count >= 4
+    )
+
+    error: "VM {vm} must have cpu_count >= 4 {iface}"
+
++   "VM must have os == 'rhel8'"
+    forall vm (
+        vm is class infrastructure.VirtualMachine
+        implies
+        vm has infrastructure.ComputingNode.os == "rhel8"
+    )
+
+    error: "VM {vm} must have os == 'rhel'"
+
+# OLD SYNTAX:
+# -   "Iface must be unique"
+#     ni1 has infrastructure.NetworkInterface.endPoint Value
+#     and
+#     ni1 is not ni2
+#     and
+#     ni2 has infrastructure.NetworkInterface.endPoint Value
+
+-   "Iface must be unique"
+    ni1 has infrastructure.NetworkInterface.endPoint == ni2 infrastructure.NetworkInterface.endPoint
+    and
+    ni1 is not ni2
+
+    error: "Iface {ni1} and {ni2} must have different values"
