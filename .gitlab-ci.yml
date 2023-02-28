@@ -33,7 +33,7 @@ build-temp-dmc:
   before_script:
     - *artifactory-login
   script:
-    - docker build -t $TMP_IMAGE .
+    - docker build -t $TMP_IMAGE --label "com.jfrog.artifactory.retention.maxCount=3" .
     - docker push $TMP_IMAGE
   tags:
     - docker
@@ -104,8 +104,6 @@ deploy-dmc:
   script:
     - docker pull $TMP_IMAGE
     - docker tag $TMP_IMAGE $TARGET_IMAGE
-    - docker tag $TMP_IMAGE $TARGET_IMAGE_VERSIONED
-    - docker push $TARGET_IMAGE_VERSIONED
     - docker push $TARGET_IMAGE
   tags:
     - docker
