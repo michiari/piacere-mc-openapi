@@ -73,7 +73,8 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
     if doml_version is None:
 
         doml_versions = [x for x in DOMLVersion]
-        print(doml_versions)
+        # Use the most recent DOML version first
+        doml_versions.reverse() 
 
         def get_model(raw_model, doml_version):
             try:

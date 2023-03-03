@@ -1,4 +1,5 @@
 import datetime
+import os
 from mc_openapi.doml_mc.domlr_parser.parser import DOMLRTransformer, Parser
 from mc_openapi.doml_mc.imc import RequirementStore
 
@@ -18,8 +19,14 @@ def make_error(user_msg, debug_msg=None):
 def post(body):
     doml_xmi = body
     try:
-
-        dmc = ModelChecker(doml_xmi)
+        doml_version = None
+        try:
+            doml_version: str = os.environ["DOML_VERSION"]
+            doml_version = DOMLVersion.get(doml_version)
+            print("Setting DOML version from DOML_VERSION")
+        except:
+            pass
+        dmc = ModelChecker(doml_xmi, doml_version)
 
         user_req_store = None
         user_req_str_consts = []

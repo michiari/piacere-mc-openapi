@@ -55,7 +55,7 @@ else:
     doml_ver = None
     if args.doml_version is not None:
         try:
-            doml_ver = DOMLVersion[args.doml_version]
+            doml_ver = DOMLVersion.get(args.doml_version)
         except:
             # Suggest valid DOML versions
             print(f"Unknown DOML version '{args.doml_version}'")

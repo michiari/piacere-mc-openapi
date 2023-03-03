@@ -28,8 +28,8 @@
         <cidr>0.0.0.0/0</cidr>
       </rules>
     </securityGroups>
-    <networks name="vpc" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0">
-      <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="/24"/>
+    <networks name="vpc" protocol="tcp/ip" addressRange="0.0.0.0/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0">
+      <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="0.0.0.0/24"/>
     </networks>
   </infrastructure>
   <concretizations name="con_infra">
