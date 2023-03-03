@@ -426,14 +426,14 @@ def ed_external_services_must_have_https(solver: Solver, smtsorts: SMTSorts, int
         return "A Security Group doesn't have a rule to access an external service (SaaS) through HTTPS (port 443)."
 
 RequirementLists = {
-    DOMLVersion.V1_0: [
-        (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
-        (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
-        (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
-        (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
-        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
-    ],
+    # DOMLVersion.V1_0: [
+    #     (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
+    #     (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
+    #     (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
+    #     (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
+    #     (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
+    #     (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+    # ],
     DOMLVersion.V2_0: [
         (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net, "software_package_iface_net", "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
@@ -442,7 +442,8 @@ RequirementLists = {
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
         (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something),
         (security_group_must_have_iface, "security_group_must_have_iface", "All security group should be a associated to a network interface", ed_security_group_must_have_iface),
-        (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
+        # TODO: Fix rule
+        # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_1: [
         (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
@@ -450,7 +451,10 @@ RequirementLists = {
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
         (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
-        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something),
+        (security_group_must_have_iface, "security_group_must_have_iface", "All security group should be a associated to a network interface", ed_security_group_must_have_iface),
+        # TODO: Fix rule
+        # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_2: [
         (vm_iface, "vm_iface", "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
@@ -458,7 +462,10 @@ RequirementLists = {
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
         (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed", "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed", "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
-        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something)
+        (all_concrete_map_something, "all_concrete_map_something", "All elements in the active concretization are mapped to some abstract infrastructure element.", ed_all_concrete_map_something),
+        (security_group_must_have_iface, "security_group_must_have_iface", "All security group should be a associated to a network interface", ed_security_group_must_have_iface),
+        # TODO: Fix rule
+        # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
 }
 

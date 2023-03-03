@@ -10,10 +10,19 @@ from ... import assets
 from ..utils import merge_dicts
 
 class DOMLVersion(Enum):
-    V1_0 = "v1.0"
+    # V1_0 = "v1.0"
     V2_0 = "v2.0"
     V2_1 = "v2.1"
     V2_2 = "v2.2"
+
+    def get(v: str):
+        """Retrieve DOML version from string.
+        Try to be less pedantic about versions
+        e.g.: 2.0 becomes V2_0"""
+        doml_ver = v.replace(".", "_")
+        if doml_ver[0] != "V":
+            doml_ver = "V" + doml_ver
+        return DOMLVersion[doml_ver]
 
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]

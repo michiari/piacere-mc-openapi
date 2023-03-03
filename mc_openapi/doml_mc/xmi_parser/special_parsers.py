@@ -43,11 +43,11 @@ def init_special_parsers():
     assert len(MetaModels) > 0
 
     attribute_parsers = {
-        DOMLVersion.V1_0: {
-            ("infrastructure_Network", "addressRange"): parse_network_address_range,
-            ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
-            ("commons_FProperty", "value"): parse_fproperty,
-        },
+        # DOMLVersion.1_0: {
+        #     ("infrastructure_Network", "addressRange"): parse_network_address_range,
+        #     ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
+        #     ("commons_FProperty", "value"): parse_fproperty,
+        # },
         DOMLVersion.V2_0: {
             ("infrastructure_Network", "addressRange"): parse_network_address_range,
             ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
