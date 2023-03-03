@@ -15,17 +15,20 @@ def make_error(user_msg, debug_msg=None):
         print(f"ERROR [{datetime.datetime.now()}]: {debug_msg}")
     return result
 
-
-def post(body):
+def post(body, version=None):
     doml_xmi = body
     try:
         doml_version = None
         try:
             doml_version: str = os.environ["DOML_VERSION"]
-            doml_version = DOMLVersion.get(doml_version)
-            print("Setting DOML version from DOML_VERSION")
         except:
             pass
+        if version:
+            doml_version: str = version
+        if doml_version:
+            doml_version = DOMLVersion.get(doml_version)
+            print(f"Forcing DOML {doml_version.value}")
+
         dmc = ModelChecker(doml_xmi, doml_version)
 
         user_req_store = None

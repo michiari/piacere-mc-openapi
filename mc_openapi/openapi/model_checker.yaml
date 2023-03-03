@@ -3,12 +3,13 @@ info:
   license:
     name: Apache-2.0
   title: PIACERE Model Checker
-  version: "1.0"
+  version: "2.2.0"
 paths:
   /modelcheck:
     post:
+      summary: Verify a DOML model
       description: Send a DOML model in XMI format and a requirement to check.
-        The response says whether the requirement is satisfied by the model,
+        The response says whether the requirements are satisfied by the model,
         with a description of the issue if it is not.
       operationId: mc_openapi.handlers.post
       requestBody:
@@ -17,6 +18,16 @@ paths:
             schema:
               type: string
         required: true
+      parameters:
+        - in: query
+          name: version
+          schema:
+            type: string
+          description: >
+            The DOML version you're currently using, written as e.g. `2.0` or `V2_0`.
+            If not specified, it will try to infer it by trying to parse it for each supported
+            DOML version, starting with the most recent.
+          required: false
       responses:
         "200":
           content:

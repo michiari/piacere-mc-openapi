@@ -1,5 +1,6 @@
 import copy
 import importlib.resources as ilres
+import sys
 from typing import Optional, Tuple
 
 from lxml import etree
@@ -90,7 +91,10 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
 
         model, doml_version = get_model(raw_model, doml_version)
     else: # if user specifies DOML version, respect that choice!
-        model = parse_xmi_model(raw_model, doml_version)
+        try:
+            model = parse_xmi_model(raw_model, doml_version)
+        except:
+            raise Exception("Parsing of DOML failed. Perhaps you are using the wrong DOML version or IDE?")
 
     print(f"Using DOML {doml_version.value}")
 
