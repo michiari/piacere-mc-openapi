@@ -20,6 +20,7 @@ in charge of checking the correctness and consistency of `DOML`_ models.
    writing-requirements
    requirements
    restapis
+   reference_index
 
 ..
    Indices and tables
