@@ -1,0 +1,13 @@
+# CSP Name
+aws:
+  - algorithm: "RSA"
+    bits: "2048"
+  - algorithm: "ED25519"
+
+azure:
+  - algorithm: "RSA"
+    bits: "2048-*"
+
+bad_csp:
+  - algorithm: "OLD_ALGO"
+    bits: "*-1024"

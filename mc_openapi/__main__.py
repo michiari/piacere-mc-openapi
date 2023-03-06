@@ -29,7 +29,9 @@ parser.add_argument("-v", "--verbose", dest="verbose", action='store_true', help
 # Model Checker
 parser.add_argument("-c", "--check-consistency", dest="consistency", action='store_true', help="check on additional built-in consistency requirements")
 parser.add_argument("-S", "--skip-common-checks", dest="skip_common", action='store_true', help="skip check on common built-in requirements")
+parser.add_argument("-C", "--csp", dest="csp", action='store_true', help="check compatibility with supported CSPs")
 parser.add_argument("-t", "--threads", dest="threads", type=int, default=2, help="number of threads used by the model checker")
+
 # Synthesis
 parser.add_argument("-s", "--synth", dest="synth", action='store_true', help="synthetize a new DOMLX file from requirements")
 parser.add_argument("-m", "--max-tries", dest="tries", type=int, default=8, help="max number of iteration while trying to solve the model with unbounded variables")
@@ -70,6 +72,13 @@ else:
     # Config the model checker (setup metamodels and intermediate models)
     dmc = ModelChecker(doml_xmi, doml_ver)
     doml_ver = dmc.doml_version
+
+    # Check CSP Compatibility
+    if args.csp:
+        from mc_openapi.doml_mc.csp_compatibility import CSPCompatibilityValidator
+        cspc = CSPCompatibilityValidator
+        cspc.check(dmc.intermediate_model, doml_ver)
+        exit(0)
 
     # Store of Requirements and unique string constants
     user_req_store = RequirementStore()

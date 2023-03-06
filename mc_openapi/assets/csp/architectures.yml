@@ -1,0 +1,16 @@
+# CSP Name
+aws:
+  - x86
+  - x86_64
+  - ARM64
+
+gcp:
+  - x86
+  - ARM
+
+azure:
+  - x86
+  - ARM
+
+bad_csp:
+  - PowerPC
