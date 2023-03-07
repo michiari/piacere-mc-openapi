@@ -105,9 +105,9 @@ application:
                 class: application_ApplicationComponent
                 multiplicity: "0..*"
     ApplicationComponent:
-        superclass: commons_DOMLElement
+        superclass: commons_DeployableElement # and commons_DOMLElement too, but that's definitely wrong; keeping discarding DOMLElement since DeplElem inherits it.
     SoftwareComponent:
-        superclass: application_ApplicationComponent # and commons_DeployableElement, but we can't handle multiple parent classes, can't we?
+        superclass: application_ApplicationComponent
         attributes:
             isPersistent:
                 type: Boolean
@@ -374,7 +374,7 @@ infrastructure:
         associations:
             connectedTo:
                 class: infrastructure_Network
-                multiplicity: "0..1"
+                multiplicity: "0..*"
     NetworkInterface:
         superclass: infrastructure_InfrastructureElement
         attributes:

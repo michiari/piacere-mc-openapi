@@ -130,7 +130,7 @@ application
 
 ApplicationComponent
 """"""""""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DeployableElement <v2.2_commons_DeployableElement>`
 
 
 .. _v2.2_application_ApplicationLayer:

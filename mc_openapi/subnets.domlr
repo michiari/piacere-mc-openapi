@@ -1,0 +1,47 @@
++ "Components that have producer-consumer dependency should be connected"
+    forall asc_producer, aswc_consumer (
+        # Require that there's a producer-consumer relationship
+        (
+            aswc_producer has application.SoftwareComponent.exposedInterfaces sw_iface #mysql
+            and
+            aswc_consumer has application.SoftwareComponent.consumedInterfaces sw_iface #nginx
+        )    
+        implies
+        exists 
+            vm_producer, # mysql_vm
+            vm_consumer, # nginx_vm
+            iface_producer, # mysql_iface
+            iface_consumer, # nginx_iface
+            net_producer, # mysql_subnet
+            net_consumer, # nginx_subnet
+            deploy_producer,
+            deploy_consumer
+        (
+            vm_producer has infrastructure.ComputingNode.ifaces iface_producer # mysql_vm -> mysql_iface
+            and
+            vm_consumer has infrastructure.ComputingNode.ifaces iface_consumer # nginx_vm -> nginx_iface
+            and
+            iface_producer has infrastructure.NetworkInterface.belongsTo net_producer # mysql_iface -> mysql_subnet
+            and
+            iface_consumer has infrastructure.NetworkInterface.belongsTo net_consumer # nginx_iface -> nginx_subnet
+            and
+            deploy_producer has commons.Deployment.component aswc_producer
+            and
+            deploy_producer has commons.Deployment.node vm_producer
+            and
+            deploy_consumer has commons.Deployment.component aswc_consumer
+            and
+            deploy_consumer has commons.Deployment.node vm_consumer
+            and
+            (
+                net_producer is net_consumer # They belong to the same network
+                or
+                (
+                    net_producer has infrastructure.Subnet.connectedTo net_consumer
+                    and
+                    net_consumer has infrastructure.Subnet.connectedTo net_producer
+                )
+            )
+        )
+    )
+error: "WRONG!"
