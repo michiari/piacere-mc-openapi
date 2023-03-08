@@ -1,5 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import Literal
 
 from z3 import (Context, DatatypeSortRef, ExprRef, FuncDeclRef, Solver,
                 SortRef, sat)
@@ -16,6 +17,7 @@ from .z3encoding.metamodel_encoding import (def_association_rel,
                                             mk_attribute_sort_dict,
                                             mk_class_sort_dict)
 from .z3encoding.types import Refs
+
 
 @dataclass
 class SMTEncoding:
@@ -44,8 +46,10 @@ class Requirement:
     assert_callable: Callable[[SMTEncoding, SMTSorts], ExprRef]
     assert_name: str
     description: str
-    error_description: Callable[[Solver, SMTSorts, IntermediateModel], str]
+    error_description: tuple[Literal["BUILTIN", "USER"],
+                             Callable[[Solver, SMTSorts, IntermediateModel], str]]
     flipped: bool = False
+
 
 class RequirementStore:
     def __init__(self, requirements: list[Requirement] = []):
@@ -77,9 +81,12 @@ class IntermediateModelChecker:
         self.solver = Solver(ctx=self.z3Context)
 
         class_sort, class_ = mk_class_sort_dict(self.metamodel, self.z3Context)
-        assoc_sort, assoc = mk_association_sort_dict(self.metamodel, self.z3Context)
-        attr_sort, attr = mk_attribute_sort_dict(self.metamodel, self.z3Context)
-        elem_sort, elem = mk_elem_sort_dict(self.intermediate_model, self.z3Context)
+        assoc_sort, assoc = mk_association_sort_dict(
+            self.metamodel, self.z3Context)
+        attr_sort, attr = mk_attribute_sort_dict(
+            self.metamodel, self.z3Context)
+        elem_sort, elem = mk_elem_sort_dict(
+            self.intermediate_model, self.z3Context)
         str_sort, str = mk_stringsym_sort_dict(
             self.intermediate_model,
             self.metamodel,
@@ -153,10 +160,12 @@ class IntermediateModelChecker:
                 req.assert_name
             )
             res = self.solver.check()
+            req_src, req_fn = req.error_description
             results.append((
                 MCResult.from_z3result(res, flipped=req.flipped),
-                req.error_description(self.solver, self.smt_sorts, self.intermediate_model)
-                # if res == sat else "" # not needed since we're try/catching model() errors 
+                req_src,
+                req_fn(self.solver, self.smt_sorts, self.intermediate_model)
+                # if res == sat else "" # not needed since we're try/catching model() errors
                 # in each requirement now
             ))
             self.solver.pop()

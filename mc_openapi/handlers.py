@@ -15,6 +15,7 @@ def make_error(user_msg, debug_msg=None):
         print(f"ERROR [{datetime.datetime.now()}]: {debug_msg}")
     return result
 
+
 def post(body, version=None):
     doml_xmi = body
     try:
@@ -36,29 +37,36 @@ def post(body, version=None):
 
         # Add support for Requirements in DOML
         if dmc.doml_version == DOMLVersion.V2_2:
-                domlr_parser = Parser(DOMLRTransformer)
-                model = get_pyecore_model(doml_xmi, DOMLVersion.V2_2)
-                func_reqs = model.functionalRequirements.items
+            domlr_parser = Parser(DOMLRTransformer)
+            model = get_pyecore_model(doml_xmi, DOMLVersion.V2_2)
+            func_reqs = model.functionalRequirements.items
 
-                user_req_store = RequirementStore()
+            user_req_store = RequirementStore()
 
-                for req in func_reqs:
-                    req_name: str = req.name
-                    req_text: str = req.description
-                    req_text = req_text.replace("```", "")
-                    doml_req_store, doml_req_str_consts = domlr_parser.parse(req_text)
-                    user_req_store += doml_req_store
-                    user_req_str_consts += doml_req_str_consts
+            for req in func_reqs:
+                req_name: str = req.name
+                req_text: str = req.description
+                req_text = req_text.replace("```", "")
+                doml_req_store, doml_req_str_consts = domlr_parser.parse(
+                    req_text)
+                user_req_store += doml_req_store
+                user_req_str_consts += doml_req_str_consts
 
-
-        results = dmc.check_requirements(threads=2, user_requirements=user_req_store, user_str_values=user_req_str_consts, consistency_checks=False, timeout=50)
+        results = dmc.check_requirements(threads=2, user_requirements=user_req_store,
+                                         user_str_values=user_req_str_consts, consistency_checks=False, timeout=50)
         res, msg = results.summarize()
 
         if res == MCResult.sat:
-            return {"result": "sat"}
+            return {
+                "result": "sat",
+                "doml_version": dmc.doml_version.value
+            }
         else:
-            return {"result": res.name,
-                    "description": msg}
+            return {
+                "result": res.name,
+                "doml_version": dmc.doml_version.value,
+                "description": f'[Using DOML {dmc.doml_version.value}]\n{msg}'
+            }
 
     # TODO: Make noteworthy exceptions to at least tell the user what is wrong
     except Exception as e:

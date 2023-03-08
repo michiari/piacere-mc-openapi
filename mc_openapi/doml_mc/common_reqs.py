@@ -751,5 +751,11 @@ RequirementLists = {
 }
 
 
-CommonRequirements = {ver: RequirementStore([Requirement(
-    *rt, flipped=True) for rt in reqs]) for ver, reqs in RequirementLists.items()}
+CommonRequirements = {ver: RequirementStore(
+    [
+        Requirement(
+            *rt[:-1], error_description=("BUILTIN", rt[-1]), flipped=True
+        ) for rt in reqs
+    ])
+    for ver, reqs in RequirementLists.items()
+}

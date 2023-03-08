@@ -1,12 +1,12 @@
 import os
 import re
-from typing import Callable
+from typing import Callable, Literal
 
 import yaml
 from lark import Lark, Transformer, UnexpectedCharacters, UnexpectedEOF
 from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementBadSyntaxException
 from mc_openapi.doml_mc.domlr_parser.utils import (RefHandler, StringValuesCache, SynthesisRefHandler,
-                                                 VarStore)
+                                                   VarStore)
 from mc_openapi.doml_mc.error_desc_helper import get_user_friendly_name
 from mc_openapi.doml_mc.imc import (Requirement, RequirementStore, SMTEncoding,
                                     SMTSorts)
@@ -14,17 +14,21 @@ from mc_openapi.doml_mc.intermediate_model import IntermediateModel
 from z3 import And, Exists, ExprRef, ForAll, Implies, Not, Or, Solver, Xor, simplify
 from doml_synthesis import State
 
+
 class ParserData:
     def __init__(self) -> None:
         # TODO: Replace with files api?
         grammar_path = os.path.join(os.path.dirname(__file__), "grammar.lark")
-        exceptions_path = os.path.join(os.path.dirname(__file__), "exceptions.yaml")
+        exceptions_path = os.path.join(
+            os.path.dirname(__file__), "exceptions.yaml")
         with open(grammar_path, "r") as grammar:
             self.grammar = grammar.read()
         with open(exceptions_path, "r") as exceptions:
             self.exceptions = yaml.safe_load(exceptions)
 
+
 PARSER_DATA = ParserData()
+
 
 class Parser:
     def __init__(self, transformer, grammar: str = PARSER_DATA.grammar):
@@ -47,7 +51,7 @@ class Parser:
 
             if not for_synthesis:
                 return (
-                    RequirementStore(transformer.transform(self.tree)), 
+                    RequirementStore(transformer.transform(self.tree)),
                     user_values_cache.get_list()
                 )
             else:
@@ -64,24 +68,23 @@ class Parser:
                 return user_reqs, user_values_cache.get_list()
 
         except UnexpectedEOF as e:
-            msg =  "Unexpected End of File:\n"
+            msg = "Unexpected End of File:\n"
             msg += "Did you forget the `error:` message at the end of a requirement?"
             raise Exception(msg)
 
         except UnexpectedCharacters as e:
             msg = _get_error_desc_for_unexpected_characters(e, input)
             raise RequirementBadSyntaxException(e.line, e.column, msg)
-       
-        
+
 
 class DOMLRTransformer(Transformer):
     # These callbacks will be called when a rule with the same name
     # is matched. It starts from the leaves.
-    def __init__(self, 
-        const_store: VarStore, 
-        user_values_cache: StringValuesCache,
-        visit_tokens: bool = True
-    ) -> None:
+    def __init__(self,
+                 const_store: VarStore,
+                 user_values_cache: StringValuesCache,
+                 visit_tokens: bool = True
+                 ) -> None:
         super().__init__(visit_tokens)
         self.const_store = const_store
         self.user_values_cache = user_values_cache
@@ -97,17 +100,18 @@ class DOMLRTransformer(Transformer):
         flip_expr: bool = args[0].value == "-"
         name: str = args[1]
         expr: Callable[[SMTEncoding, SMTSorts], ExprRef] = args[2]
-        errd: Callable[[Solver, SMTSorts, IntermediateModel, int], str] = args[3]
+        errd: tuple[Literal["USER", "BUILTIN"], Callable[[Solver, SMTSorts,
+                                                          IntermediateModel, int], str]] = args[3]
         index = self.const_store.get_index_and_push()
         return Requirement(
             expr,
             name.lower().replace(" ", "_"),
             name,
-            lambda solver, sorts, model: errd(
-                solver, sorts, model, 
-                index, 
+            (errd[0], lambda solver, sorts, model: errd[1](
+                solver, sorts, model,
+                index,
                 name
-            ),
+            )),
             flipped=flip_expr
         )
 
@@ -128,7 +132,7 @@ class DOMLRTransformer(Transformer):
 
     def iff_expr(self, args):
         return lambda enc, sorts: args[0](enc, sorts) == args[1](enc, sorts)
-    
+
     def implies_expr(self, args):
         return lambda enc, sorts: Implies(args[0](enc, sorts), args[1](enc, sorts))
 
@@ -167,6 +171,7 @@ class DOMLRTransformer(Transformer):
         """An ATTRIBUTE relationship with a rhs that is a value"""
 
         rel_name = args[1].value
+
         def _gen_rel_attr_value_expr(enc: SMTEncoding, sorts: SMTSorts):
             elem = RefHandler.get_const(args[0].value, sorts)
             rel, rel_type = RefHandler.get_relationship(enc, rel_name)
@@ -181,26 +186,25 @@ class DOMLRTransformer(Transformer):
                 lhs_value = RefHandler.get_value("x", sorts)
 
                 return And(
-                    RefHandler.get_attribute_rel(enc, 
-                        elem,
-                        rel,
-                        lhs_value
-                    ),
+                    RefHandler.get_attribute_rel(enc,
+                                                 elem,
+                                                 rel,
+                                                 lhs_value
+                                                 ),
                     self.compare_int(sorts, op, lhs_value, rhs_value)
                 )
             elif rhs_value_type == RefHandler.STRING or rhs_value_type == RefHandler.BOOLEAN:
                 expr = RefHandler.get_attribute_rel(enc,
-                    elem,
-                    rel,
-                    rhs_value
-                )
+                                                    elem,
+                                                    rel,
+                                                    rhs_value
+                                                    )
                 if op == "==":
                     return expr
                 elif op == "!=":
                     return Not(expr)
                 else:
                     raise f'Invalid compare operator "{op}". It must be "==" or "!=".'
-            
 
         return _gen_rel_attr_value_expr
 
@@ -224,15 +228,15 @@ class DOMLRTransformer(Transformer):
 
             expr = And(
                 RefHandler.get_attribute_rel(enc,
-                    elem1,
-                    rel1,
-                    rhs_value
-                ),
+                                             elem1,
+                                             rel1,
+                                             rhs_value
+                                             ),
                 RefHandler.get_attribute_rel(enc,
-                    elem2,
-                    rel2,
-                    rhs_value
-                )
+                                             elem2,
+                                             rel2,
+                                             rhs_value
+                                             )
             )
             if op == "==":
                 return expr
@@ -243,22 +247,22 @@ class DOMLRTransformer(Transformer):
                 rhs2_value = RefHandler.get_value("rhs2", sorts)
                 expr = And(
                     RefHandler.get_attribute_rel(enc,
-                        elem1,
-                        rel1,
-                        rhs1_value
-                    ),
+                                                 elem1,
+                                                 rel1,
+                                                 rhs1_value
+                                                 ),
                     RefHandler.get_attribute_rel(enc,
-                        elem2,
-                        rel2,
-                        rhs2_value
-                    ),
+                                                 elem2,
+                                                 rel2,
+                                                 rhs2_value
+                                                 ),
                     self.compare_int(sorts, op, rhs1_value, rhs2_value)
                 )
                 print(
                     "Warning: Comparing attributes of two elements with {op} is experimental!\n",
                     "Assumption: the attribute is an Integer."
                 )
-                return expr            
+                return expr
 
         return _gen_rel_attr_elem_expr
 
@@ -271,14 +275,16 @@ class DOMLRTransformer(Transformer):
             )
 
         if arg1.type == "CLASS":
-            arg1_ret = lambda enc, _: RefHandler.get_class(enc, arg1.value)
+            def arg1_ret(enc, _): return RefHandler.get_class(enc, arg1.value)
         else:
-            arg1_ret = lambda enc, sorts: RefHandler.get_element_class(enc, RefHandler.get_const(arg1.value, sorts))
+            def arg1_ret(enc, sorts): return RefHandler.get_element_class(
+                enc, RefHandler.get_const(arg1.value, sorts))
 
         if arg2.type == "CLASS":
-            arg2_ret = lambda enc, _: RefHandler.get_class(enc, arg2.value)
+            def arg2_ret(enc, _): return RefHandler.get_class(enc, arg2.value)
         else:
-            arg2_ret = lambda enc, sorts: RefHandler.get_element_class(enc, RefHandler.get_const(arg2.value, sorts))
+            def arg2_ret(enc, sorts): return RefHandler.get_element_class(
+                enc, RefHandler.get_const(arg2.value, sorts))
 
         return (arg1_ret, arg2_ret)
 
@@ -294,7 +300,7 @@ class DOMLRTransformer(Transformer):
         if args[0].type == "CONST":
             self.const_store.use(args[0].value)
         return args[0]
-    
+
     def compare_int(self, sorts: SMTSorts, op: str, a, b):
         # To extract the `int` contained in the attr_data_sort,
         # we need to call its `get_int` method on the `DatatypeRef`
@@ -317,8 +323,7 @@ class DOMLRTransformer(Transformer):
             return a != b
         raise f"Invalid Compare Operator Symbol: {op}"
 
-
-    def value(self, args):  
+    def value(self, args):
         type = args[0].type
         value = args[0].value
 
@@ -341,37 +346,40 @@ class DOMLRTransformer(Transformer):
             index: int,
             requirement_desc: str
         ) -> str:
-            msg: str = f"[Requirement \"{requirement_desc}\"]"
-            msg += "\n\t" + args[0].value.replace('"', '')
+            err_msg = args[0].value.replace('"', '')
             # Get list of free variables
             consts_name = self.const_store.get_free_vars(index)
             consts = RefHandler.get_consts(consts_name, sorts)
-            notes = ""
+            notes = []
             try:
                 model = solver.model()
                 for const in consts:
-                    name = get_user_friendly_name(intermediate_model, model, const)
-                    msg = msg.replace("{" + str(const) + "}", f"'{name}'")
+                    name = get_user_friendly_name(
+                        intermediate_model, model, const)
+                    err_msg = err_msg.replace(
+                        "{" + str(const) + "}", f"'{name}'")
             except:
-                notes += "\n\t- model not found: it's not possible to show which element is causing the issue"
+                notes.append(
+                    "Model not found: it's not possible to show which element is causing the issue")
 
             # tell the user which variables are not free
-            unused_free_vars = re.findall(r"{[^{}]*}", msg)
+            unused_free_vars = re.findall(r"{[^{}]*}", err_msg)
             if unused_free_vars:
-                notes += "\n\t- The following variables are not free and should be removed from the error description:"
-                notes += "\n\t" + " ".join(unused_free_vars)
+                notes.append(
+                    "The following variables are not free and should be removed from the error description: " + " ".join(unused_free_vars))
 
-            return msg + ("\n\n\tNOTES:" + notes if notes else "")
-        return err_callback
+            return (requirement_desc, err_msg, notes)
+        return ("USER", err_callback)
+
 
 class SynthesisDOMLRTransformer(Transformer):
     # These callbacks will be called when a rule with the same name
     # is matched. It starts from the leaves.
-    def __init__(self, 
-        const_store: VarStore, 
-        user_values_cache: StringValuesCache,
-        visit_tokens: bool = True
-    ) -> None:
+    def __init__(self,
+                 const_store: VarStore,
+                 user_values_cache: StringValuesCache,
+                 visit_tokens: bool = True
+                 ) -> None:
         super().__init__(visit_tokens)
         self.const_store = const_store
         self.user_values_cache = user_values_cache
@@ -389,7 +397,7 @@ class SynthesisDOMLRTransformer(Transformer):
         expr: Callable[[State], ExprRef] = args[2]
         return (
             expr,
-            name.lower().replace(" ", "_"), # id
+            name.lower().replace(" ", "_"),  # id
             flip_expr
         )
 
@@ -410,7 +418,7 @@ class SynthesisDOMLRTransformer(Transformer):
 
     def iff_expr(self, args):
         return lambda state: args[0](state) == args[1](state)
-    
+
     def implies_expr(self, args):
         return lambda state: Implies(args[0](state), args[1](state))
 
@@ -444,12 +452,13 @@ class SynthesisDOMLRTransformer(Transformer):
 
     def rel_attr_value_expr(self, args):
         """An ATTRIBUTE relationship with a rhs that is a value
-        
+
            CONST "has" RELATIONSHIP COMPARISON_OP value
            0           1            2             3
         """
 
         rel_name = args[1].value
+
         def _gen_rel_attr_value_expr(state: State):
             elem = SynthesisRefHandler.get_const(args[0].value, state)
             rel = SynthesisRefHandler.get_attr(state, rel_name)
@@ -467,21 +476,20 @@ class SynthesisDOMLRTransformer(Transformer):
             elif op != "==" and op != "!=":
                 raise "You can only use == and != to compare Strings and Booleans!"
             elif rhs_value_type == SynthesisRefHandler.STRING:
-                lhs_value = state.rels.str.AttrValueRel(elem, rel.ref) 
-                
+                lhs_value = state.rels.str.AttrValueRel(elem, rel.ref)
+
                 return And(
                     lhs_value == rhs_value if op == "==" else lhs_value != rhs_value,
                     state.rels.str.AttrSynthRel(elem, rel.ref)
                 )
             elif rhs_value_type == SynthesisRefHandler.BOOLEAN:
-                lhs_value = state.rels.bool.AttrValueRel(elem, rel.ref)  
+                lhs_value = state.rels.bool.AttrValueRel(elem, rel.ref)
                 return And(
                     lhs_value == rhs_value if op == "==" else lhs_value != rhs_value,
                     state.rels.bool.AttrSynthRel(elem, rel.ref)
                 )
             else:
                 raise f'Invalid value {rhs_value} during parsing for synthesis.'
-            
 
         return _gen_rel_attr_value_expr
 
@@ -506,8 +514,8 @@ class SynthesisDOMLRTransformer(Transformer):
                     state.rels.int.AttrSynthRel(elem1, rel1.ref),
                     state.rels.int.AttrSynthRel(elem2, rel2.ref),
                     self.compare(
-                        op, 
-                        state.rels.int.AttrValueRel(elem1, rel1.ref), 
+                        op,
+                        state.rels.int.AttrValueRel(elem1, rel1.ref),
                         state.rels.int.AttrValueRel(elem2, rel2.ref)
                     )
                 )
@@ -516,8 +524,8 @@ class SynthesisDOMLRTransformer(Transformer):
                     state.rels.bool.AttrSynthRel(elem1, rel1.ref),
                     state.rels.bool.AttrSynthRel(elem2, rel2.ref),
                     self.compare(
-                        op, 
-                        state.rels.bool.AttrValueRel(elem1, rel1.ref), 
+                        op,
+                        state.rels.bool.AttrValueRel(elem1, rel1.ref),
                         state.rels.bool.AttrValueRel(elem2, rel2.ref)
                     )
                 )
@@ -526,8 +534,8 @@ class SynthesisDOMLRTransformer(Transformer):
                     state.rels.str.AttrSynthRel(elem1, rel1.ref),
                     state.rels.str.AttrSynthRel(elem2, rel2.ref),
                     self.compare(
-                        op, 
-                        state.rels.str.AttrValueRel(elem1, rel1.ref), 
+                        op,
+                        state.rels.str.AttrValueRel(elem1, rel1.ref),
                         state.rels.str.AttrValueRel(elem2, rel2.ref)
                     )
                 )
@@ -544,14 +552,18 @@ class SynthesisDOMLRTransformer(Transformer):
             )
 
         if arg1.type == "CLASS":
-            arg1_ret = lambda state: SynthesisRefHandler.get_class(state, arg1.value)
+            def arg1_ret(state): return SynthesisRefHandler.get_class(
+                state, arg1.value)
         else:
-            arg1_ret = lambda state: SynthesisRefHandler.get_element_class(state, SynthesisRefHandler.get_const(arg1.value, state))
+            def arg1_ret(state): return SynthesisRefHandler.get_element_class(
+                state, SynthesisRefHandler.get_const(arg1.value, state))
 
         if arg2.type == "CLASS":
-            arg2_ret = lambda state: SynthesisRefHandler.get_class(state, arg2.value)
+            def arg2_ret(state): return SynthesisRefHandler.get_class(
+                state, arg2.value)
         else:
-            arg2_ret = lambda state: SynthesisRefHandler.get_element_class(state, SynthesisRefHandler.get_const(arg2.value, state))
+            def arg2_ret(state): return SynthesisRefHandler.get_element_class(
+                state, SynthesisRefHandler.get_const(arg2.value, state))
 
         return (arg1_ret, arg2_ret)
 
@@ -567,7 +579,7 @@ class SynthesisDOMLRTransformer(Transformer):
         if args[0].type == "CONST":
             self.const_store.use(args[0].value)
         return args[0]
-    
+
     def compare(self, op: str, a, b):
 
         if op == ">":
@@ -584,8 +596,7 @@ class SynthesisDOMLRTransformer(Transformer):
             return a != b
         raise f"Invalid Compare Operator Symbol: {op}"
 
-
-    def value(self, args):  
+    def value(self, args):
         type = args[0].type
         value = args[0].value
 
@@ -596,7 +607,8 @@ class SynthesisDOMLRTransformer(Transformer):
         elif type == "NUMBER":
             return lambda _: value, SynthesisRefHandler.INTEGER
         elif type == "BOOL":
-            return lambda _: SynthesisRefHandler.get_bool(value), SynthesisRefHandler.BOOLEAN 
+            return lambda _: SynthesisRefHandler.get_bool(value), SynthesisRefHandler.BOOLEAN
+
 
 def _get_error_desc_for_unexpected_characters(e: UnexpectedCharacters, input: str):
     # Error description
