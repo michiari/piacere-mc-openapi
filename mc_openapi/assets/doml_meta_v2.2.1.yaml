@@ -363,7 +363,7 @@ infrastructure:
                 class: infrastructure_NetworkInterface
                 multiplicity: "0..*"
                 inverse_of: infrastructure_NetworkInterface::belongsTo
-            igws:
+            gateways:
                 class: infrastructure_InternetGateway
                 multiplicity: "0..*"
             subnets:
@@ -393,6 +393,10 @@ infrastructure:
                 multiplicity: "0..1" # TODO: try putting this to 1 and see why it fails
     InternetGateway:
         superclass: infrastructure_NetworkInterface
+        attributes:
+            address:
+                type: String
+                multiplicity: "1"
     ComputingGroup:
         superclass: commons_DOMLElement
         associations:
@@ -456,6 +460,10 @@ concrete:
                 multiplicity: "0..*"
     ConcreteElement:
         superclass: commons_DOMLElement
+        associations:
+            refs:
+                class: concrete_ConcreteElement
+                multiplicity: "0..*"
         attributes:
             configurationScript:
                 type: String
@@ -467,6 +475,9 @@ concrete:
     RuntimeProvider:
         superclass: commons_DOMLElement
         associations:
+            resources:
+                class: concrete_GenericResource
+                multiplicity: "0..*"
             vms:
                 class: concrete_VirtualMachine
                 multiplicity: "0..*"
@@ -529,4 +540,13 @@ concrete:
         associations:
             maps:
                 class: infrastructure_ComputingGroup
+                multiplicity: "1"
+    GenericResource:
+        superclass: concrete_ConcreteElement
+        attributes:
+            type:
+                type: "String"
+                multiplicity: "1"
+            gname:
+                type: "String"
                 multiplicity: "1"
