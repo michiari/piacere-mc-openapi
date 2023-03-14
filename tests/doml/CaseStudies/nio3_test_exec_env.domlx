@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" name="nio3_test_exec_env" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="app">
+    <components xsi:type="app:SoftwareComponent" name="nio3"/>
+  </application>
+  <infrastructure name="infra">
+    <nodes xsi:type="infra:VirtualMachine" name="vm1" os="centos7_64Guest" memory_mb="1024.0" cpu_count="2" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+      <ifaces name="i1" endPoint="10.83.18.92" belongsTo="//@infrastructure/@networks.0"/>
+    </nodes>
+    <nodes xsi:type="infra:VirtualMachine" name="vm2" os="centos7_64Guest" memory_mb="1024.0" cpu_count="2" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+      <ifaces name="i1" endPoint="10.83.18.88" belongsTo="//@infrastructure/@networks.0"/>
+    </nodes>
+    <generators xsi:type="infra:VMImage" name="img" generatedVMs="//@infrastructure/@nodes.0 //@infrastructure/@nodes.1"/>
+    <storages name="disk0" label="disk0" size_gb="100"/>
+    <credentials xsi:type="commons:UserPass" name="ssh_pass" username="root" password="pa$$w0rd"/>
+    <credentials xsi:type="commons:KeyPair" name="ssh_key" keyfile="/home/rmandal/.ssh/id_rsa.pub"/>
+    <networks name="net1" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@nodes.0/@ifaces.0 //@infrastructure/@nodes.1/@ifaces.0">
+      <gateways name="g1" address="10.83.18.65"/>
+    </networks>
+  </infrastructure>
+  <concretizations name="con_infra">
+    <providers name="vsphere">
+      <annotations xsi:type="commons:SProperty" key="username" value="vc_username"/>
+      <annotations xsi:type="commons:SProperty" key="password" value="vc_password"/>
+      <annotations xsi:type="commons:SProperty" key="vsphere_server" value="psvc10000002.cd.sigov.si"/>
+      <annotations xsi:type="commons:BProperty" key="allow_unverified_ssl" value="true"/>
+      <resources name="dc" preexisting="true" type="vsphere_datacenter" gname="MB"/>
+      <resources name="cl" preexisting="true" refs="//@concretizations.0/@providers.0/@resources.0" type="vsphere_compute_cluster" gname="MB-PIAC-NIC-1"/>
+      <resources name="pool" preexisting="true" refs="//@concretizations.0/@providers.0/@resources.0" type="vsphere_resource_pool" gname="PIAC"/>
+      <vms name="con_vm1" refs="//@concretizations.0/@providers.0/@resources.2 //@concretizations.0/@providers.0/@storages.0" maps="//@infrastructure/@nodes.0">
+        <annotations xsi:type="commons:SProperty" key="host_name" value="piac-0"/>
+        <annotations xsi:type="commons:SProperty" key="domain" value="ad.sigov.si"/>
+      </vms>
+      <vms name="con_vm2" refs="//@concretizations.0/@providers.0/@resources.2 //@concretizations.0/@providers.0/@storages.0" maps="//@infrastructure/@nodes.1">
+        <annotations xsi:type="commons:SProperty" key="host_name" value="piac-1"/>
+        <annotations xsi:type="commons:SProperty" key="domain" value="ad.sigov.si"/>
+      </vms>
+      <vmImages name="template" preexisting="true" refs="//@concretizations.0/@providers.0/@resources.0" maps="//@infrastructure/@generators.0">
+        <annotations xsi:type="commons:SProperty" key="vsphere_virtual_machine_name" value="Centos7_PIAC"/>
+      </vmImages>
+      <networks name="network" preexisting="true" refs="//@concretizations.0/@providers.0/@resources.0" maps="//@infrastructure/@networks.0">
+        <annotations xsi:type="commons:SProperty" key="vsphere_network_name" value="DRO-MB-P-BG001-2098"/>
+      </networks>
+      <storages name="datastore" preexisting="true" refs="//@concretizations.0/@providers.0/@resources.0" maps="//@infrastructure/@storages.0">
+        <annotations xsi:type="commons:SProperty" key="vsphere_datastore_name" value="VNX01-0200-NIC-TA-PIAC-DRO-VMW-P"/>
+      </storages>
+    </providers>
+  </concretizations>
+  <configurations name="conf">
+    <deployments component="//@application/@components.0" node="//@infrastructure/@nodes.0"/>
+    <deployments component="//@application/@components.0" node="//@infrastructure/@nodes.1"/>
+  </configurations>
+</commons:DOMLModel>

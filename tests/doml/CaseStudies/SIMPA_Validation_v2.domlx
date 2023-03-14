@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" name="nio3_test_exec_env" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="app">
+    <components xsi:type="app:SoftwareComponent" name="potainer">
+      <src name="r1"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="nio3_git">
+      <src name="r1" entry="ansible/provision.yml" backend="ansible">
+        <annotations xsi:type="commons:SProperty" key="nexus_docker_registry_user" value="***"/>
+        <annotations xsi:type="commons:SProperty" key="nexus_docker_registry_password" value="***"/>
+      </src>
+    </components>
+  </application>
+  <infrastructure name="infra">
+    <nodes xsi:type="infra:Container" name="co1">
+      <configs host="//@infrastructure/@nodes.1"/>
+    </nodes>
+    <nodes xsi:type="infra:VirtualMachine" name="vm1" os="CentOS-7-2111" memory_mb="8192.0" cpu_count="2">
+      <ifaces name="i1" endPoint="10.0.0.1" belongsTo="//@infrastructure/@networks.0"/>
+    </nodes>
+    <storages name="disk0" label="disk0" size_gb="40"/>
+    <networks name="net1" protocol="tcp/ip" addressRange="10.0.0.0/29" connectedIfaces="//@infrastructure/@nodes.1/@ifaces.0"/>
+  </infrastructure>
+  <concretizations name="con_infra">
+    <providers name="openstack">
+      <vms name="concrete_vm" maps="//@infrastructure/@nodes.1">
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small-centos"/>
+      </vms>
+      <networks name="concrete_net" preexisting="true" maps="//@infrastructure/@networks.0"/>
+      <storages name="concrete_disk" maps="//@infrastructure/@storages.0"/>
+    </providers>
+  </concretizations>
+  <configurations name="conf">
+    <deployments component="//@application/@components.0" node="//@infrastructure/@nodes.0"/>
+    <deployments component="//@infrastructure/@nodes.0" node="//@infrastructure/@nodes.1"/>
+  </configurations>
+</commons:DOMLModel>

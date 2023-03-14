@@ -1,0 +1,144 @@
+doml nio3_test_exec_env
+
+application app {
+
+	software_component nio3 {
+		properties {}
+	}
+}
+
+infrastructure infra {
+	
+	net net1 {
+		cidr "/24"
+		protocol "tcp/ip"
+		gateway g1 {
+			address "10.83.18.65"
+		}
+	}
+
+	user_pass ssh_pass {
+		user "root"
+		pass "pa$$w0rd"
+	}
+
+	key_pair ssh_key {
+		keyfile "/home/rmandal/.ssh/id_rsa.pub"
+	}
+	
+	vm_image img {
+		generates vm1, vm2
+	}
+	
+	vm vm1 {
+		os "centos7_64Guest"
+		cpu_count 2
+		mem_mb 1024.0
+		iface i1 {
+			address "10.83.18.92"
+			belongs_to net1
+		}
+		credentials ssh_pass
+	}
+	
+	vm vm2 {
+		os "centos7_64Guest"
+		cpu_count 2
+		mem_mb 1024.0
+		iface i1 {
+			address "10.83.18.88"
+			belongs_to net1
+		}
+		credentials ssh_pass
+	}
+	
+	sto disk0 {
+		label "disk0"
+		size_gb 100
+	}
+}
+
+deployment conf {
+	nio3 -> vm1, nio3 -> vm2
+}
+
+active deployment conf
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider vsphere {
+			properties {
+				username = "vc_username";
+				password = "vc_password";
+				vsphere_server = "psvc10000002.cd.sigov.si";
+				allow_unverified_ssl = true;
+			}
+			
+			generic_resource dc {
+				preexisting true
+				type 'vsphere_datacenter'
+				gname 'MB'
+			}
+
+			generic_resource cl {
+				preexisting true
+				refs_to dc
+				type 'vsphere_compute_cluster'
+				gname 'MB-PIAC-NIC-1'
+			}
+
+			generic_resource pool {
+				preexisting true
+				refs_to dc
+				type 'vsphere_resource_pool'
+				gname 'PIAC'
+			}
+			
+			vm_image template {
+				preexisting true
+				refs_to dc
+				properties {
+					vsphere_virtual_machine_name = "Centos7_PIAC";
+				}
+				maps img
+			}
+			
+			storage datastore {
+				preexisting true
+				refs_to dc
+				properties {
+					vsphere_datastore_name = 'VNX01-0200-NIC-TA-PIAC-DRO-VMW-P';
+				}
+				maps disk0
+			}
+
+			net network {
+				preexisting true
+				refs_to dc
+				properties {
+					vsphere_network_name = "DRO-MB-P-BG001-2098";
+				}
+				maps net1
+			}
+
+			vm con_vm1 {
+				refs_to pool, datastore
+				properties {
+					host_name = "piac-0";
+					domain    = "ad.sigov.si";
+				}
+				maps vm1
+			}
+
+			vm con_vm2 {
+				refs_to pool, datastore
+				properties {
+					host_name = "piac-1";
+					domain    = "ad.sigov.si";
+				}
+				maps vm2
+			}
+		}
+	}
+	active con_infra
+}

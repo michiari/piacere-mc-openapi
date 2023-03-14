@@ -1,0 +1,84 @@
+doml nio3_test_exec_env
+
+application app {
+	// To be discussed
+	software_component potainer {
+		source r1 {
+			
+		}
+	}
+
+	software_component nio3_git {
+		source r1 {
+			entry "ansible/provision.yml"
+			backend "ansible"
+			properties {
+				nexus_docker_registry_user = "***";
+				nexus_docker_registry_password = "***";
+			}
+		}
+	}
+	
+}
+
+infrastructure infra {
+
+	container co1 {
+		host vm1
+	}
+
+	vm vm1 {
+		os "CentOS-7-2111"
+		cpu_count 2
+		mem_mb 8192.0
+		iface i1 {
+			address "10.0.0.1"
+			belongs_to net1
+		}
+	}
+
+	net net1 {
+		// cidr "/24" -> WRONG
+		// cidr "[10.0.0.1, 10.0.0.5]" -> WRONG
+		cidr "10.0.0.0/29" // -> 2^3 ips, 10.0.0.1-10.0.0.6
+		protocol "tcp/ip"
+	}
+
+	sto disk0 {
+		label "disk0"
+		size_gb 40
+	}
+}
+
+deployment conf {
+	potainer -> co1,
+	co1 -> vm1
+}
+
+active deployment conf
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider openstack {
+			properties {}
+
+			vm concrete_vm {
+				properties {
+					vm_flavor = "small-centos";
+				}
+				maps vm1
+			}
+
+			net concrete_net {
+				preexisting true
+				properties {}
+				maps net1
+			}
+
+			storage concrete_disk {
+				maps disk0
+			}
+		}
+	}
+	active con_infra
+}

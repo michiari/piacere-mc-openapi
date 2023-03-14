@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="ASCII"?>
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="uc3_openstack" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+  <application name="app">
+    <components xsi:type="app:SoftwareComponent" name="iwg">
+      <exposedInterfaces name="net_info"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="osint" consumedInterfaces="//@application/@components.0/@exposedInterfaces.0 //@application/@components.3/@exposedInterfaces.0 //@application/@components.2/@exposedInterfaces.0">
+      <exposedInterfaces name="osint_info"/>
+    </components>
+    <components xsi:type="app:SoftwareComponent" name="ewcf">
+      <exposedInterfaces name="ewcf_rest_interface"/>
+    </components>
+    <components xsi:type="app:SaaS" name="external_twitter">
+      <exposedInterfaces name="get_twitter" endPoint="https://twitter_api/get"/>
+    </components>
+  </application>
+  <infrastructure name="infra">
+    <nodes xsi:type="infra:Container" name="c" generatedFrom="//@infrastructure/@generators.1">
+      <configs container_port="80" vm_port="8080" host="//@infrastructure/@groups.0/@machineDefinition" iface="//@infrastructure/@groups.0/@machineDefinition/@ifaces.2">
+        <annotations xsi:type="commons:SProperty" key="env_var1" value="value1"/>
+      </configs>
+    </nodes>
+    <generators xsi:type="infra:VMImage" name="v_img1" generatedVMs="//@infrastructure/@groups.0/@machineDefinition"/>
+    <generators xsi:type="infra:ContainerImage" name="c_img" uri="web-app:0.1.0" kind="IMAGE" generatedContainers="//@infrastructure/@nodes.0"/>
+    <generators xsi:type="infra:VMImage" name="v_img2" generatedVMs="//@infrastructure/@groups.1/@machineDefinition"/>
+    <generators xsi:type="infra:VMImage" name="v_img3" generatedVMs="//@infrastructure/@groups.2/@machineDefinition"/>
+    <credentials xsi:type="commons:KeyPair" name="ssh_key" user="ubuntu" keyfile="/home/user1/.ssh/openstack.key" algorithm="RSA" bits="4096"/>
+    <groups xsi:type="infra:AutoScalingGroup" name="osint_ag">
+      <machineDefinition name="osint_vm" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
+        <ifaces name="osint_vm_net1" belongsTo="//@infrastructure/@networks.0"/>
+        <ifaces name="osint_vm_oam" belongsTo="//@infrastructure/@networks.3"/>
+        <ifaces name="osint_igw_port" belongsTo="//@infrastructure/@networks.0"/>
+      </machineDefinition>
+    </groups>
+    <groups xsi:type="infra:AutoScalingGroup" name="igw_ag">
+      <machineDefinition name="igw_vm" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.2">
+        <ifaces name="igw_vm_net2" belongsTo="//@infrastructure/@networks.1"/>
+        <ifaces name="igw_vm_oam" belongsTo="//@infrastructure/@networks.3"/>
+      </machineDefinition>
+    </groups>
+    <groups xsi:type="infra:AutoScalingGroup" name="ewcf_ag">
+      <machineDefinition name="ewcf_vm" os="ubuntu-20.04.3" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.3">
+        <ifaces name="ewcf_vm_net3" belongsTo="//@infrastructure/@networks.2"/>
+        <ifaces name="ewcf_vm_oam" belongsTo="//@infrastructure/@networks.3"/>
+      </machineDefinition>
+    </groups>
+    <securityGroups name="sg">
+      <rules name="icmp" protocol="icmp" fromPort="-1" toPort="-1">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="http" kind="INGRESS" protocol="tcp" fromPort="80" toPort="80">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="https" kind="INGRESS" protocol="tcp" fromPort="443" toPort="443">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+      <rules name="ssh" kind="INGRESS" protocol="tcp" fromPort="22" toPort="22">
+        <cidr>0.0.0.0/0</cidr>
+      </rules>
+    </securityGroups>
+    <networks name="net1" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0 //@infrastructure/@groups.0/@machineDefinition/@ifaces.2"/>
+    <networks name="net2" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.1/@machineDefinition/@ifaces.0"/>
+    <networks name="net3" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.2/@machineDefinition/@ifaces.0"/>
+    <networks name="oam" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.1 //@infrastructure/@groups.1/@machineDefinition/@ifaces.1 //@infrastructure/@groups.2/@machineDefinition/@ifaces.1"/>
+  </infrastructure>
+  <concretizations name="con_infra">
+    <providers name="openstack">
+      <vms name="concrete_osint_vm" maps="//@infrastructure/@groups.0/@machineDefinition">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="osint"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
+      </vms>
+      <vms name="concrete_igw_vm" maps="//@infrastructure/@groups.1/@machineDefinition">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="igw"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
+      </vms>
+      <vms name="concrete_ewcf_vm" maps="//@infrastructure/@groups.2/@machineDefinition">
+        <annotations xsi:type="commons:SProperty" key="vm_name" value="ewcf"/>
+        <annotations xsi:type="commons:SProperty" key="vm_flavor" value="small"/>
+        <annotations xsi:type="commons:SProperty" key="vm_key_name" value="user1"/>
+      </vms>
+      <vmImages name="concrete_vm_image1" maps="//@infrastructure/@generators.0">
+        <annotations xsi:type="commons:SProperty" key="name" value="ubuntu-20.04.3"/>
+      </vmImages>
+      <vmImages name="concrete_vm_image2" maps="//@infrastructure/@generators.2">
+        <annotations xsi:type="commons:SProperty" key="name" value="ubuntu-20.04.3"/>
+      </vmImages>
+      <vmImages name="concrete_vm_image3" maps="//@infrastructure/@generators.3">
+        <annotations xsi:type="commons:SProperty" key="name" value="ubuntu-20.04.3"/>
+      </vmImages>
+      <networks name="concrete_net1" maps="//@infrastructure/@networks.0">
+        <annotations xsi:type="commons:SProperty" key="name" value="uc3_net1"/>
+      </networks>
+      <networks name="concrete_net2" maps="//@infrastructure/@networks.1">
+        <annotations xsi:type="commons:SProperty" key="name" value="uc3_net2"/>
+      </networks>
+      <networks name="concrete_net3" maps="//@infrastructure/@networks.2">
+        <annotations xsi:type="commons:SProperty" key="name" value="uc3_net3"/>
+      </networks>
+      <networks name="concrete_net4" maps="//@infrastructure/@networks.3">
+        <annotations xsi:type="commons:SProperty" key="name" value="uc3_net4"/>
+      </networks>
+    </providers>
+  </concretizations>
+  <optimization name="opt">
+    <objectives xsi:type="optimization:MeasurableObjective" kind="min" property="cost"/>
+    <nonfunctionalRequirements xsi:type="commons:RangedRequirement" name="req1" description="Cost &lt;= 200" property="cost" max="200.0"/>
+    <nonfunctionalRequirements xsi:type="commons:EnumeratedRequirement" name="req2" description="Provider" property="provider">
+      <values>AMAZ</values>
+    </nonfunctionalRequirements>
+  </optimization>
+  <configurations name="conf">
+    <deployments component="//@application/@components.1" node="//@infrastructure/@groups.0/@machineDefinition"/>
+    <deployments component="//@application/@components.0" node="//@infrastructure/@groups.1/@machineDefinition"/>
+    <deployments component="//@application/@components.2" node="//@infrastructure/@groups.2/@machineDefinition"/>
+  </configurations>
+</commons:DOMLModel>

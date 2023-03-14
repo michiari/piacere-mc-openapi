@@ -1,0 +1,307 @@
+doml posidonia
+properties {
+	entorno="pre";
+	proyecto="baleares";
+}
+
+// Application Definition
+application posidonia {
+	software_component Gestaut {
+		// Interfaces should be separated by commas, but the IDE needs to be fixed
+		provides { http https }
+		consumes { dbAccess, search }
+	}
+	software_component ElasticSearch {
+		provides { search }
+		consumes { dbAccess }
+	}
+	software_component Edi {
+		provides { edi }
+		consumes { dbAccess }
+	}
+	dbms Database {
+		provides {
+			dbAccess
+		}
+	}
+}
+
+infrastructure abstractInfra {
+	// Networks
+	net vpc {
+		// In DOML 2.1, you can specify an address before the length of the subnet mask
+		// Actually it should also work in DOML 2.2 for ICG
+		cidr "/16"
+		protocol "TCP/IP"
+		subnet subnet1 {
+			// We have to check whether this address (which was copy-pasted from the
+			// security group rules cidr) actually was the one intended for the subnet
+			cidr "10.100.1.0/24"
+			protocol "TCP/IP"
+		}
+		subnet subnet2 {
+			cidr "/24"
+			protocol "TCP/IP"
+		}
+		subnet subnet3 {
+			cidr "/24"
+			protocol "TCP/IP"
+		}
+	}
+	// Credentials
+	// TODO: key file?
+	key_pair GestautKeyName {
+		// We're here specifying the key through the keyfile attribute instead of using it for specifying the keyfile path.
+		user "..."
+		keyfile "not the path, but currently the key itself"
+		algorithm "RSA"
+		bits 4096
+	}
+	key_pair ESKeyName {
+		user "..."
+		keyfile "not the path, but currently the key itself"
+		algorithm "RSA"
+		bits 4096
+	}
+	key_pair EdiKeyName {
+		user "..."
+		keyfile "not the path, but currently the key itself"
+		algorithm "RSA"
+		bits 4096
+	}
+	user_pass dbCredentials {
+		user "***"
+		pass "***"
+	}
+	
+	// Nodes
+	vm OracleDB {
+		// It can be updated by specifying the VM characteristics through the usage of attributes
+		iface db1 {
+			belongs_to subnet1
+			// We can define the security group associated to the interface either by using the
+			// security attribute here or specifying the name of the interface in the
+			// ifaces attribute of the security group itself
+			security dbsg
+		}
+		iface db2 {
+			belongs_to subnet2
+		}
+		iface db3 {
+			belongs_to subnet3
+		}
+		// We have to specify GB or ...
+		sto "20"
+		credentials dbCredentials
+	}
+	
+	/* 
+	 * We currently don't use images, but specify properties through VM attributes definition
+	 	vm_image posidonia_image {
+		generates gestaut_vm, elasticsearch_vm, edi_vm
+		image "ami-02a6bfdcf8224bd77"
+		}
+	*/
+
+	
+	autoscale_group gestaut_asg {
+		// TODO: Shouldn't vm live outside the group leaving a reference here? vm might also be referenced by other components.
+		// It also applies to the following vms in other groups.
+		vm gestaut_vm {
+			credentials GestautKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+		
+		/*
+		 * In order to specify the sg for the three VMs defined for the AGs, we can
+		 * use the security attribute of the autoscale_group class.
+		 * We have to define a new security group inside the autoscale_group
+		 * when using such attribute.
+		 */
+	}
+	
+	autoscale_group elasticsearch_asg {
+		// TODO
+		vm elasticsearch_vm {
+			credentials ESKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+	}
+	
+	autoscale_group edi_asg {
+		// TODO
+		vm edi_vm {
+			credentials EdiKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+	}
+	
+	security_group sg {
+		// TODO: the following vms should have the associated interfaces (ifaces) in the security group?
+		//nodes gestaut_vm, elasticsearch_vm, edi_vm
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress lb {
+			protocol "TCP"
+			from_port 80
+			to_port 80
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+		ingress es {
+			protocol "TCP"
+			from_port 9200
+			to_port 9200
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+		ingress monitor {
+			protocol "TCP"
+			from_port 6556
+			to_port 6556
+			cidr ["54.217.119.81/32"]
+		}
+
+		// TODO: ftp (20/21) or ssh (22)?
+		ingress ftp {
+			protocol "TCP"
+			from_port 22
+			to_port 22
+			cidr ["213.96.27.139/32", "37.187.173.88/32", "51.89.40.59/32", "195.53.242.200/32"]
+		}
+	}
+	
+	/*
+	 * TODO: We have to define interfaces or check which interfaces/AGs belong to each sg
+	 */
+	security_group dbsg {
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ora {
+			protocol "TCP"
+			from_port 1521
+			to_port 1521
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24", "84.124.78.66/32"]
+		}
+		
+		// As discussed above, here is provided the other way to specify the sg
+		// associated to interfaces
+		ifaces db1, db2, db3
+	}
+	
+	security_group elbsg {
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			protocol "TCP"
+			from_port 80
+			to_port 80
+			cidr ["0.0.0.0/0", "::/0"]
+		}
+		ingress https {
+			protocol "TCP"
+			from_port 443
+			to_port 443
+			cidr ["0.0.0.0/0", "::/0"]
+		}
+		ingress es {
+			protocol "TCP"
+			from_port 9200
+			to_port 9200
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+	}
+	
+	security_group checkmk {
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			protocol "TCP"
+			from_port 80
+			to_port 80
+			cidr ["84.124.78.66/32"]
+		}
+		ingress https {
+			protocol "TCP"
+			from_port 443
+			to_port 443
+			cidr ["84.124.78.66/32"]
+		}
+
+		// TODO: ftp (20/21) or ssh (22)?
+		ingress ftp {
+			protocol "TCP"
+			from_port 22
+			to_port 22
+			cidr ["84.124.78.66/32"]
+		}
+	}
+	
+}
+deployment dep {
+	Gestaut -> gestaut_vm,
+	ElasticSearch -> elasticsearch_vm,
+	Edi -> edi_vm,
+	Database -> OracleDB
+	
+}
+active deployment dep
+
+// Concretization to AWS
+concretizations {
+	concrete_infrastructure dev {
+		provider aws {
+			net concrete_vpc {
+				maps vpc
+			}
+			vm concrete_oracleDB {
+				maps OracleDB
+			}
+			autoscale_group asg1 {
+				maps elasticsearch_asg
+			}
+			autoscale_group asg2 {
+				maps edi_asg
+			}
+			autoscale_group asg3 {
+				maps gestaut_asg
+			}
+		}
+	}
+	
+//	concrete_infrastructure pro {
+//		provider aws {
+//			
+//		}
+//	}
+	
+	active dev
+}
+
+optimization opt {
+	objectives {
+		"cost" => min
+		"availability" => max
+	}
+	nonfunctional_requirements {
+		req1 "Cost <= 70.0" max 70.0 => "cost";
+		req2 "Availability >= 66.5%" min 66.5 => "availability";
+	}
+}

@@ -1,0 +1,258 @@
+doml posidonia
+properties {
+	entorno="pre";
+	proyecto="baleares";
+}
+
+// Application Definition
+application posidonia {
+	software_component Gestaut {
+		provides { http https }
+		consumes { dbAccess, search }
+	}
+	software_component ElasticSearch {
+		provides { search }
+		consumes { dbAccess }
+	}
+	software_component Edi {
+		provides { edi }
+		consumes { dbAccess }
+	}
+	dbms Database {
+		provides {
+			dbAccess
+		}
+	}
+}
+
+infrastructure abstractInfra {
+	// Networks
+	net vpc {
+		cidr "/16"
+		protocol "tcp/ip"
+		subnet subnet1 {
+			cidr "/24"
+			protocol "tcp/ip"
+		}
+		subnet subnet2 {
+			cidr "/24"
+			protocol "tcp/ip"
+		}
+		subnet subnet3 {
+			cidr "/24"
+			protocol "tcp/ip"
+		}
+	}
+	// Credentials
+	// TODO: key file?
+	key_pair GestautKeyName {
+		algorithm "RSA"
+		bits 4096
+	}
+	key_pair ESKeyName {
+		algorithm "RSA"
+		bits 4096
+	}
+	key_pair EdiKeyName {
+		algorithm "RSA"
+		bits 4096
+	}
+	user_pass dbCredentials {
+		user "***"
+		pass "***"
+	}
+	
+	// Nodes
+	vm OracleDB {
+		iface db1 {
+			belongs_to subnet1
+		}
+		iface db2 {
+			belongs_to subnet2
+		}
+		iface db3 {
+			belongs_to subnet3
+		}
+		sto "20"
+		credentials dbCredentials
+	}
+	
+	vm_image posidonia_image {
+		generates gestaut_vm, elasticsearch_vm, edi_vm
+		image "ami-02a6bfdcf8224bd77"
+	}
+	
+	autoscale_group gestaut_asg {
+		// TODO: Shouldn't vm live outside the group leaving a reference here? vm might also be referenced by other components.
+		// It also applies to the following vms in other groups.
+		vm gestaut_vm {
+			credentials GestautKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+	}
+	
+	autoscale_group elasticsearch_asg {
+		// TODO
+		vm elasticsearch_vm {
+			credentials ESKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+	}
+	
+	autoscale_group edi_asg {
+		// TODO
+		vm edi_vm {
+			credentials EdiKeyName
+		}
+		min 1
+		max 1 // Using AutoScaleGroup as a way to automatically reboot a machine in case of error
+	}
+	
+	security_group sg {
+		// TODO: the following vms should have the associated interfaces (ifaces) in the security group?
+		//nodes gestaut_vm, elasticsearch_vm, edi_vm
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress lb {
+			protocol "tcp"
+			from_port 80
+			to_port 80
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+		ingress es {
+			protocol "tcp"
+			from_port 9200
+			to_port 9200
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+		ingress monitor {
+			protocol "tcp"
+			from_port 6556
+			to_port 6556
+			cidr ["54.217.119.81/32"]
+		}
+
+		// TODO: ftp (20/21) or ssh (22)?
+		ingress ftp {
+			protocol "tcp"
+			from_port 22
+			to_port 22
+			cidr ["213.96.27.139/32", "37.187.173.88/32", "51.89.40.59/32", "195.53.242.200/32"]
+		}
+	}
+	
+	security_group dbsg {
+		// TODO: the associated vms and ifaces?
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ora {
+			protocol "tcp"
+			from_port 1521
+			to_port 1521
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24", "84.124.78.66/32"]
+		}
+	}
+	
+	security_group elbsg {
+		// TODO: the associated vms and ifaces?
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			protocol "tcp"
+			from_port 80
+			to_port 80
+			cidr ["0.0.0.0/0", "::/0"]
+		}
+		ingress https {
+			protocol "tcp"
+			from_port 443
+			to_port 443
+			cidr ["0.0.0.0/0", "::/0"]
+		}
+		ingress es {
+			protocol "tcp"
+			from_port 9200
+			to_port 9200
+			cidr ["10.100.1.0/24", "10.100.2.0/24", "10.100.3.0/24"]
+		}
+	}
+	
+	security_group checkmk {
+		// TODO: the associated vms and ifaces?
+		egress salida {
+			protocol "-1"
+			from_port 0
+			to_port 0
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			protocol "tcp"
+			from_port 80
+			to_port 80
+			cidr ["84.124.78.66/32"]
+		}
+		ingress https {
+			protocol "tcp"
+			from_port 443
+			to_port 443
+			cidr ["84.124.78.66/32"]
+		}
+
+		// TODO: ftp (20/21) or ssh (22)?
+		ingress ftp {
+			protocol "tcp"
+			from_port 22
+			to_port 22
+			cidr ["84.124.78.66/32"]
+		}
+	}
+	
+}
+deployment dep {
+	Gestaut -> gestaut_vm,
+	ElasticSearch -> elasticsearch_vm,
+	Edi -> edi_vm,
+	Database -> OracleDB
+	
+}
+active deployment dep
+
+// Concretization to AWS
+concretizations {
+	concrete_infrastructure dev {
+		provider aws {
+			autoscale_group asg1 {
+				maps elasticsearch_asg
+			}
+			autoscale_group asg2 {
+				maps edi_asg
+			}
+			autoscale_group asg3 {
+				maps gestaut_asg
+			}
+		}
+	}
+	
+//	concrete_infrastructure pro {
+//		provider aws {
+//			
+//		}
+//	}
+	
+	active dev
+}
+

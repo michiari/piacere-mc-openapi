@@ -1,0 +1,246 @@
+doml uc3_openstack
+
+application app {
+
+// need to define all sw components of the project this is a placeholder
+// need to understand what is really needed in this spec
+// need to specify all provides/consumes
+	software_component iwg {
+		provides { net_info }
+	}
+	software_component osint {
+		provides { osint_info }
+		consumes { net_info, get_twitter, ewcf_rest_interface }
+	}
+	software_component ewcf {
+		provides { ewcf_rest_interface }
+		// ??? consumes { get_firebase }
+	}
+	saas external_twitter {
+		provides { get_twitter @ "https://twitter_api/get" }
+	}
+
+}
+
+
+infrastructure infra {
+
+	vm_image v_img1 {
+		generates osint_vm
+	}
+
+	container c {
+		host osint_vm {
+			container_port 80
+			vm_port 8080
+			iface osint_igw_port
+			properties {
+				env_var1 = "value1";
+			}
+		}
+	}
+
+	cont_image c_img {
+		generates c
+		image "web-app:0.1.0" // needs to be replaced and other containers added
+	}
+
+
+	vm_image v_img2 {
+		generates igw_vm
+	}
+
+	vm_image v_img3 {
+		generates ewcf_vm
+	}
+
+	net net1 {
+		cidr "/24"
+		protocol "tcp/ip"
+	}
+	net net2 {
+		cidr "/24"
+		protocol "tcp/ip"
+	}
+	net net3 {
+		cidr "/24"
+		protocol "tcp/ip"
+	}
+	net oam {
+		cidr "/24"
+		protocol "tcp/ip"
+	}
+
+
+// security group is left as originally defined needs to be updated
+	security_group sg {
+		egress icmp {
+			from_port -1
+			to_port -1
+			protocol "icmp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			from_port 80
+			to_port 80
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress https {
+			from_port 443
+			to_port 443
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ssh {
+			from_port 22
+			to_port 22
+			protocol "tcp"
+			cidr ["0.0.0.0/0"]
+		}
+	}
+
+	key_pair ssh_key {
+		user "ubuntu"
+		keyfile "/home/user1/.ssh/openstack.key"
+		algorithm "RSA"
+		bits 4096
+	}
+	autoscale_group osint_ag { 
+		vm osint_vm {
+			os "ubuntu-20.04.3"
+			credentials ssh_key
+			iface osint_vm_net1 {
+				belongs_to net1
+			}
+			iface osint_vm_oam {
+				belongs_to oam
+			}
+
+			iface osint_igw_port{
+				belongs_to net1
+			}	
+		}
+	}
+
+	autoscale_group igw_ag { 
+		vm igw_vm {
+			os "ubuntu-20.04.3"
+			credentials ssh_key
+			iface igw_vm_net2 {
+				belongs_to net2
+			}
+			iface igw_vm_oam {
+				belongs_to oam
+			}
+		}
+	}
+	autoscale_group ewcf_ag { 
+		vm ewcf_vm {
+			os "ubuntu-20.04.3"
+			credentials ssh_key
+			iface ewcf_vm_net3 {
+				belongs_to net3
+			}
+			iface ewcf_vm_oam {
+				belongs_to oam
+			}
+		}
+	}
+}
+
+deployment conf {
+	osint -> osint_vm,
+	iwg -> igw_vm,
+	ewcf -> ewcf_vm
+}
+
+active deployment conf
+
+concretizations {
+	concrete_infrastructure con_infra {
+		provider openstack {
+			vm concrete_osint_vm {
+				properties {
+					vm_name = "osint";
+					vm_flavor = "small";
+					vm_key_name = "user1";
+				}
+				maps osint_vm
+			}
+			vm concrete_igw_vm {
+				properties {
+					vm_name = "igw";
+					vm_flavor = "small";
+					vm_key_name = "user1";
+				}
+				maps igw_vm
+			}
+			vm concrete_ewcf_vm {
+				properties {
+					vm_name = "ewcf";
+					vm_flavor = "small";
+					vm_key_name = "user1";
+				}
+				maps ewcf_vm
+			}
+
+			vm_image concrete_vm_image1 {
+				properties {
+					name = "ubuntu-20.04.3";
+				}
+				maps v_img1
+			}
+			
+			vm_image concrete_vm_image2{
+				properties {
+					name = "ubuntu-20.04.3";
+				}
+				maps v_img2
+			}
+			
+			vm_image concrete_vm_image3 {
+				properties {
+					name = "ubuntu-20.04.3";
+				}
+				maps v_img3
+			}
+
+			net concrete_net1 {
+				properties {
+					name = "uc3_net1";
+				}
+				maps net1
+			}			
+			net concrete_net2 {
+				properties {
+					name = "uc3_net2";
+				}
+				maps net2
+			}
+			net concrete_net3 {
+				properties {
+					name = "uc3_net3";
+				}
+				maps net3
+			}
+			net concrete_net4 {
+				properties {
+					name = "uc3_net4";
+				}
+				maps oam
+			}			
+		}
+	}
+	active con_infra
+}
+
+optimization opt {
+	objectives {
+		"cost" => min
+	}
+	nonfunctional_requirements {
+		req1 "Cost <= 200" max 200.0 => "cost";
+		req2 "Provider" values "AMAZ" => "provider";
+	}
+}
