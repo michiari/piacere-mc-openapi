@@ -17,6 +17,8 @@ def parse_iface_address(addrport: str) -> Attributes:
     addr, _, port = addrport.rpartition(":")
     if addr == "":
         addr = port
+        if addr == "":
+            raise Exception(f"Interface address with value '{addrport}' is not valid. It should be 'x.x.x.x/cidr'.")
     return {"endPoint": [int(ip_address(addr))]}
 
 
@@ -61,6 +63,12 @@ def init_special_parsers():
             ("commons_FProperty", "value"): parse_fproperty,
         },
         DOMLVersion.V2_2: {
+            ("infrastructure_Network", "addressRange"): parse_cidr,
+            ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
+            ("infrastructure_ComputingNode", "memory_mb"): parse_memory_mb,
+            ("commons_FProperty", "value"): parse_fproperty,
+        },
+        DOMLVersion.V2_2_1: {
             ("infrastructure_Network", "addressRange"): parse_cidr,
             ("infrastructure_NetworkInterface", "endPoint"): parse_iface_address,
             ("infrastructure_ComputingNode", "memory_mb"): parse_memory_mb,
