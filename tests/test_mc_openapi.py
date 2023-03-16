@@ -28,12 +28,12 @@ def test_post_faas_unsat_V2_0():
 
 def test_post_common_reqs_V2_0():
     check_strings = [
-        "is connected to no network interface.",
+        "is not connected to any network interface.",
         "but they are deployed to nodes that cannot communicate through a common network.",
         "share the same IP address.",
         "is not deployed to any abstract infrastructure node.",
-        "has not been mapped to any element in the active concretization.",
-        "is mapped to no abstract infrastructure element."
+        "is not mapped to any element in the active concretization.",
+        "is not mapped to any abstract infrastructure element."
     ]
 
     for req, err_desc in zip(CommonRequirements[DOMLVersion.V2_0].get_all_requirements(), check_strings):

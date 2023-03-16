@@ -36,7 +36,8 @@ def post(body, version=None):
         user_req_str_consts = []
 
         # Add support for Requirements in DOML
-        if dmc.doml_version == DOMLVersion.V2_2:
+        if (dmc.doml_version == DOMLVersion.V2_2 
+        or  dmc.doml_version == DOMLVersion.V2_2_1):
             domlr_parser = Parser(DOMLRTransformer)
             model = get_pyecore_model(doml_xmi, DOMLVersion.V2_2)
             func_reqs = model.functionalRequirements.items

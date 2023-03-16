@@ -554,9 +554,9 @@ def ed_vm_iface(solver: Solver, smtsorts: SMTSorts, intermediate_model: Intermed
         vm_name = get_user_friendly_name(
             intermediate_model, solver.model(), vm)
         if vm_name:
-            return f"Virtual machine {vm_name} is connected to no network interface."
+            return f"Virtual machine {vm_name} is not connected to any network interface."
     except:
-        return "A virtual machine is connected to no network interface."
+        return "A virtual machine is not connected to any network interface."
 
 
 def ed_software_package_iface_net(solver: Solver, smtsorts: SMTSorts, intermediate_model: IntermediateModel) -> str:
