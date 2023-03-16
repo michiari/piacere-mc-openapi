@@ -3,7 +3,7 @@ info:
   license:
     name: Apache-2.0
   title: PIACERE Model Checker
-  version: "2.2.0"
+  version: "2.2.1"
 paths:
   /modelcheck:
     post:
