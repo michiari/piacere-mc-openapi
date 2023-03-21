@@ -10,7 +10,7 @@
     <credentials xsi:type="commons:KeyPair" name="ssh_key" user="ec2-user" keyfile="/tmp/ssh_key_file" algorithm="RSA" bits="4096"/>
     <groups xsi:type="infra:AutoScalingGroup" name="ag">
       <machineDefinition name="vm1" credentials="//@infrastructure/@credentials.0" generatedFrom="//@infrastructure/@generators.0">
-        <ifaces name="i1" endPoint="10.0.0.1" belongsTo="//@infrastructure/@networks.0" associated="//@infrastructure/@securityGroups.0"/>
+        <ifaces name="i1" endPoint="10.0.0.1" associated="//@infrastructure/@securityGroups.0"/>
         <location region="eu-central-1"/>
       </machineDefinition>
     </groups>
@@ -28,7 +28,7 @@
         <cidr>0.0.0.0/0</cidr>
       </rules>
     </securityGroups>
-    <networks name="vpc" protocol="tcp/ip" addressRange="/24" connectedIfaces="//@infrastructure/@groups.0/@machineDefinition/@ifaces.0">
+    <networks name="vpc" protocol="tcp/ip" addressRange="/24">
       <subnets name="vpc_subnet" protocol="tcp/ip" addressRange="/24"/>
     </networks>
   </infrastructure>
@@ -55,5 +55,5 @@
   <configurations name="conf">
     <deployments component="//@application/@components.0" node="//@infrastructure/@groups.0/@machineDefinition"/>
   </configurations>
-  <functionalRequirements name="req_ext" description="```&#xA;&#xA; + &quot;VM must have iface and iface is connected to network&quot;&#xA; &#x9;forall vm (&#xA; &#x9;&#x9;vm is class abstract.VirtualMachine&#xA;    &#x9;implies&#xA;        (&#xA;        &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;        &#x9;and&#xA;        &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;        )&#xA;    )&#xA; error: &quot;TEST ERROR&quot;&#xA; &#xA; ```"/>
+  <functionalRequirements name="req_ext" description="```&#xA;&#xA;# + &quot;VM must have iface and iface is connected to network&quot;&#xA;# &#x9;forall vm (&#xA;# &#x9;&#x9;vm is class abstract.VirtualMachine&#xA;#    &#x9;implies&#xA;#        (&#xA;#        &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;#        &#x9;and&#xA;#        &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;#        )&#xA;#    )&#xA;# error: &quot;TEST ERROR&quot;&#xA;&#xA;- &quot;VM must have iface and iface is connected to network&quot;&#xA;&#x9;vm is class abstract.VirtualMachine&#xA;&#x9;and&#xA;&#x9;not exists iface, net (&#xA;    &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;    &#x9;and&#xA;    &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;    &#xA;    )&#xA; error: &quot;TEST ERROR&quot;&#xA; &#xA; ```"/>
 </commons:DOMLModel>

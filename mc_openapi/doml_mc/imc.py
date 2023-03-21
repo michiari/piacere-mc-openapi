@@ -172,6 +172,5 @@ class IntermediateModelChecker:
             ))
             self.solver.pop()
 
-        stats = self.solver.statistics()
-        STATS.add(stats)
+        # stats = self.solver.statistics()
         return MCResults(results)
