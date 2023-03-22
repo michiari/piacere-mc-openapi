@@ -5,8 +5,6 @@ from typing import Literal
 from z3 import (Context, DatatypeSortRef, ExprRef, FuncDeclRef, Solver,
                 SortRef, sat)
 
-from mc_openapi.doml_mc.stats import STATS
-
 from .intermediate_model.doml_element import IntermediateModel
 from .mc_result import MCResult, MCResults
 from .z3encoding.im_encoding import (assert_im_associations,
