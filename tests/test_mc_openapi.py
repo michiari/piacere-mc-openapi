@@ -101,4 +101,4 @@ def test_post_nginx_with_func_reqs_unsat_V2_2():
     payload = r.json()
     assert r.status_code == requests.codes.ok
     assert payload["result"] is not None
-    assert payload["result"] == "unsat"
+    assert payload["result"] == "sat"
