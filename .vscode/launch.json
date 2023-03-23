@@ -2,8 +2,9 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
+    "version": "2.2.1",
     "configurations": [
+
         {
             "name": "Python: MC Synthesis",
             "type": "python",
@@ -11,8 +12,6 @@
             "module": "mc_openapi",
             "justMyCode": true,
             "args": [
-                "-d", "tests/doml/openstack_template.domlx",
-                "--synth"
             ]
         }
     ]

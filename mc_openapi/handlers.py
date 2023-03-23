@@ -39,7 +39,7 @@ def post(body, version=None):
         if (dmc.doml_version == DOMLVersion.V2_2 
         or  dmc.doml_version == DOMLVersion.V2_2_1):
             domlr_parser = Parser(DOMLRTransformer)
-            model = get_pyecore_model(doml_xmi, DOMLVersion.V2_2)
+            model = get_pyecore_model(doml_xmi, dmc.doml_version)
             func_reqs = model.functionalRequirements.items
 
             user_req_store = RequirementStore()
