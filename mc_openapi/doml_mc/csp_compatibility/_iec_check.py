@@ -4,6 +4,9 @@ import requests
 from mc_openapi.doml_mc.imc import IntermediateModelChecker
 from mc_openapi.doml_mc.intermediate_model.metamodel import DOMLVersion
 
+# DEPRECATED
+# Doing this would overlap with IOP tool, therefore checks will be performed using the other tool
+
 
 IEC_API = 'https://iec.ci.piacere.digital.tecnalia.dev/services/iecbackend/api/root-services/catalogue'
 

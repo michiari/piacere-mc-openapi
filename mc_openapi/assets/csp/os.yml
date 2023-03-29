@@ -1,0 +1,41 @@
+aws:
+  Linux:
+    - Amazon Linux
+    - Amazon Linux 2
+    - Bottlerocket
+    - CentOS
+    - Debian Server
+    - Oracle Linux
+    - Red Hat Enterprise Linux (RHEL)
+    - Rocky Linux
+    - SUSE Linux Enterprise Server (SLES)
+    - Ubuntu Server
+  macOS:
+    - macOS
+  Windows Server:
+    - Windows Server
+    
+azure:
+  Linux:
+    - Red Hat Enterprise Linux
+    - CentOS
+    - CoreOS
+    - Debian
+    - Oracle Linux
+    - SUSE Linux Enterprise
+    - openSUSE
+    - Ubuntu
+  Windows Server:
+    - Windows Server
+
+gcp:
+  Linux:
+    - Amazon Linux
+    - Amazon Linux 2
+    - CentOS
+    - Debian
+    - Red Hat Enterprise Linux (RHEL)
+    - SUSE Linux Enterprise
+    - Ubuntu
+  Windows Server:
+    - Windows Server

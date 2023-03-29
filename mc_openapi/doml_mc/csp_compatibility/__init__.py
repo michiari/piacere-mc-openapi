@@ -1,22 +1,22 @@
-from .validator import CSPCompatibilityValidator
+from .allowlist_check_v1 import CSPCompatibilityValidator
 import importlib.resources as ilres
 from ... import assets
 import yaml
 
 FILE = lambda filename: ilres.files(assets).joinpath(f"csp/{filename}")
 
-with open(FILE('keypairs.yml')) as kp:
-    KEYPAIRS = yaml.safe_load(kp)
+SOURCES = [
+    'keypair',
+    'arch',
+    'os',
+    'minimum_setup'
+]
 
-with open(FILE('architectures.yml')) as kp:
-    ARCHS = yaml.safe_load(kp)
+DATA = {}
 
-with open(FILE('regions.yml')) as kp:
-    REGIONS = yaml.safe_load(kp)
+for src in SOURCES:
+    with open(FILE(f'{src}.yml')) as data:
+        DATA[src] = yaml.safe_load(data)
 
-CSPCompatibilityValidator = CSPCompatibilityValidator(
-    keypairs=KEYPAIRS,
-    architectures=ARCHS,
-    regions=REGIONS
-)
+CSPCompatibilityValidator = CSPCompatibilityValidator(DATA)
 

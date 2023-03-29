@@ -10,7 +10,7 @@ from doml_synthesis.types import State
 
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion
-from mc_openapi.doml_mc.csp_compatibility.cspcomp import check_csp_compatibility
+from mc_openapi.doml_mc.csp_compatibility._iec_check import check_csp_compatibility
 from mc_openapi.doml_mc.domlr_parser.exceptions import RequirementException
 from mc_openapi.doml_mc.domlr_parser.parser import (DOMLRTransformer, Parser,
                                                     SynthesisDOMLRTransformer)
@@ -76,10 +76,9 @@ else:
 
     # Check CSP Compatibility
     if args.csp:
-        # from mc_openapi.doml_mc.csp_compatibility import CSPCompatibilityValidator
-        # cspc = CSPCompatibilityValidator
-        # cspc.check(dmc.intermediate_model, doml_ver)
-        check_csp_compatibility(dmc.intermediate_model, doml_ver)
+        from mc_openapi.doml_mc.csp_compatibility import CSPCompatibilityValidator as csp_comp
+        csp_comp.check(dmc.intermediate_model, doml_ver)
+        # check_csp_compatibility(dmc.intermediate_model, doml_ver)
         exit(0)
 
     # Store of Requirements and unique string constants

@@ -1,0 +1,15 @@
+aws:
+  - infrastructure_ComputingNode::os # AMI
+  # - an Instance Type
+  - [infrastructure_ComputingNode::ifaces, infrastructure_NetworkInterface::associated] # NetworkInterface
+  - infrastructure_ComputingNode::credentials # KeyPair
+
+azure:
+  - infrastructure_ComputingNode::os # OS Image
+  - [infrastructure_ComputingNode::ifaces, infrastructure_NetworkInterface::belongsTo] # NetworkInterface
+  - infrastructure_ComputingNode::storage # Storage/VMSize
+
+gcp:
+  - infrastructure_ComputingNode::location
+  - infrastructure_ComputingNode::os # OS Image
+  - infrastructure_ComputingNode::architecture

@@ -1,0 +1,16 @@
+# CSP Name
+aws:
+  - RSA
+  - ED25519
+  - ECDSA
+
+
+azure:
+  - RSA
+
+gcp: 
+  - Elliptic Curve
+  - RSA
+
+bad_csp:
+  - OLD_ALGO
