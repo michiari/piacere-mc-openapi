@@ -1,3 +1,4 @@
+import logging
 from multiprocessing import TimeoutError
 from typing import Optional
 
@@ -22,7 +23,7 @@ class ModelChecker:
             xmi_model, doml_version)
         self.metamodel = MetaModels[self.doml_version]
         self.inv_assoc = InverseAssociations[self.doml_version]
-
+        
     def check_requirements(
         self,
         threads: int = 1,

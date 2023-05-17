@@ -1,4 +1,5 @@
 import datetime
+import logging
 import os
 from mc_openapi.doml_mc.domlr_parser.parser import DOMLRTransformer, Parser
 from mc_openapi.doml_mc.imc import RequirementStore
@@ -12,7 +13,7 @@ def make_error(user_msg, debug_msg=None):
     result = {"message": user_msg, "timestamp": datetime.datetime.now()}
     if debug_msg is not None:
         result["debug_message"] = debug_msg
-        print(f"ERROR [{datetime.datetime.now()}]: {debug_msg}")
+        logging.error(debug_msg)
     return result
 
 
@@ -28,7 +29,7 @@ def post(body, version=None):
             doml_version: str = version
         if doml_version:
             doml_version = DOMLVersion.get(doml_version)
-            print(f"Forcing DOML {doml_version.value}")
+            logging.info(f"Forcing DOML {doml_version.value}")
 
         dmc = ModelChecker(doml_xmi, doml_version)
 
@@ -37,7 +38,8 @@ def post(body, version=None):
 
         # Add support for Requirements in DOML
         if (dmc.doml_version == DOMLVersion.V2_2 
-        or  dmc.doml_version == DOMLVersion.V2_2_1):
+        or  dmc.doml_version == DOMLVersion.V2_2_1
+        or  dmc.doml_version == DOMLVersion.V2_3):
             domlr_parser = Parser(DOMLRTransformer)
             model = get_pyecore_model(doml_xmi, dmc.doml_version)
             func_reqs = model.functionalRequirements.items

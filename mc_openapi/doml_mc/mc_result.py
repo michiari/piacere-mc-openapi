@@ -1,4 +1,5 @@
 from enum import Enum
+import logging
 from typing import Literal
 from z3 import CheckSatResult, sat, unsat, unknown
 
@@ -31,6 +32,7 @@ class MCResult(Enum):
 
 class MCResults:
     DONTKNOW_MSG = "Timed out: unable to check some requirements."
+    SATISFIED_MSG = "All requirements are satisfied."
 
     def __init__(self, results: list[tuple[MCResult, Literal["BUILTIN", "USER"], str]]):
         self.results = results
@@ -62,11 +64,14 @@ class MCResults:
 
             if some_dontknow:
                 err_msg += '\n' + MCResults.DONTKNOW_MSG
+            logging.info(err_msg)
             return MCResult.unsat, err_msg
         elif some_dontknow:
+            logging.info(MCResults.DONTKNOW_MSG)
             return MCResult.dontknow, MCResults.DONTKNOW_MSG
         else:
-            return MCResult.sat, "All requirements are satisfied."
+            logging.info(MCResults.SATISFIED_MSG)
+            return MCResult.sat, MCResults.SATISFIED_MSG
 
     def add_results(self, results: "MCResults"):
         self.results.extend(results.results)

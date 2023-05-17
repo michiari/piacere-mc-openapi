@@ -223,7 +223,6 @@ def _find_attribute_class(
     if aname in c.attributes:
         return c
     elif c.superclass is None:
-        print(c)
         raise AttributeNotFound(
             f"Attribute {aname} not found in subclasses of {cname}."
         )

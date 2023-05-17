@@ -1,5 +1,6 @@
 import copy
 import importlib.resources as ilres
+import logging
 import sys
 from typing import Optional, Tuple
 
@@ -59,14 +60,14 @@ def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
                 if v_str == "v2":
                     return DOMLVersion.V2_0
                 else:
-                    raise RuntimeError(f"Supplied with DOMLX model of unsupported version {v_str}")
+                    raise RuntimeError(f"DOML model is using an unsupported version: {v_str}")
         else:
             return DOMLVersion.V2_0  # Should be DOMLVersion.V1_0, but we use V2_0 because the 2.1 IDE doesn't fill it
     else:
-        raise RuntimeError(f"Supplied with malformed DOMLX model or unsupported DOML version.\nIn use version is: {DOMLVersion.V2_0}")
+        raise RuntimeError(f"The DOML version is unsupported or the model is malformed.\nLowest supported version is: {DOMLVersion.V2_0}")
 
 
-def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:
+def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:    
     # if doml_version is None:
     #     doml_version = infer_domlx_version(raw_model)
 
@@ -83,7 +84,7 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
                 doml_version = dv
                 return parse_xmi_model(raw_model, dv), dv
             except Exception as e:
-                print(f"Couldn't parse with DOML {dv.value}. Trying another version...")
+                logging.info(f"Couldn't parse with DOML {dv.value}. Trying another version...")
                 if len(doml_versions) == 0:
                     raise e
                 else:
@@ -96,7 +97,7 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
         except:
             raise Exception("Parsing of DOML failed. Perhaps you are using the wrong DOML version or IDE?")
 
-    print(f"Using DOML {doml_version.value}")
+    logging.info(f"Model '{model.name}' parsed as DOML {doml_version.value}")
 
     elp = ELayerParser(MetaModels[doml_version], SpecialParsers[doml_version])
     if model.application:
@@ -104,13 +105,13 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
     if model.infrastructure:
         elp.parse_elayer(model.infrastructure)
     else:
-        raise RuntimeError("Abstract infrastructure layer is missing.")
+        raise RuntimeError("Abstract infrastructure layer is missing from DOML.")
     if model.activeConfiguration:
         elp.parse_elayer(model.activeConfiguration)
     if model.activeInfrastructure:
         im = elp.parse_elayer(model.activeInfrastructure)
     else:
-        raise RuntimeError("No active concrete infrastructure layer has been specified.")
+        raise RuntimeError("No active concrete infrastructure layer has been specified in DOML.")
 
     reciprocate_inverse_associations(im, InverseAssociations[doml_version])
 
@@ -121,17 +122,3 @@ def get_pyecore_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> 
         doml_version = infer_domlx_version(raw_model)
     # TODO: See if its better replaced by the get_model() in parse_doml_version() 
     return parse_xmi_model(raw_model, doml_version)
-
-from typing import Optional
-
-def serialize_pyecore_model(root: EObject, doml_version: DOMLVersion = DOMLVersion.V2_0, path: Optional[str] = None):
-    from pyecore.resources import URI
-
-    # Get rset with metamodel
-    rset = get_rset(doml_version) 
-    # Create the resource where we'll save the updated model/DOMLX
-    res = rset.create_resource(URI("./output.domlx"))
-    # Append updated EObject
-    res.append(root)
-    # Serialize to file
-    res.save()

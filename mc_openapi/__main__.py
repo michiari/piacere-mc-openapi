@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 import argparse
+import logging
+from logging.config import dictConfig
 import sys
 
 from doml_synthesis.data import init_data
@@ -19,6 +21,7 @@ from mc_openapi.doml_mc.intermediate_model.metamodel import MetaModelDocs
 from mc_openapi.doml_mc.mc import ModelChecker
 from mc_openapi.doml_mc.mc_result import MCResult
 from mc_openapi.doml_mc.xmi_parser.doml_model import get_pyecore_model
+from . import __version__
 
 parser = argparse.ArgumentParser()
 
@@ -47,9 +50,29 @@ def printv(*_args):
 printv("== Verbose: ON ==")
 
 if not args.doml and not args.synth:
+    dictConfig({
+        'version': 1,
+        'formatters': {'default': {
+            'format': '[%(asctime)s] %(levelname)s: %(message)s',
+        }},
+        'handlers': {'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'
+        }},
+        'root': {
+            'level': 'DEBUG',
+            'handlers': ['wsgi']
+        }
+    })
+    logging.info(f"DOML Model Checker v{__version__}")
+
     # Start the webserver
     app.run(port=args.port)
 else:
+    logging.basicConfig(level=logging.DEBUG, format='* %(message)s')
+    logging.info(f"DOML Model Checker v{__version__}")
+
     # Run only it via command line
     doml_path = args.doml
     reqs_path = args.requirements
@@ -111,7 +134,9 @@ else:
             print("Failed to parse the DOMLR.", file=sys.stderr)
             exit(-1)
 
-    if doml_ver == DOMLVersion.V2_2 or doml_ver == DOMLVersion.V2_2_1:
+    if (doml_ver == DOMLVersion.V2_2
+    or  doml_ver == DOMLVersion.V2_2_1
+    or  doml_ver == DOMLVersion.V2_3):
         model = get_pyecore_model(doml_xmi, doml_ver)
         func_reqs = model.functionalRequirements.items
         for req in func_reqs:

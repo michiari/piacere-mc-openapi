@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 from typing import Callable, Literal
@@ -258,7 +259,7 @@ class DOMLRTransformer(Transformer):
                                                  ),
                     self.compare_int(sorts, op, rhs1_value, rhs2_value)
                 )
-                print(
+                logging.warning(
                     "Warning: Comparing attributes of two elements with {op} is experimental!\n",
                     "Assumption: the attribute is an Integer."
                 )

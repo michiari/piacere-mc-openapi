@@ -1,3 +1,4 @@
+import logging
 import sys
 from typing import Callable, Optional
 
@@ -74,7 +75,7 @@ class ELayerParser:
                     elif isinstance(val, EOrderedSet):
                         raw_attrs[eAttr.name] = [str(v) if isinstance(v, EEnumLiteral) else v for v in val]
                     else:
-                        print("Attribute", eAttr.name, "has value", val, "of unexpected type.", file=sys.stderr)
+                        logging.error("Attribute", eAttr.name, "has value", val, "of unexpected type.", file=sys.stderr)
         attrs = parse_attributes(raw_attrs, mm_class, self.mm)
 
         # Get all references and process them
