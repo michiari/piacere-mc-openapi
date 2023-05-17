@@ -15,6 +15,7 @@ class DOMLVersion(Enum):
     V2_1 = "v2.1"
     V2_2 = "v2.2"
     V2_2_1 = "v2.2.1"
+    V2_3 = "v2.3"
 
     def get(v: str):
         """Retrieve DOML version from string.

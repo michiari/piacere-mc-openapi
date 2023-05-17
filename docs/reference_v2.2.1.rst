@@ -1,36 +1,36 @@
-DOML v2.2 Reference
+DOML v2.2.1 Reference
 =============================
 
 
 commons
 ^^^^^^^
 
-.. _v2.2_commons_BProperty:
+.. _v2.2.1_commons_BProperty:
 
 BProperty
 """""""""
-*Inherits from* :ref:`Property <v2.2_commons_Property>`
+*Inherits from* :ref:`Property <v2.2.1_commons_Property>`
 
 * Attributes:
 	* ``value`` [Boolean]
 
-.. _v2.2_commons_Configuration:
+.. _v2.2.1_commons_Configuration:
 
 Configuration
 """""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``deployments`` → Deployment [0..*]
 
-.. _v2.2_commons_Credentials:
+.. _v2.2.1_commons_Credentials:
 
 Credentials
 """""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 
-.. _v2.2_commons_DOMLElement:
+.. _v2.2.1_commons_DOMLElement:
 
 DOMLElement
 """""""""""
@@ -40,14 +40,14 @@ DOMLElement
 	* ``name`` [String]
 	* ``description`` [String]
 
-.. _v2.2_commons_DeployableElement:
+.. _v2.2.1_commons_DeployableElement:
 
 DeployableElement
 """""""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 
-.. _v2.2_commons_Deployment:
+.. _v2.2.1_commons_Deployment:
 
 Deployment
 """"""""""
@@ -55,29 +55,29 @@ Deployment
 	* ``component`` → DeployableElement [1..1]
 	* ``node`` → InfrastructureElement [1..1]
 
-.. _v2.2_commons_FProperty:
+.. _v2.2.1_commons_FProperty:
 
 FProperty
 """""""""
-*Inherits from* :ref:`Property <v2.2_commons_Property>`
+*Inherits from* :ref:`Property <v2.2.1_commons_Property>`
 
 * Attributes:
 	* ``value`` [String]
 
-.. _v2.2_commons_IProperty:
+.. _v2.2.1_commons_IProperty:
 
 IProperty
 """""""""
-*Inherits from* :ref:`Property <v2.2_commons_Property>`
+*Inherits from* :ref:`Property <v2.2.1_commons_Property>`
 
 * Attributes:
 	* ``value`` [Integer]
 
-.. _v2.2_commons_KeyPair:
+.. _v2.2.1_commons_KeyPair:
 
 KeyPair
 """""""
-*Inherits from* :ref:`Credentials <v2.2_commons_Credentials>`
+*Inherits from* :ref:`Credentials <v2.2.1_commons_Credentials>`
 
 * Attributes:
 	* ``user`` [String]
@@ -85,7 +85,7 @@ KeyPair
 	* ``algorithm`` [String]
 	* ``bits`` [Integer]
 
-.. _v2.2_commons_Property:
+.. _v2.2.1_commons_Property:
 
 Property
 """"""""
@@ -94,30 +94,30 @@ Property
 * Attributes:
 	* ``key`` [String]
 
-.. _v2.2_commons_SProperty:
+.. _v2.2.1_commons_SProperty:
 
 SProperty
 """""""""
-*Inherits from* :ref:`Property <v2.2_commons_Property>`
+*Inherits from* :ref:`Property <v2.2.1_commons_Property>`
 
 * Attributes:
 	* ``value`` [String]
 
-.. _v2.2_commons_Source:
+.. _v2.2.1_commons_Source:
 
 Source
 """"""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Attributes:
 	* ``entry`` [String]
 	* ``backend`` [String]
 
-.. _v2.2_commons_UserPass:
+.. _v2.2.1_commons_UserPass:
 
 UserPass
 """"""""
-*Inherits from* :ref:`Credentials <v2.2_commons_Credentials>`
+*Inherits from* :ref:`Credentials <v2.2.1_commons_Credentials>`
 
 * Attributes:
 	* ``username`` [String]
@@ -126,52 +126,52 @@ UserPass
 application
 ^^^^^^^^^^^
 
-.. _v2.2_application_ApplicationComponent:
+.. _v2.2.1_application_ApplicationComponent:
 
 ApplicationComponent
 """"""""""""""""""""
-*Inherits from* :ref:`DeployableElement <v2.2_commons_DeployableElement>`
+*Inherits from* :ref:`DeployableElement <v2.2.1_commons_DeployableElement>`
 
 
-.. _v2.2_application_ApplicationLayer:
+.. _v2.2.1_application_ApplicationLayer:
 
 ApplicationLayer
 """"""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``components`` → ApplicationComponent [0..*]
 
-.. _v2.2_application_DBMS:
+.. _v2.2.1_application_DBMS:
 
 DBMS
 """"
-*Inherits from* :ref:`SoftwareComponent <v2.2_application_SoftwareComponent>`
+*Inherits from* :ref:`SoftwareComponent <v2.2.1_application_SoftwareComponent>`
 
 
-.. _v2.2_application_SaaS:
+.. _v2.2.1_application_SaaS:
 
 SaaS
 """"
-*Inherits from* :ref:`ApplicationComponent <v2.2_application_ApplicationComponent>`
+*Inherits from* :ref:`ApplicationComponent <v2.2.1_application_ApplicationComponent>`
 
 * Associations:
 	* ``exposedInterfaces`` → SoftwareInterface [0..*]
 * Attributes:
 	* ``licenseCost`` [String]
 
-.. _v2.2_application_SaaSDBMS:
+.. _v2.2.1_application_SaaSDBMS:
 
 SaaSDBMS
 """"""""
-*Inherits from* :ref:`SaaS <v2.2_application_SaaS>`
+*Inherits from* :ref:`SaaS <v2.2.1_application_SaaS>`
 
 
-.. _v2.2_application_SoftwareComponent:
+.. _v2.2.1_application_SoftwareComponent:
 
 SoftwareComponent
 """""""""""""""""
-*Inherits from* :ref:`ApplicationComponent <v2.2_application_ApplicationComponent>`
+*Inherits from* :ref:`ApplicationComponent <v2.2.1_application_ApplicationComponent>`
 
 * Associations:
 	* ``exposedInterfaces`` → SoftwareInterface [0..*]
@@ -181,11 +181,11 @@ SoftwareComponent
 	* ``isPersistent`` [Boolean]
 	* ``licenseCost`` [String]
 
-.. _v2.2_application_SoftwareInterface:
+.. _v2.2.1_application_SoftwareInterface:
 
 SoftwareInterface
 """""""""""""""""
-*Inherits from* :ref:`ApplicationComponent <v2.2_application_ApplicationComponent>`
+*Inherits from* :ref:`ApplicationComponent <v2.2.1_application_ApplicationComponent>`
 
 * Attributes:
 	* ``endPoint`` [String]
@@ -193,11 +193,11 @@ SoftwareInterface
 infrastructure
 ^^^^^^^^^^^^^^
 
-.. _v2.2_infrastructure_AutoScalingGroup:
+.. _v2.2.1_infrastructure_AutoScalingGroup:
 
 AutoScalingGroup
 """"""""""""""""
-*Inherits from* :ref:`ComputingGroup <v2.2_infrastructure_ComputingGroup>`
+*Inherits from* :ref:`ComputingGroup <v2.2.1_infrastructure_ComputingGroup>`
 
 * Associations:
 	* ``machineDefinition`` → VirtualMachine [1..1]
@@ -207,20 +207,20 @@ AutoScalingGroup
 	* ``max`` [Integer]
 	* ``loadBalancer`` [String]
 
-.. _v2.2_infrastructure_ComputingGroup:
+.. _v2.2.1_infrastructure_ComputingGroup:
 
 ComputingGroup
 """"""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``groupedNodes`` → ComputingNode [0..*]
 
-.. _v2.2_infrastructure_ComputingNode:
+.. _v2.2.1_infrastructure_ComputingNode:
 
 ComputingNode
 """""""""""""
-*Inherits from* :ref:`InfrastructureElement <v2.2_infrastructure_InfrastructureElement>`
+*Inherits from* :ref:`InfrastructureElement <v2.2.1_infrastructure_InfrastructureElement>`
 
 * Associations:
 	* ``ifaces`` → NetworkInterface [0..*]
@@ -237,31 +237,31 @@ ComputingNode
 	* ``cost`` [Integer]
 	* ``disabledMonitorings`` [String]
 
-.. _v2.2_infrastructure_ComputingNodeGenerator:
+.. _v2.2.1_infrastructure_ComputingNodeGenerator:
 
 ComputingNodeGenerator
 """"""""""""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Attributes:
 	* ``uri`` [String]
 	* ``kind`` [GeneratorKind]
 
-.. _v2.2_infrastructure_Container:
+.. _v2.2.1_infrastructure_Container:
 
 Container
 """""""""
-*Inherits from* :ref:`ComputingNode <v2.2_infrastructure_ComputingNode>`
+*Inherits from* :ref:`ComputingNode <v2.2.1_infrastructure_ComputingNode>`
 
 * Associations:
 	* ``generatedFrom`` → ContainerImage [0..1]
 	* ``configs`` → ContainerConfig [0..*]
 
-.. _v2.2_infrastructure_ContainerConfig:
+.. _v2.2.1_infrastructure_ContainerConfig:
 
 ContainerConfig
 """""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``host`` → ComputingNode [0..1]
@@ -270,45 +270,45 @@ ContainerConfig
 	* ``container_port`` [Integer]
 	* ``vm_port`` [Integer]
 
-.. _v2.2_infrastructure_ContainerImage:
+.. _v2.2.1_infrastructure_ContainerImage:
 
 ContainerImage
 """"""""""""""
-*Inherits from* :ref:`ComputingNodeGenerator <v2.2_infrastructure_ComputingNodeGenerator>`
+*Inherits from* :ref:`ComputingNodeGenerator <v2.2.1_infrastructure_ComputingNodeGenerator>`
 
 * Associations:
 	* ``generatedContainers`` → Container [0..*]
 
-.. _v2.2_infrastructure_ExtInfrastructureElement:
+.. _v2.2.1_infrastructure_ExtInfrastructureElement:
 
 ExtInfrastructureElement
 """"""""""""""""""""""""
-*Inherits from* :ref:`InfrastructureElement <v2.2_infrastructure_InfrastructureElement>`
+*Inherits from* :ref:`InfrastructureElement <v2.2.1_infrastructure_InfrastructureElement>`
 
 
-.. _v2.2_infrastructure_FunctionAsAService:
+.. _v2.2.1_infrastructure_FunctionAsAService:
 
 FunctionAsAService
 """"""""""""""""""
-*Inherits from* :ref:`InfrastructureElement <v2.2_infrastructure_InfrastructureElement>`
+*Inherits from* :ref:`InfrastructureElement <v2.2.1_infrastructure_InfrastructureElement>`
 
 * Associations:
 	* ``ifaces`` → NetworkInterface [0..*]
 * Attributes:
 	* ``cost`` [Integer]
 
-.. _v2.2_infrastructure_InfrastructureElement:
+.. _v2.2.1_infrastructure_InfrastructureElement:
 
 InfrastructureElement
 """""""""""""""""""""
-*Inherits from* :ref:`DeployableElement <v2.2_commons_DeployableElement>`
+*Inherits from* :ref:`DeployableElement <v2.2.1_commons_DeployableElement>`
 
 
-.. _v2.2_infrastructure_InfrastructureLayer:
+.. _v2.2.1_infrastructure_InfrastructureLayer:
 
 InfrastructureLayer
 """""""""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``nodes`` → ComputingNode [0..*]
@@ -321,54 +321,56 @@ InfrastructureLayer
 	* ``networks`` → Network [0..*]
 	* ``rules`` → MonitoringRule [0..*]
 
-.. _v2.2_infrastructure_InternetGateway:
+.. _v2.2.1_infrastructure_InternetGateway:
 
 InternetGateway
 """""""""""""""
-*Inherits from* :ref:`NetworkInterface <v2.2_infrastructure_NetworkInterface>`
+*Inherits from* :ref:`NetworkInterface <v2.2.1_infrastructure_NetworkInterface>`
 
+* Attributes:
+	* ``address`` [String]
 
-.. _v2.2_infrastructure_Location:
+.. _v2.2.1_infrastructure_Location:
 
 Location
 """"""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Attributes:
 	* ``region`` [String]
 	* ``zone`` [String]
 
-.. _v2.2_infrastructure_MonitoringRule:
+.. _v2.2.1_infrastructure_MonitoringRule:
 
 MonitoringRule
 """"""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Attributes:
 	* ``condition`` [String]
 	* ``strategy`` [String]
 	* ``strategyConfigurationString`` [String]
 
-.. _v2.2_infrastructure_Network:
+.. _v2.2.1_infrastructure_Network:
 
 Network
 """""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``connectedIfaces`` → NetworkInterface [0..*]
-	* ``igws`` → InternetGateway [0..*]
+	* ``gateways`` → InternetGateway [0..*]
 	* ``subnets`` → Subnet [0..*]
 * Attributes:
 	* ``protocol`` [String]
 	* ``addressRange`` [String]
 	* ``cidr`` [Integer]
 
-.. _v2.2_infrastructure_NetworkInterface:
+.. _v2.2.1_infrastructure_NetworkInterface:
 
 NetworkInterface
 """"""""""""""""
-*Inherits from* :ref:`InfrastructureElement <v2.2_infrastructure_InfrastructureElement>`
+*Inherits from* :ref:`InfrastructureElement <v2.2.1_infrastructure_InfrastructureElement>`
 
 * Associations:
 	* ``belongsTo`` → Network [0..1]
@@ -377,18 +379,18 @@ NetworkInterface
 	* ``endPoint`` [Integer]
 	* ``speed`` [String]
 
-.. _v2.2_infrastructure_PhysicalComputingNode:
+.. _v2.2.1_infrastructure_PhysicalComputingNode:
 
 PhysicalComputingNode
 """""""""""""""""""""
-*Inherits from* :ref:`ComputingNode <v2.2_infrastructure_ComputingNode>`
+*Inherits from* :ref:`ComputingNode <v2.2.1_infrastructure_ComputingNode>`
 
 
-.. _v2.2_infrastructure_Rule:
+.. _v2.2.1_infrastructure_Rule:
 
 Rule
 """"
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Attributes:
 	* ``kind`` [String]
@@ -397,21 +399,21 @@ Rule
 	* ``toPort`` [Integer]
 	* ``cidr`` [String]
 
-.. _v2.2_infrastructure_SecurityGroup:
+.. _v2.2.1_infrastructure_SecurityGroup:
 
 SecurityGroup
 """""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``rules`` → Rule [0..*]
 	* ``ifaces`` → NetworkInterface [0..*]
 
-.. _v2.2_infrastructure_Storage:
+.. _v2.2.1_infrastructure_Storage:
 
 Storage
 """""""
-*Inherits from* :ref:`InfrastructureElement <v2.2_infrastructure_InfrastructureElement>`
+*Inherits from* :ref:`InfrastructureElement <v2.2.1_infrastructure_InfrastructureElement>`
 
 * Associations:
 	* ``ifaces`` → NetworkInterface [0..*]
@@ -420,49 +422,49 @@ Storage
 	* ``size_gb`` [Integer]
 	* ``cost`` [Integer]
 
-.. _v2.2_infrastructure_Subnet:
+.. _v2.2.1_infrastructure_Subnet:
 
 Subnet
 """"""
-*Inherits from* :ref:`Network <v2.2_infrastructure_Network>`
+*Inherits from* :ref:`Network <v2.2.1_infrastructure_Network>`
 
 * Associations:
 	* ``connectedTo`` → Network [0..*]
 
-.. _v2.2_infrastructure_Swarm:
+.. _v2.2.1_infrastructure_Swarm:
 
 Swarm
 """""
-*Inherits from* :ref:`ComputingGroup <v2.2_infrastructure_ComputingGroup>`
+*Inherits from* :ref:`ComputingGroup <v2.2.1_infrastructure_ComputingGroup>`
 
 * Associations:
 	* ``roles`` → SwarmRole [0..*]
 
-.. _v2.2_infrastructure_SwarmRole:
+.. _v2.2.1_infrastructure_SwarmRole:
 
 SwarmRole
 """""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``nodes`` → ComputingNode [0..*]
 * Attributes:
 	* ``kind`` [String]
 
-.. _v2.2_infrastructure_VMImage:
+.. _v2.2.1_infrastructure_VMImage:
 
 VMImage
 """""""
-*Inherits from* :ref:`ComputingNodeGenerator <v2.2_infrastructure_ComputingNodeGenerator>`
+*Inherits from* :ref:`ComputingNodeGenerator <v2.2.1_infrastructure_ComputingNodeGenerator>`
 
 * Associations:
 	* ``generatedVMs`` → VirtualMachine [0..*]
 
-.. _v2.2_infrastructure_VirtualMachine:
+.. _v2.2.1_infrastructure_VirtualMachine:
 
 VirtualMachine
 """"""""""""""
-*Inherits from* :ref:`ComputingNode <v2.2_infrastructure_ComputingNode>`
+*Inherits from* :ref:`ComputingNode <v2.2.1_infrastructure_ComputingNode>`
 
 * Associations:
 	* ``generatedFrom`` → VMImage [0..1]
@@ -472,68 +474,81 @@ VirtualMachine
 concrete
 ^^^^^^^^
 
-.. _v2.2_concrete_ComputingGroup:
+.. _v2.2.1_concrete_ComputingGroup:
 
 ComputingGroup
 """"""""""""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → ComputingGroup [1..1]
 
-.. _v2.2_concrete_ConcreteElement:
+.. _v2.2.1_concrete_ConcreteElement:
 
 ConcreteElement
 """""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
+* Associations:
+	* ``refs`` → ConcreteElement [0..*]
 * Attributes:
 	* ``configurationScript`` [String]
 	* ``preexisting`` [Boolean]
 
-.. _v2.2_concrete_ConcreteInfrastructure:
+.. _v2.2.1_concrete_ConcreteInfrastructure:
 
 ConcreteInfrastructure
 """"""""""""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
 	* ``providers`` → RuntimeProvider [0..*]
 
-.. _v2.2_concrete_ContainerImage:
+.. _v2.2.1_concrete_ContainerImage:
 
 ContainerImage
 """"""""""""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → ContainerImage [0..1]
 
-.. _v2.2_concrete_FunctionAsAService:
+.. _v2.2.1_concrete_FunctionAsAService:
 
 FunctionAsAService
 """"""""""""""""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → FunctionAsAService [0..1]
 
-.. _v2.2_concrete_Network:
+.. _v2.2.1_concrete_GenericResource:
+
+GenericResource
+"""""""""""""""
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
+
+* Attributes:
+	* ``type`` [String]
+	* ``gname`` [String]
+
+.. _v2.2.1_concrete_Network:
 
 Network
 """""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → Network [0..1]
 
-.. _v2.2_concrete_RuntimeProvider:
+.. _v2.2.1_concrete_RuntimeProvider:
 
 RuntimeProvider
 """""""""""""""
-*Inherits from* :ref:`DOMLElement <v2.2_commons_DOMLElement>`
+*Inherits from* :ref:`DOMLElement <v2.2.1_commons_DOMLElement>`
 
 * Associations:
+	* ``resources`` → GenericResource [0..*]
 	* ``vms`` → VirtualMachine [0..*]
 	* ``vmImages`` → VMImage [0..*]
 	* ``containerImages`` → ContainerImage [0..*]
@@ -542,29 +557,29 @@ RuntimeProvider
 	* ``faas`` → FunctionAsAService [0..*]
 	* ``group`` → ComputingGroup [0..*]
 
-.. _v2.2_concrete_Storage:
+.. _v2.2.1_concrete_Storage:
 
 Storage
 """""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → Storage [0..1]
 
-.. _v2.2_concrete_VMImage:
+.. _v2.2.1_concrete_VMImage:
 
 VMImage
 """""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → VMImage [0..1]
 
-.. _v2.2_concrete_VirtualMachine:
+.. _v2.2.1_concrete_VirtualMachine:
 
 VirtualMachine
 """"""""""""""
-*Inherits from* :ref:`ConcreteElement <v2.2_concrete_ConcreteElement>`
+*Inherits from* :ref:`ConcreteElement <v2.2.1_concrete_ConcreteElement>`
 
 * Associations:
 	* ``maps`` → VirtualMachine [0..1]

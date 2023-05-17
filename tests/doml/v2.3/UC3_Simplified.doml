@@ -1,0 +1,294 @@
+doml uc3_openstack
+
+application app {
+
+	// need to define all sw components of the project this is a placeholder
+	// need to understand what is really needed in this spec
+	// need to specify all provides/consumes
+
+	software_component iwg {
+		provides { net_info }
+	}
+	software_component osint {
+		provides { osint_info }
+		consumes { net_info, get_twitter, ewcf_rest_interface }
+	}
+	software_component ewcf {
+		provides { ewcf_rest_interface }
+		consumes { get_firebase }
+	}
+	saas external_twitter {
+		provides { get_twitter @ "https://twitter_api/get" }
+	}
+	saas external_firebase {
+		provides { get_firebase @ "https://firebase_api/get" }
+	}
+
+}
+
+infrastructure infra {
+	// Giuseppe - tutti devono collegarsi a oam
+	// Giuseppe - igw deve avere reti oam la net1 verso osint e net2 verso network 5G 
+	
+	// VMs region
+	vm igw_vm {
+		os "Ubuntu-Focal-20.04-Daily-2022-04-19"
+		size "small"
+		
+		iface igw_vm_oam {
+			belongs_to subnet_oam_igw
+		}
+		
+		iface igw_vm_net1 {
+			belongs_to subnet_net1_igw
+		}
+		
+		iface igw_vm_net2 {
+			belongs_to subnet_net2_igw
+		}
+		
+		credentials ssh_key
+	}
+
+	// Giuseppe - osint deve avere reti oam la net1 verso igw e net3 verso network internet
+	vm osint_vm {
+		os "Ubuntu-Focal-20.04-Daily-2022-04-19"
+		size "small"
+		
+		iface osint_vm_oam {
+			belongs_to subnet_oam_osint
+		}
+		
+		iface osint_vm_net1 {
+			belongs_to subnet_net1_osint
+		}
+		
+		iface osint_vm_net3 {
+			belongs_to subnet_net3_osint
+		}
+
+		credentials ssh_key
+	}
+
+	// Giuseppe - ewcf deve avere reti oam la net1 verso osint e net3 verso network internet
+	vm ewcf_vm {
+		os "Ubuntu-Focal-20.04-Daily-2022-04-19"
+		size "small"
+		
+		iface ewcf_vm_oam {
+			belongs_to subnet_oam_ewcf
+		}
+		
+		iface ewcf_vm_net1 {
+			belongs_to subnet_net1_ewcf
+		}
+		
+		iface ewcf_vm_net3 {
+			belongs_to subnet_net3_ewcf
+		}
+
+		credentials ssh_key
+	}
+
+	// Network region
+	
+	// Internal Network
+	net oam {
+		protocol "TCP/IP"
+		cidr "16.0.0.0/24"
+		
+		subnet subnet_oam_igw {
+			protocol "TCP/IP"
+			cidr "16.0.1.0/26"
+		}
+		
+		subnet subnet_oam_osint {
+			protocol "TCP/IP"
+			cidr "16.0.1.64/26"
+		}
+		
+		subnet subnet_oam_ewcf {
+			protocol "TCP/IP"
+			cidr "16.0.1.128/26"
+		}
+	}
+	
+	// Internal network
+	net net1 {
+		protocol "TCP/IP"
+		cidr "16.0.1.0/24"
+
+		// Subnets definition
+		subnet subnet_net1_igw {
+			connections {
+				subnet_net1_osint
+			}
+			protocol "TCP/IP"
+			cidr "16.0.1.0/25"
+		}
+
+		subnet subnet_net1_osint {
+			connections {
+				subnet_net1_igw
+				subnet_net1_ewcf
+			}
+			protocol "TCP/IP"
+			cidr "16.0.1.64/26"
+		}
+		
+		subnet subnet_net1_ewcf {
+			connections {
+				subnet_net1_osint
+			}
+			protocol "TCP/IP"
+			cidr "16.0.1.128/26"
+		}
+	}
+	
+	// Network connecting igw to 5G
+	net net2 {
+		protocol "TCP/IP"
+		cidr "16.0.2.0/24"
+		
+		subnet subnet_net2_igw {
+			protocol "TCP/IP"
+			cidr "16.0.2.0/25"
+		}
+		
+		gateway net2_igw {
+			// TODO: Define address
+			address "16.0.2.22"
+		}
+		
+	}
+	
+	// Network connecting osint and ewcf to Internet
+	net net3 {
+		protocol "TCP/IP"
+		cidr "16.0.3.0/24"
+		
+		subnet subnet_net3_osint {
+			protocol "TCP/IP"
+			cidr "16.0.3.0/25"
+		}
+		
+		subnet subnet_net3_ewcf {
+			protocol "TCP/IP"
+			cidr "16.0.3.128/25"
+		}
+		
+		gateway net3_igw {
+			// TODO: Define address
+			address "16.0.3.22"
+		}
+	}
+
+	// credentials region
+	key_pair ssh_key {
+		user "ubuntu"
+		keyfile "AAAAB3NzaC1yc2EAAAADAQABAAABAQC63ZvocMhX1LsdUlhzqLNSsh/Wotk/EMfDfa9pBHC52NXv05uENTjd/LBj8PS5JXEr7rKG9Zpj2Kj/PA7Gu0X1BZMwAiNR2dKjw9K0HO6Ozj3elCA7WjjotiQcO+OLWefE1PUW8/BJjtjFD/qf6wJd8CwInH8cjpkccQQfA55IXXegQMm5qv2a/S2XBvMMzv1dzsCy5UPO7tiOz4RBfi56JK8o2mDR327yY7+goA0HQz5tSN1X98+vxLpTPD5qINEFfVk1yNmf/ls3C7EBZQFJ6tsHgl070ymdBLHccmDMEYktzBnc/IhNWMq7K4IxwgFfQ7YSzAAqMr1n04+3oUeB"
+		algorithm "RSA"
+		bits 4096
+	}
+
+	// Security region
+
+	// security group is left as originally defined needs to be updated
+	security_group sg {
+		egress icmp {
+			protocol "ICMP"
+			from_port -1
+			to_port -1
+			cidr ["0.0.0.0/0"]
+		}
+		ingress http {
+			protocol "TCP"
+			from_port 80
+			to_port 80
+			cidr ["0.0.0.0/0"]
+		}
+		ingress https {
+			protocol "TCP"
+			from_port 443
+			to_port 443
+			cidr ["0.0.0.0/0"]
+		}
+		ingress ssh {
+			protocol "TCP"
+			from_port 22
+			to_port 22
+			cidr ["0.0.0.0/0"]
+		}
+
+		ifaces igw_vm_oam, igw_vm_net1, igw_vm_net2, osint_vm_oam, osint_vm_net1, osint_vm_net3, ewcf_vm_oam, ewcf_vm_net1, ewcf_vm_net3
+	}
+}
+
+deployment config1 {
+	osint -> osint_vm,
+	iwg -> igw_vm,
+	ewcf -> ewcf_vm
+}
+
+active deployment config1
+
+concretizations {
+	concrete_infrastructure con_infra {
+
+		provider openstack {
+
+			// Concrete computing nodes region
+
+			vm concrete_osint_vm {
+				maps osint_vm
+			}
+
+			vm concrete_igw_vm {
+				maps igw_vm
+			}
+
+			vm concrete_ewcf_vm {
+				maps ewcf_vm
+			}
+
+			// Concrete Network region
+			net concrete_oam {
+				maps oam
+			}
+			
+			net concrete_net1 {
+				maps net1
+			}
+			
+			net concrete_net2 {
+				maps net2
+			}
+			
+			net concrete_net3 {
+				maps net3
+			}
+				
+		}
+	}
+	active con_infra
+}
+
+// It's currently not possible to provide "storage" for OPEN provider (IOP)
+// req4 "elements" => "VM, storage";
+// Required performance was too much (70%), modified after talking with Eneko
+
+optimization opt {
+	
+	objectives {
+		"cost" => min
+		"performance" => max
+		"availability" => max
+	}
+	nonfunctional_requirements {
+		req1 "Cost <= 300" max 300.0 => "cost";
+		req2 "Performance >= 7%" min 7.0 => "performance";
+		req3 "Provider" values "OPEN" => "provider";
+		req4 "elements" => "VM, VM, VM";
+	}
+	
+}

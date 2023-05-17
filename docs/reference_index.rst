@@ -9,3 +9,7 @@ For a comprehensive list of all the classes, attributes and associations support
 -----------------------------------------------
 :doc:`Reference for DOML v2.2 <reference_v2.2>`
 -----------------------------------------------
+:doc:`Reference for DOML v2.2.1 <reference_v2.2.1>`
+---------------------------------------------------
+:doc:`Reference for DOML v2.3 <reference_v2.3>`
+-----------------------------------------------

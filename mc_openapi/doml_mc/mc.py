@@ -71,6 +71,7 @@ class ModelChecker:
                     rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
 
             # Uncomment for ease of debug
+            # Disables parallel parsing
             # results =[ worker(0, len(req_store) )]
 
             ret = MCResults([])
