@@ -21,10 +21,13 @@ class DOMLVersion(Enum):
         """Retrieve DOML version from string.
         Try to be less pedantic about versions
         e.g.: 2.0 becomes V2_0"""
-        doml_ver = v.replace(".", "_")
+        doml_ver = v.replace(".", "_").replace("v", "V")
         if doml_ver[0] != "V":
             doml_ver = "V" + doml_ver
         return DOMLVersion[doml_ver]
+    
+    def has_DOMLR_support(v: "DOMLVersion"):
+        return v != DOMLVersion.V2_0 and v != DOMLVersion.V2_1
 
 
 Multiplicity = tuple[Literal["0", "1"], Literal["1", "*"]]

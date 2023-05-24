@@ -82,11 +82,28 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
             try:
                 dv = doml_versions.pop(0)
                 doml_version = dv
-                return parse_xmi_model(raw_model, dv), dv
+                parsed_xmi_model = parse_xmi_model(raw_model, dv)
+                # Try to extract the user-specified version from the DOML
+                try:
+                    model_version = parsed_xmi_model.version
+                    if model_version:
+                        try:
+                            dv = DOMLVersion.get(model_version)
+                            return parse_xmi_model(raw_model, dv), dv
+                        except:
+                            MSG_ERR_INVALID_DOML_VERSION = f"DOML requires version \"{model_version}\", but could not parse it with that version. Is the version valid?"
+                            logging.error(MSG_ERR_INVALID_DOML_VERSION)
+                            raise RuntimeError(MSG_ERR_INVALID_DOML_VERSION)
+                except:
+                    pass
+                # DOML version is not specified, proceed as usual 
+                return parsed_xmi_model, dv
             except Exception as e:
                 logging.info(f"Couldn't parse with DOML {dv.value}. Trying another version...")
                 if len(doml_versions) == 0:
-                    raise e
+                    MSG_ERR_NO_DOML_VERSIONS = "No other compatible DOML versions found!"
+                    logging.error(MSG_ERR_NO_DOML_VERSIONS)
+                    raise RuntimeError(MSG_ERR_NO_DOML_VERSIONS)
                 else:
                     return get_model(raw_model, doml_version)
 
@@ -95,7 +112,7 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
         try:
             model = parse_xmi_model(raw_model, doml_version)
         except:
-            raise Exception("Parsing of DOML failed. Perhaps you are using the wrong DOML version or IDE?")
+            raise RuntimeError("Parsing of DOML failed. Perhaps you are using the wrong DOML version or IDE?")
 
     logging.info(f"Model '{model.name}' parsed as DOML {doml_version.value}")
 

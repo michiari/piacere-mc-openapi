@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="ASCII"?>
-<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="nginx_func_req" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
+<commons:DOMLModel xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:app="http://www.piacere-project.eu/doml/application" xmlns:commons="http://www.piacere-project.eu/doml/commons" xmlns:infra="http://www.piacere-project.eu/doml/infrastructure" xmlns:optimization="http://www.piacere-project.eu/doml/optimization" name="nginx_func_req" version="v2.2" activeConfiguration="//@configurations.0" activeInfrastructure="//@concretizations.0">
   <application name="app">
     <components xsi:type="app:SoftwareComponent" name="nginx">
       <annotations xsi:type="commons:SProperty" key="source_code" value="/usr/share/nginx/html/index.html"/>
@@ -55,5 +55,5 @@
   <configurations name="conf">
     <deployments component="//@application/@components.0" node="//@infrastructure/@groups.0/@machineDefinition"/>
   </configurations>
-  <functionalRequirements name="req_ext" description="```&#xA;&#xA; + &quot;VM must have iface and iface is connected to network&quot;&#xA; &#x9;forall vm (&#xA; &#x9;&#x9;vm is class abstract.VirtualMachine&#xA;    &#x9;implies&#xA;        (&#xA;        &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;        &#x9;and&#xA;        &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;        )&#xA;    )&#xA; error: &quot;TEST ERROR&quot;&#xA; &#xA; ```"/>
+  <functionalRequirements name="req_ext" description="```&#xA;&#xA;# + &quot;VM must have iface and iface is connected to network&quot;&#xA;# &#x9;forall vm (&#xA;# &#x9;&#x9;vm is class abstract.VirtualMachine&#xA;#    &#x9;implies&#xA;#        (&#xA;#        &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;#        &#x9;and&#xA;#        &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;#        )&#xA;#    )&#xA;# error: &quot;TEST ERROR&quot;&#xA;&#xA;- &quot;VM must have iface and iface is connected to network&quot;&#xA;&#x9;vm is class abstract.VirtualMachine&#xA;&#x9;and&#xA;&#x9;not exists iface, net (&#xA;    &#x9;vm has abstract.ComputingNode.ifaces iface&#xA;    &#x9;and&#xA;    &#x9;iface has abstract.NetworkInterface.belongsTo net&#xA;    &#xA;    )&#xA; error: &quot;TEST ERROR&quot;&#xA; &#xA; ```"/>
 </commons:DOMLModel>

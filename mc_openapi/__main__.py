@@ -134,9 +134,7 @@ else:
             print("Failed to parse the DOMLR.", file=sys.stderr)
             exit(-1)
 
-    if (doml_ver == DOMLVersion.V2_2
-    or  doml_ver == DOMLVersion.V2_2_1
-    or  doml_ver == DOMLVersion.V2_3):
+    if DOMLVersion.has_DOMLR_support(doml_ver):
         model = get_pyecore_model(doml_xmi, doml_ver)
         func_reqs = model.functionalRequirements.items
         for req in func_reqs:
