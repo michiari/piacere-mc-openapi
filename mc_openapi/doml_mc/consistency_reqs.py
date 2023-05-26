@@ -19,7 +19,7 @@ def subclass_cond(smtenc: SMTEncoding, subclasses: set[str], elem: ExprRef) -> E
         )
     )
 
-
+# TODO: CHECK WHAT IS WRONG ELSE SKIP IT
 def get_attribute_type_reqs(mm: MetaModel) -> RequirementStore:
     subclasses_dict = get_subclasses_dict(mm)
     # A type validity constraint is added for every attribute:

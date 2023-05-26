@@ -170,6 +170,17 @@ that the memory used by ``c1`` is less than the one used by ``c2`` (note that we
 
     c1 has infrastructure.ComputingNode.memory_mb < c2 infrastructure.ComputingNode.memory_mb
 
+Flags
+=====
+You can alter the behaviour of the model checker through flags, which are simple parameters you can put at the beginnning of DOMLR.
+
+They are the following:
+    - ``%IGNORE <id of requirement>`` skips a specific built-in requirement.
+    - ``%IGNORE_BUILTIN`` skips all built-in requirements.
+    - ``%CHECK <id of requirement>`` enables an optional requirement.
+    - ``%CHECK_CONSISTENCY`` enables optional consistency checks.
+    - ``%CSP`` enables a Cloud Service Provider compatibility report, that is appended to the results.
+
 Grammar
 =======
 See the `grammar.lark`_ file on GitHub, it's written in a EBNF-like form.

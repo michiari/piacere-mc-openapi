@@ -1,12 +1,11 @@
 import datetime
 import logging
 import os
-from mc_openapi.doml_mc.domlr_parser.parser import DOMLRTransformer, Parser
-from mc_openapi.doml_mc.imc import RequirementStore
+from mc_openapi.doml_mc.html_output import html_template
 
 from mc_openapi.doml_mc.intermediate_model.metamodel import DOMLVersion
-from mc_openapi.doml_mc.xmi_parser.doml_model import get_pyecore_model
-from .doml_mc import ModelChecker, MCResult
+from mc_openapi.doml_mc import verify_model, init_model, verify_csp_compatibility
+from .doml_mc import MCResult
 
 
 def make_error(user_msg, debug_msg=None):
@@ -17,58 +16,62 @@ def make_error(user_msg, debug_msg=None):
     return result
 
 
-def post(body, version=None):
+def modelcheck(body, version=None):
+    return mc(body, version)
+
+def modelcheck_html(body, version=None):
+    return mc(body, version, isHtml=True)
+
+def mc(body, version, isHtml = False):
     doml_xmi = body
+    doml_version_str: str = None
+    doml_version: DOMLVersion = None
     try:
-        doml_version = None
-        try:
-            doml_version: str = os.environ["DOML_VERSION"]
-        except:
-            pass
-        if version:
-            doml_version: str = version
-        if doml_version:
-            doml_version = DOMLVersion.get(doml_version)
+        # First try to infer DOML version from ENV, then query params
+        doml_version_str = os.environ.get("DOML_VERSION") or version
+        
+        if doml_version_str:
+            doml_version = DOMLVersion.get(doml_version_str)
             logging.info(f"Forcing DOML {doml_version.value}")
 
-        dmc = ModelChecker(doml_xmi, doml_version)
+        dmc = init_model(doml_xmi, doml_version)
 
-        user_req_store = None
-        user_req_str_consts = []
+        res, msg = verify_model(dmc)
 
-        # Add support for Requirements in DOML
-        if DOMLVersion.has_DOMLR_support(dmc.doml_version):
-            domlr_parser = Parser(DOMLRTransformer)
-            model = get_pyecore_model(doml_xmi, dmc.doml_version)
-            func_reqs = model.functionalRequirements.items
-
-            user_req_store = RequirementStore()
-
-            for req in func_reqs:
-                req_name: str = req.name
-                req_text: str = req.description
-                req_text = req_text.replace("```", "")
-                doml_req_store, doml_req_str_consts = domlr_parser.parse(
-                    req_text)
-                user_req_store += doml_req_store
-                user_req_str_consts += doml_req_str_consts
-
-        results = dmc.check_requirements(threads=2, user_requirements=user_req_store,
-                                         user_str_values=user_req_str_consts, consistency_checks=False, timeout=50)
-        res, msg = results.summarize()
-
-        if res == MCResult.sat:
-            return {
-                "result": "sat",
-                "doml_version": dmc.doml_version.value
-            }
+        if isHtml:
+            return html_template("DOML Model Checker - Results", "HELLO WORLD!")
         else:
-            return {
-                "result": res.name,
-                "doml_version": dmc.doml_version.value,
-                "description": f'[Using DOML {dmc.doml_version.value}]\n{msg}'
-            }
+            if res == MCResult.sat:
+                return {
+                    "result": "sat",
+                    "doml_version": dmc.doml_version.value
+                }
+            else:
+                return {
+                    "result": res.name,
+                    "doml_version": dmc.doml_version.value,
+                    "description": f'[Using DOML {dmc.doml_version.value}]\n{msg}'
+                }
 
-    # TODO: Make noteworthy exceptions to at least tell the user what is wrong
+    except Exception as e:
+        return make_error("The supplied DOMLX model is malformed or its DOML version is unsupported.", debug_msg=str(e)), 400
+
+def csp(body, version=None):
+    doml_xmi = body
+    doml_version_str: str = None
+    doml_version: DOMLVersion = None
+    try:
+        # First try to infer DOML version from ENV, then query params
+        doml_version_str = os.environ.get("DOML_VERSION") or version
+        
+        if doml_version_str:
+            doml_version = DOMLVersion.get(doml_version_str)
+            logging.info(f"Forcing DOML {doml_version.value}")
+
+        dmc = init_model(doml_xmi, doml_version)
+        
+        # TODO: Do something with the results
+        verify_csp_compatibility(dmc)
+
     except Exception as e:
         return make_error("The supplied DOMLX model is malformed or its DOML version is unsupported.", debug_msg=str(e)), 400

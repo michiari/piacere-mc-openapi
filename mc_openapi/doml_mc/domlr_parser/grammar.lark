@@ -1,3 +1,13 @@
+start          : (flags)? (requirements)?
+
+flags           : flag (flag)*
+
+flag            : "%IGNORE" CONST       -> flag_requirement_ignore
+                | "%IGNORE_BUILTIN"     -> flag_requirement_ignore_builtin
+                | "%CHECK" CONST        -> flag_requirement_check
+                | "%CHECK_CONSISTENCY"   -> flag_requirement_check_consistency
+                | "%CSP"                -> flag_csp 
+
 requirements    : requirement (requirement)*
 
 requirement     : FLIP_EXPR req_name expression "error:" error_desc

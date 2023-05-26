@@ -62,6 +62,9 @@ class RequirementStore:
     def get_one_requirement(self, index: int) -> Requirement:
         return self.get_all_requirements()[index]
 
+    def skip_requirements_by_id(self, requirement_ids: list[str]):
+        self.requirements = [r for r in self.requirements if not r.assert_name in requirement_ids]
+
     def __len__(self):
         return len(self.get_all_requirements())
 

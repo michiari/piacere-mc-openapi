@@ -27,6 +27,7 @@ class DOMLVersion(Enum):
         return DOMLVersion[doml_ver]
     
     def has_DOMLR_support(v: "DOMLVersion"):
+        """DOMLR is available in v2.2 and later"""
         return v != DOMLVersion.V2_0 and v != DOMLVersion.V2_1
 
 

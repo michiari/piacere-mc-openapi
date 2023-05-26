@@ -8,10 +8,10 @@ paths:
   /modelcheck:
     post:
       summary: Verify a DOML model
-      description: Send a DOML model in XMI format and a requirement to check.
-        The response says whether the requirements are satisfied by the model,
+      description: Send a DOML model in XMI format.
+        The response says whether the model satisfies the requirements,
         with a description of the issue if it is not.
-      operationId: mc_openapi.handlers.post
+      operationId: mc_openapi.handlers.modelcheck
       requestBody:
         content:
           application/xml:
@@ -46,6 +46,80 @@ paths:
                 required:
                   - result
           description: OK - model checking succeded
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: malformed request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: internal error
+  /modelcheck_html:
+    post:
+      summary: Verify a DOML model
+      description: Send a DOML model in XMI format.
+        The response says whether the model satisfies the requirements,
+        with a description of the issue if it is not. The output is in HTML.
+      operationId: mc_openapi.handlers.modelcheck_html
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: string
+        required: true
+      parameters:
+        - in: query
+          name: version
+          schema:
+            type: string
+          description: >
+            The DOML version you're currently using, written as e.g. `2.0` or `V2_0`.
+            If not specified, it will try to infer it by trying to parse it for each supported
+            DOML version, starting with the most recent.
+          required: false
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: OK - model checking succeded
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: malformed request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: internal error
+  /csp:
+    post:
+      summary: Verify compatibility of a DOML model with a set of Cloud Service Providers.
+      description: Send a DOML model in XMI format and a requirement to check.
+        The response says whether the model can be deployed on the supported CSPs.
+        It produces a compatibility matrix and lists required properties for each CSP.
+      operationId: mc_openapi.handlers.csp
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: string
+        required: true
+      responses:
+        "200":
+          content:
+            text/html:
+              schema:
+                type: string
+          description: OK - CSP compatibility successfully completed.
         "400":
           content:
             application/json:

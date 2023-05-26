@@ -52,3 +52,5 @@ urllib3==1.26.14
 uvicorn==0.20.0
 Werkzeug==2.2.2
 z3-solver==4.11.2.0
+tabulate==0.9.0
+pytest-xdist==3.3.1

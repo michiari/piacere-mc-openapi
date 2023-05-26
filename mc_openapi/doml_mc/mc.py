@@ -19,36 +19,21 @@ from .xmi_parser.doml_model import parse_doml_model
 
 class ModelChecker:
     def __init__(self, xmi_model: bytes, doml_version: Optional[DOMLVersion] = None):
-        self.intermediate_model, self.doml_version = parse_doml_model(
+        self.intermediate_model, self.doml_version, self.domlr_requirements = parse_doml_model(
             xmi_model, doml_version)
         self.metamodel = MetaModels[self.doml_version]
         self.inv_assoc = InverseAssociations[self.doml_version]
         
     def check_requirements(
         self,
-        threads: int = 1,
-        user_requirements: Optional[RequirementStore] = None,
+        req_store: RequirementStore,
+        threads: int = 2,
         user_str_values: list[str] = [],
-        skip_common_requirements: bool = False,
-        consistency_checks: bool = False,
-        timeout: Optional[int] = None
+        timeout: Optional[int] = None,
+        disable_multithreading: bool = False
     ) -> MCResults:
         assert self.metamodel and self.inv_assoc
-        req_store = RequirementStore([])
-
-        if not skip_common_requirements:
-            req_store += CommonRequirements[self.doml_version]
-
-        if consistency_checks:
-            req_store = req_store \
-                + get_attribute_type_reqs(self.metamodel) \
-                + get_attribute_multiplicity_reqs(self.metamodel) \
-                + get_association_type_reqs(self.metamodel) \
-                + get_association_multiplicity_reqs(self.metamodel) \
-                + get_inverse_association_reqs(self.inv_assoc)
-
-        if user_requirements:
-            req_store += user_requirements
+ 
 
         def worker(rfrom: int, rto: int):
             imc = IntermediateModelChecker(
@@ -67,13 +52,14 @@ class ModelChecker:
                 yield rfrom, rto
 
         try:
-            with parallel_backend('loky', n_jobs=threads):
-                results = Parallel(timeout=timeout)(delayed(worker)(
-                    rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))
+            if disable_multithreading:
+                # Easier debug
+                results =[ worker(0, len(req_store) )]
 
-            # Uncomment for ease of debug
-            # Disables parallel parsing
-            # results =[ worker(0, len(req_store) )]
+            else: 
+                with parallel_backend('loky', n_jobs=threads):
+                    results = Parallel(timeout=timeout)(delayed(worker)(
+                        rfrom, rto) for rfrom, rto in split_reqs(len(req_store), threads))            
 
             ret = MCResults([])
             for res in results:

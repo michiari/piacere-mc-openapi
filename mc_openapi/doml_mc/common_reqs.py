@@ -1,7 +1,4 @@
-from re import M
-from typing import Optional
-
-from z3 import And, Const, Consts, Exists, ExprRef, ModelRef, Not, Or, Solver, ForAll
+from z3 import And, Const, Consts, Exists, ExprRef, Not, Or, Solver
 
 from .error_desc_helper import get_user_friendly_name
 from .imc import Requirement, RequirementStore, SMTEncoding, SMTSorts
@@ -14,7 +11,7 @@ def get_consts(smtsorts: SMTSorts, consts: list[str]) -> list[ExprRef]:
 
 # Assertions
 
-def vm_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+def vm_has_iface(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     vm, iface = get_consts(smtsorts, ["vm", "iface"])
     return And(
         smtenc.element_class_fun(
@@ -557,7 +554,7 @@ def iface_uniq(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
 # All software components have been deployed to some node.
 
 
-def all_SoftwareComponents_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
+def all_software_components_deployed(smtenc: SMTEncoding, smtsorts: SMTSorts) -> ExprRef:
     sc, deployment, ielem = get_consts(smtsorts, ["sc", "deployment", "ielem"])
     return And(
         smtenc.element_class_fun(
@@ -836,14 +833,14 @@ def ed_external_services_must_have_https(solver: Solver, smtsorts: SMTSorts, int
         return "A Security Group doesn't have a rule to access an external service (SaaS) through HTTPS (port 443)."
 
 
-RequirementLists = {
+REQUIREMENTS = {
     DOMLVersion.V2_0: [
-        (vm_iface, "vm_iface",
+        (vm_has_iface, "vm_has_iface",
          "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net, "software_package_iface_net",
          "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed",
+        (all_software_components_deployed, "all_software_components_deployed",
          "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed",
          "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
@@ -855,12 +852,12 @@ RequirementLists = {
         # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_1: [
-        (vm_iface, "vm_iface",
+        (vm_has_iface, "vm_has_iface",
          "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net_v2_1, "software_package_iface_net",
          "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed",
+        (all_software_components_deployed, "all_software_components_deployed",
          "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed",
          "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
@@ -872,12 +869,12 @@ RequirementLists = {
         # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_2: [
-        (vm_iface, "vm_iface",
+        (vm_has_iface, "vm_has_iface",
          "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net_v2_1, "software_package_iface_net",
          "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed",
+        (all_software_components_deployed, "all_software_components_deployed",
          "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed",
          "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
@@ -889,12 +886,12 @@ RequirementLists = {
         # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_2_1: [
-        (vm_iface, "vm_iface",
+        (vm_has_iface, "vm_has_iface",
          "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net_v2_1, "software_package_iface_net",
          "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed",
+        (all_software_components_deployed, "all_software_components_deployed",
          "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed",
          "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
@@ -906,12 +903,12 @@ RequirementLists = {
         # (external_services_must_have_https, "external_services_must_have_https", "All external SaaS should be accessed through HTTPS.", ed_external_services_must_have_https)
     ],
     DOMLVersion.V2_3: [
-        (vm_iface_v2_3, "vm_iface",
+        (vm_iface_v2_3, "vm_has_iface",
          "All virtual machines must be connected to at least one network interface.", ed_vm_iface),
         (software_package_iface_net_v2_3, "software_package_iface_net",
          "All software packages can see the interfaces they need through a common network.", ed_software_package_iface_net),
         (iface_uniq, "iface_uniq", "There are no duplicated interfaces.", ed_iface_uniq),
-        (all_SoftwareComponents_deployed, "all_SoftwareComponents_deployed",
+        (all_software_components_deployed, "all_software_components_deployed",
          "All software components have been deployed to some node.", ed_all_SoftwareComponents_deployed),
         (all_infrastructure_elements_deployed, "all_infrastructure_elements_deployed",
          "All abstract infrastructure elements are mapped to an element in the active concretization.", ed_all_infrastructure_elements_deployed),
@@ -931,5 +928,5 @@ CommonRequirements = {ver: RequirementStore(
             *rt[:-1], error_description=("BUILTIN", rt[-1]), flipped=True
         ) for rt in reqs
     ])
-    for ver, reqs in RequirementLists.items()
+    for ver, reqs in REQUIREMENTS.items()
 }

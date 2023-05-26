@@ -48,26 +48,9 @@ def parse_xmi_model(raw_model: bytes, doml_version: DOMLVersion) -> EObject:
     resource.load()
     return resource.contents[0]
 
+DOMLRRawRequirements = list[tuple[str, str]]
 
-def infer_domlx_version(raw_model: bytes) -> DOMLVersion:
-    root = etree.fromstring(raw_model)
-    if root.tag == "{http://www.piacere-project.eu/doml/commons}DOMLModel":
-        if "version" in root.attrib:
-            v_str = root.attrib["version"]
-            try:
-                return DOMLVersion(v_str)
-            except ValueError:
-                if v_str == "v2":
-                    return DOMLVersion.V2_0
-                else:
-                    raise RuntimeError(f"DOML model is using an unsupported version: {v_str}")
-        else:
-            return DOMLVersion.V2_0  # Should be DOMLVersion.V1_0, but we use V2_0 because the 2.1 IDE doesn't fill it
-    else:
-        raise RuntimeError(f"The DOML version is unsupported or the model is malformed.\nLowest supported version is: {DOMLVersion.V2_0}")
-
-
-def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion]:    
+def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> Tuple[IntermediateModel, DOMLVersion, Optional[DOMLRRawRequirements]]:    
     # if doml_version is None:
     #     doml_version = infer_domlx_version(raw_model)
 
@@ -132,10 +115,11 @@ def parse_doml_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> T
 
     reciprocate_inverse_associations(im, InverseAssociations[doml_version])
 
-    return im, doml_version
-
-def get_pyecore_model(raw_model: bytes, doml_version: Optional[DOMLVersion]) -> EObject:
-    if doml_version is None:
-        doml_version = infer_domlx_version(raw_model)
-    # TODO: See if its better replaced by the get_model() in parse_doml_version() 
-    return parse_xmi_model(raw_model, doml_version)
+    # If there are DOMLR requirements
+    try:
+        domlr = model.functionalRequirements.items
+        domlr = [(req.name, req.description.replace("```", "")) for req in domlr]
+        logging.info("Found DOMLR requirements in DOML model.")
+    except Exception:
+        domlr = None
+    return im, doml_version, domlr
