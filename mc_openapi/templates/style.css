@@ -33,6 +33,26 @@ ul {
     list-style: none;
 }
 
+.req-errs {
+    display: block;
+}
+
+.req-err {
+    background-color: rgba(255, 0, 0, 0.2);
+    margin-bottom: 1em;
+    padding: 1em;
+    border-radius: 4px;
+}
+
+h4 {
+    margin: none;
+}
+
+.notes {
+    list-style: circle;
+    padding-left: 1.5em;
+}
+
 li {
     word-wrap: anywhere;
     margin-bottom: 1em;
@@ -41,4 +61,15 @@ li {
 li:last-child {
     margin-bottom: 0;
 }
-  
+
+.unsat {
+    color: red;
+}
+
+.sat {
+    color: green;
+}
+
+.dontknow {
+    color: orange;
+}

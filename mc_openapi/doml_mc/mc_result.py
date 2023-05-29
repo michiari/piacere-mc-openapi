@@ -37,7 +37,7 @@ class MCResults:
     def __init__(self, results: list[tuple[MCResult, Literal["BUILTIN", "USER"], str]]):
         self.results = results
 
-    def summarize(self) -> tuple[MCResult, str]:
+    def summarize(self) -> dict[str, any]:
         some_unsat = any(res == MCResult.unsat for res, _, _ in self.results)
         some_dontknow = any(
             res == MCResult.dontknow for res, _, _ in self.results)
@@ -61,17 +61,20 @@ class MCResults:
                 err_msg += '[Built-in]\n' + builtin_err_msg
             if user_err_msgs:
                 err_msg += '\n[User]\n' + user_err_msg
-
             if some_dontknow:
                 err_msg += '\n' + MCResults.DONTKNOW_MSG
-            logging.info(err_msg)
-            return MCResult.unsat, err_msg
+            
+            return {
+                'result': MCResult.unsat,
+                'builtin': builtin_err_msgs,
+                'user': user_err_msgs,
+                'dontknow': some_dontknow,
+                'description': err_msg
+            }
         elif some_dontknow:
-            logging.info(MCResults.DONTKNOW_MSG)
-            return MCResult.dontknow, MCResults.DONTKNOW_MSG
+            return {'result': MCResult.dontknow, 'description': MCResults.DONTKNOW_MSG }
         else:
-            logging.info(MCResults.SATISFIED_MSG)
-            return MCResult.sat, MCResults.SATISFIED_MSG
+            return {'result': MCResult.sat, 'description': MCResults.SATISFIED_MSG }
 
     def add_results(self, results: "MCResults"):
         self.results.extend(results.results)

@@ -90,9 +90,11 @@ def verify_model(
         disable_multithreading=(threads == 1)
     )
 
-    res, msg = results.summarize()
+    res = results.summarize()
 
-    return res, msg
+    logging.info(res)
+
+    return res
 
 def synthesize_model(dmc: ModelChecker, external_domlr: str, max_tries: int):
     logging.warn("Synthesis is experimental and might not be up-to-date with the latest DOML.")
@@ -139,7 +141,6 @@ def synthesize_model(dmc: ModelChecker, external_domlr: str, max_tries: int):
 
     reqs = user_req_store
 
-    # TODO: Filter requirements according to flags
     reqs += builtin_requirements
 
     state = DOMLS.solve(

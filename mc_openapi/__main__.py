@@ -102,15 +102,15 @@ else:
 
                 print(tabulate(csp_v, headers='firstrow', tablefmt='fancy_grid'))
         else:
-            result, msg = verify_model(dmc, domlr_src, args.threads, args.consistency, args.skip_builtin)
+            res = verify_model(dmc, domlr_src, args.threads, args.consistency, args.skip_builtin)
 
             print("[RESULT]")
-            if result == MCResult.sat:
-                print("sat")
+            if res['result'] == MCResult.sat:
+                print(res['description'])
             else:
-                print(result.name)
+                print(res['result'])
                 print("[ERRORS]")
-                print("\033[91m{}\033[00m".format(msg))
+                print("\033[91m{}\033[00m".format(res['description']))
 
 
     else: # Synthesis

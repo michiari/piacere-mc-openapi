@@ -6,16 +6,25 @@
 </head>
 <body>
     <h1>DOML Model Checker - Dashboard</h1>
-    <input type="file" id="domlx" name="domlx" accept="text/xml,.domlx" />
+    
+    <label for="domlx-csp">CSP Compatibility Check</label>
+    <input type="file" id="domlx-csp" name="domlx-csp" accept="text/xml,.domlx" />
+    <br/>
+    <br/>
+    <label for="domlx-mc">Model Check</label>
+    <input type="file" id="domlx-mc" name="domlx-mc" accept="text/xml,.domlx" />
 
     <script>
-        const input = document.querySelector("#domlx")
-        input.addEventListener('change', readFile, false)
+        const input_csp = document.querySelector("#domlx-csp")
+        input_csp.addEventListener('change', readFileCSP, false)
+        
+        const input_mc = document.querySelector("#domlx-mc")
+        input_mc.addEventListener('change', readFileMC, false)
 
-        async function readFile(event) {
+        async function readFile(event, url) {
             const file = event.target.files[0]
             if (file) {
-                const res = await fetch('/csp_html', {
+                const res = await fetch(url, {
                     method: 'POST',
                     headers: {
                         "Content-Type": "application/xml",
@@ -39,6 +48,13 @@
             }
         }
 
+        async function readFileCSP(event) {
+            readFile(event, '/csp_html')
+        }
+
+        async function readFileMC(event) {
+            readFile(event, '/modelcheck_html')
+        }
     </script>
 </body>
 </html>

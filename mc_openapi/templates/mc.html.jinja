@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>DOML Model Checker Report</title>
+    <meta charset="utf8">
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <h1>DOML Model Checker Report</h1>
+    <h2>Result: 
+        {% if result == "sat" %}    
+        <span class="sat">Satisfied</span>
+        {% else %}
+        <span class="unsat">Unsatisfied</span>
+        {% endif %}
+    </h2>
+    <p>DOML Version: {{doml_version}}</p>
+    {% if result != "sat" %}
+        {% if builtin %}
+
+        <h3>Built-in Requirements</h3>
+        <ul class="req-errs">
+        {% for req in builtin %}
+            <li class="req-err">{{req}}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        {% if user %}
+        <h3>User Requirements</h3>
+        <ul class="req-errs">
+        {% for req in user %}
+            <li class="req-err">
+                <h4>{{req[0]}}</h4>
+                <p>{{req[1]}}</p>
+                <ul class="notes">
+                    {% for note in req[2] %}
+                    <li>{{note}}</li>
+                    {% endfor %}
+                </ul>
+            </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        {% if dontknow %}
+        <p class="dontknow">There's been a timeout, so certain requirements couldn't be verified.</p>
+        </ul>
+        {% endif %}
+    {% endif %}
+
+</body>
+</html>
