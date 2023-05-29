@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>DOML Model Checker - Dashboard</title>
+    <meta charset="utf-8">
+</head>
+<body>
+    <h1>DOML Model Checker - Dashboard</h1>
+    <input type="file" id="domlx" name="domlx" accept="text/xml,.domlx" />
+
+    <script>
+        const input = document.querySelector("#domlx")
+        input.addEventListener('change', readFile, false)
+
+        async function readFile(event) {
+            const file = event.target.files[0]
+            if (file) {
+                const res = await fetch('/csp_html', {
+                    method: 'POST',
+                    headers: {
+                        "Content-Type": "application/xml",
+                    },
+                    redirect: "follow",
+                    body: await file.text()
+                })
+                if (res.status === 200) {
+                    newHtml = await res.text()
+                    // Fix escaped quotes for tags
+                    newHtml = newHtml.replaceAll("\\\"", "\"")
+                    // Unescape emojis
+                    // See: https://stackoverflow.com/questions/51640509/
+                    newHtml = newHtml.replace(/\\u[\dA-F]{4}/gi, function(match) {
+                        return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
+                    })
+                    // Remove trailing and heading "
+                    newHtml = newHtml.substr(1, newHtml.length - 3)
+                    document.write(newHtml)
+                }
+            }
+        }
+
+    </script>
+</body>
+</html>

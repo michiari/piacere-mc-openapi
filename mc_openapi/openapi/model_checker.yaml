@@ -113,6 +113,58 @@ paths:
             schema:
               type: string
         required: true
+      parameters:
+      - in: query
+        name: version
+        schema:
+          type: string
+        description: >
+          The DOML version you're currently using, written as e.g. `2.0` or `V2_0`.
+          If not specified, it will try to infer it by trying to parse it for each supported
+          DOML version, starting with the most recent.
+        required: false
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: object
+          description: OK - CSP compatibility successfully completed.
+        "400":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: malformed request
+        "500":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/error'
+          description: internal error
+  /csp_html:
+    post:
+      summary: Verify compatibility of a DOML model with a set of Cloud Service Providers.
+      description: Send a DOML model in XMI format and a requirement to check.
+        The response says whether the model can be deployed on the supported CSPs.
+        It produces a compatibility matrix and lists required properties for each CSP.
+      operationId: mc_openapi.handlers.csp_html
+      requestBody:
+        content:
+          application/xml:
+            schema:
+              type: string
+        required: true
+      parameters:
+      - in: query
+        name: version
+        schema:
+          type: string
+        description: >
+          The DOML version you're currently using, written as e.g. `2.0` or `V2_0`.
+          If not specified, it will try to infer it by trying to parse it for each supported
+          DOML version, starting with the most recent.
+        required: false
       responses:
         "200":
           content:

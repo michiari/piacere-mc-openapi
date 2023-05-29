@@ -2,6 +2,9 @@
 import argparse
 import logging
 from logging.config import dictConfig
+import re
+
+from tabulate import tabulate
 
 from mc_openapi.app_config import app
 from mc_openapi.doml_mc import DOMLVersion, init_model, verify_csp_compatibility, verify_model, synthesize_model
@@ -88,8 +91,16 @@ else:
 
         # Check CSP Compatibility
         if args.csp:
-            verify_csp_compatibility(dmc)
-            # TODO: Do something with the results
+            csp = verify_csp_compatibility(dmc)
+            for csp_k, csp_v in csp.items():
+                # Format items in minreq
+                if csp_k == 'minreq':
+                    for row in csp_v:
+                        for index, col in enumerate(row):
+                            if index > 0 and isinstance(col, list):
+                                row[index] = "\n".join(col)
+
+                print(tabulate(csp_v, headers='firstrow', tablefmt='fancy_grid'))
         else:
             result, msg = verify_model(dmc, domlr_src, args.threads, args.consistency, args.skip_builtin)
 

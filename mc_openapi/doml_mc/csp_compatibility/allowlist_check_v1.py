@@ -3,7 +3,6 @@
 from mc_openapi.doml_mc.intermediate_model.doml_element import DOMLElement, IntermediateModel
 from mc_openapi.doml_mc.intermediate_model.metamodel import DOMLVersion
 from difflib import SequenceMatcher
-from tabulate import tabulate
 
 import re
 
@@ -11,22 +10,25 @@ class CSPCompatibilityValidator:
     def __init__(self, data: dict) -> None:
         self.data = data
 
-    def check(self, model: IntermediateModel, doml_version: DOMLVersion) -> list[str]:
+    def check(self, model: IntermediateModel, doml_version: DOMLVersion) -> dict[str, list]:
         """Returns a list of CSP supported by the model"""
+
+        ret = {}
 
         # Check KeyPair
         keypairs = self.check_keypair(model)
         if len(keypairs) > 1:
-            print(tabulate(keypairs, headers='firstrow', tablefmt='fancy_grid'))
-
+            ret['keypairs'] = keypairs
         # ComputingNode and inheritors
         arch, os, minreq = self.check_computing_nodes(model)
         if len(arch) > 1:
-            print(tabulate(arch, headers='firstrow', tablefmt='fancy_grid'))
+            ret['arch'] = arch
         if len(os) > 1:
-            print(tabulate(os, headers='firstrow', tablefmt='fancy_grid'))
+            ret['os'] = os
         if len(minreq) > 1:
-            print(tabulate(minreq, headers='firstrow', tablefmt='fancy_grid'))
+            ret['minreq'] = minreq
+
+        return ret
 
     def check_keypair(self, model: IntermediateModel):
         elems = model.values()
@@ -107,13 +109,18 @@ class CSPCompatibilityValidator:
                         CHECKS[req] = el.associations.get(req) is not None or el.attributes.get(req) is not None
                 
                 all_req_valid = all([v for v in CHECKS.values()])
-                value = '✅' if all_req_valid else '❌'
+                value = ['✅' if all_req_valid else '❌']
                 if not all_req_valid:
-                    value += " Missing:\n" + "\n".join([
-                        k.replace("_", ".", 1).replace("::", ".")
+                    value += [
+                        re.sub(r"\s*,\s*", " -> ", k)
+                        .replace("_", ".", 1)
+                        .replace("::", ".")
+                        .replace("[", "")
+                        .replace("]", "")
+                        .replace("'", "")
                         for k, v in CHECKS.items() 
                         if v is False
-                    ])
+                    ]
                 ROW.append(value)
             MINREQ_TABLE.append(ROW)
 

@@ -8,7 +8,7 @@ from mc_openapi.doml_mc import ModelChecker
 from mc_openapi.doml_mc.common_reqs import CommonRequirements
 from mc_openapi.doml_mc.consistency_reqs import get_association_multiplicity_reqs, get_association_type_reqs, get_attribute_multiplicity_reqs, get_attribute_type_reqs, get_inverse_association_reqs
 from mc_openapi.doml_mc.csp_compatibility import \
-    CSPCompatibilityValidator as csp_comp
+    CSPCompatibilityValidator as CSPCompatibility
 from mc_openapi.doml_mc.domlr_parser import (DOMLRTransformer, Parser,
                                              SynthesisDOMLRTransformer)
 from mc_openapi.doml_mc.imc import RequirementStore
@@ -155,6 +155,5 @@ def synthesize_model(dmc: ModelChecker, external_domlr: str, max_tries: int):
 
     
 def verify_csp_compatibility(dmc: ModelChecker):
-    csp_comp.check(dmc.intermediate_model, dmc.doml_version)
-    # TODO: Refactor CSP to output a datastructure/table to print via CLI or REST
-    exit(0)
+    return CSPCompatibility.check(dmc.intermediate_model, dmc.doml_version)
+    

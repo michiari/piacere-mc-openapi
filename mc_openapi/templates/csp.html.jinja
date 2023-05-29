@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>CSP Compatibility Report</title>
+    <meta charset="utf8">
+    <style type="text/css">
+        {% include "style.css" %}
+    </style>
+</head>
+<body>
+    <h1>CSP Compatibility Report</h1>
+
+    {% if keypairs %}
+    <h2>Keypairs</h2>
+        <table>
+        {% for row in keypairs %}
+        {% set outer_loop = loop %}
+            <tr>
+            {% for column in row %}
+            {% if outer_loop.first or loop.first %}
+                <th>{{ column }}</th>
+            {% else %}
+                <td>{{ column }}</td>
+            {% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if os %}
+    <h2>OS</h2>
+        <table>
+        {% for row in os %}
+        {% set outer_loop = loop %}
+            <tr>
+            {% for column in row %}
+            {% if outer_loop.first or loop.first %}
+                <th>{{ column }}</th>
+            {% else %}
+                <td>{{ column }}</td>
+            {% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if arch %}
+        <h2>Architectures</h2>
+        <table>
+        {% for row in arch %}
+        {% set outer_loop = loop %}
+            <tr>
+            {% for column in row %}
+            {% if outer_loop.first or loop.first %}
+                <th>{{ column }}</th>
+            {% else %}
+                <td>{{ column }}</td>
+            {% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if minreq %}
+        <h2>Minimum Requirements</h2>
+        <table>
+        {% for row in minreq %}
+        {% set outer_loop = loop %}
+            <tr>
+            {% for column in row %}
+            {% if outer_loop.first or loop.first %}
+                <th>{{ column }}</th>
+            {% else %}
+            <td>
+                <ul>
+                    {% for item in column %}
+                    <li>
+                        {{ item }}
+                    </li>
+                    {% endfor %}
+                </ul>
+            </td>
+            {% endif %}
+            {% endfor %}
+            </tr>
+        {% endfor %}
+        </table>
+    {% endif %}
+</body>
+</html>
