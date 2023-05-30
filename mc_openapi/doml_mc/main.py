@@ -92,6 +92,8 @@ def verify_model(
 
     res = results.summarize()
 
+    res['doml_version'] = dmc.doml_version.name
+
     logging.info(res)
 
     return res
